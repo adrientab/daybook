@@ -1,0 +1,1198 @@
+/* ============================================================
+   Theme values in one place. Change a colour here and it
+   updates everywhere it's used. (Groundwork for the Settings tab.)
+   ============================================================ */
+:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --sidebar-bg: #5b6e9a;
+  --sidebar-text: #c7cdd9;
+  --accent: #263346;
+  --text: #1a1a1a;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --radius: 10px;
+  --hour-height: 48px;   /* height of one hour row in the calendar */
+}
+:root { color-scheme: light; }
+
+/* ============================================================
+   Dark theme. Most of the app already paints from the variables
+   above, so redefining them here flips the bulk of it. The rules
+   after the variable block patch the handful of spots that had
+   hardcoded light colors (hovers, chips, the suggestions panel).
+   ============================================================ */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #15181e;
+  --surface: #1f242c;
+  --sidebar-bg: #46577c;
+  --sidebar-text: #c3cbdb;
+  --accent: #2b3852;
+  --text: #e6e8ec;
+  --muted: #9aa3b2;
+  --border: #333b47;
+}
+
+[data-theme="dark"] .btn:hover,
+[data-theme="dark"] .journal-day-btn:hover,
+[data-theme="dark"] .week-day:hover,
+[data-theme="dark"] .todo-card:hover { background: #2a313d; }
+
+[data-theme="dark"] .rant-item:hover { background: #262d38; }
+
+[data-theme="dark"] .rant-tag { background: #2b3347; color: #c3cce6; }
+
+[data-theme="dark"] .cal-col.today { background-color: rgba(120, 150, 255, 0.08); }
+
+[data-theme="dark"] .suggest-panel,
+[data-theme="dark"] .filter-panel { background: #1c2434; border-color: #2c3750; }
+[data-theme="dark"] .suggest-tab,
+[data-theme="dark"] .suggest-item { background: var(--surface); }
+
+[data-theme="dark"] .cat-row .cat-color { background: var(--surface); }
+
+/* The dark --accent is too dark for text on the modal surface, so give the
+   Morning/Evening headers a lighter shade in dark mode for readability. */
+[data-theme="dark"] .day-section-head { color: #b9c4e0; }
+
+/* Form controls: keep them readable on dark surfaces. */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+[data-theme="dark"] ::placeholder { color: var(--muted); }
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ---- Overall layout: sidebar + main, side by side ---- */
+.app { display: flex; min-height: 100vh; }
+
+/* ---- Sidebar ---- */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  padding: 16px 12px;
+  transition: width 0.18s ease;
+}
+.sidebar.collapsed { width: 64px; }
+
+.sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-left: 12px;
+}
+.sidebar-head h1 { font-size: 1.1rem; color: #fff; margin: 0; white-space: nowrap; }
+.sidebar.collapsed .sidebar-head { justify-content: center; padding-left: 0; }
+.sidebar.collapsed .sidebar-head h1 { display: none; }
+
+.sidebar-toggle {
+  background: none; border: none; color: var(--sidebar-text);
+  cursor: pointer; font-size: 1.3rem; line-height: 1;
+  padding: 2px 8px; border-radius: 6px;
+}
+.sidebar-toggle:hover { background: rgba(255, 255, 255, 0.12); }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--sidebar-text);
+  font-size: 0.95rem;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.nav-item:hover { background: rgba(255, 255, 255, 0.10); }
+.nav-item.active { background: var(--accent); color: #fff; }
+
+.nav-icon { width: 20px; height: 20px; flex-shrink: 0; }
+
+/* Collapsed: center the icons and hide the labels */
+.sidebar.collapsed .nav-item { justify-content: center; gap: 0; padding: 10px 0; }
+.sidebar.collapsed .nav-label { display: none; }
+
+/* ---- Main content + view switching ---- */
+.main { flex: 1; padding: 15px 20px; }
+.view { display: none; }
+.view.active { display: block; }
+h2 { margin-top: 0; }
+.placeholder { color: var(--muted); }
+.hint { color: var(--muted); font-size: 0.85rem; margin: 0 0 12px; }
+
+/* ---- Buttons ---- */
+.btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.btn:hover { background: #f0f1f3; }
+.btn-primary { background: var(--sidebar-bg); border-color: var(--sidebar-bg); color: #fff; }
+.btn-primary:hover { background: #4c5d82; }
+.btn-danger { background: #fee2e2; border-color: #fecaca; color: #b91c1c; }
+.btn-danger:hover { background: #fecaca; }
+
+/* ---- Journal ---- */
+#date { color: var(--muted); margin-top: 0; margin-bottom: 20px; }
+#entry {
+  width: 100%;
+  min-height: 320px;
+  padding: 16px;
+  font-size: 1rem;
+  line-height: 1.6;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  resize: vertical;
+  font-family: inherit;
+  background: var(--surface);
+}
+#status { color: #2e7d32; font-size: 0.85rem; height: 20px; margin-top: 8px; }
+
+/* ============================================================
+   CALENDAR
+   ============================================================ */
+.cal-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.cal-nav { display: flex; gap: 6px; }
+.cal-title { font-size: 1.15rem; margin: 0; white-space: nowrap; }
+/* Page title (size handled by .cal-left h2) */
+.schedule-heading { margin: 0; }
+.cal-left { flex: 1; align-self: stretch; }      /* title spans the full header height */
+.cal-left h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;   /* title top-aligned in the header */
+}
+.cal-center { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+/* To-Do only: stack the "+ To-do" button under the title at the far left. Same
+   1.5rem title + 4px gap as .cal-center, so the button lands on the same row as
+   the week arrows. Scoped to this view — Journal and Goals share .cal-left h2. */
+#view-todo .cal-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+#view-todo .cal-left h2 { height: auto; }
+.cal-center .cal-title { font-size: 1.5rem; color: var(--muted); } /* month/year, quieter than the title */
+.cal-right { flex: 1; display: flex; justify-content: flex-end; }
+/* Guard: while the panel is closed the toggle floats over the toolbar's left
+   corner, so reserve space there on narrow windows to keep the centered
+   group from sliding underneath it. (Not needed when open — the toggle is
+   over the panel then, not the toolbar.) */
+#view-schedule:not(.suggest-open) .cal-right { min-width: 170px; }
+
+.calendar {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  position: relative;
+}
+
+/* + Event tucked into the header's top-left corner cell */
+.cal-corner { display: flex; padding: 6px; }
+.cal-corner #addEventBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* Header row of weekday names. 8 columns: time gutter + 7 days. */
+.cal-header {
+  display: grid;
+  grid-template-columns: 60px repeat(7, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+.cal-corner { border-right: 1px solid var(--border); }
+.cal-day-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  border-right: 1px solid var(--border);
+  color: var(--muted);
+}
+.cal-day-name:last-child { border-right: none; }
+.cal-day-name .dow { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.cal-day-name .dom { font-size: 1.25rem; color: var(--text); font-weight: 600; }
+.cal-day-name.today .dom {
+  background: var(--accent);
+  color: #fff;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+}
+
+/* Scrollable body so all 24 hours fit without a giant page. */
+.cal-scroll { max-height: 68vh; overflow-y: auto; scrollbar-gutter: stable; }
+.cal-grid {
+  display: grid;
+  grid-template-columns: 60px repeat(7, 1fr);
+}
+
+/* Time gutter (left column of hour labels) */
+.cal-gutter { border-right: 1px solid var(--border); }
+.cal-hour-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-align: right;
+  padding-right: 6px;
+  transform: translateY(-6px); /* nudge label up to sit on the hour line */
+}
+
+/* A single day column. Events are positioned absolutely inside it. */
+.cal-col {
+  position: relative;
+  border-right: 1px solid var(--border);
+  /* faint horizontal line at the top of every hour */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--border) 0, var(--border) 1px,
+    transparent 1px, transparent var(--hour-height)
+  );
+}
+.cal-col:last-child { border-right: none; }
+.cal-col.today { background-color: rgba(59, 130, 246, 0.04); }
+
+/* Solid bar marking the current time on today's column. pointer-events:none so
+   it never swallows a click or a drag-create on the grid underneath. */
+.cal-now {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ef4444;
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* An event block */
+.cal-event {
+  position: absolute;
+  left: 1px;
+  width: calc(100% - 2px);
+  border-radius: 6px;
+  padding: 3px 6px;
+  color: #fff;
+  font-size: 0.75rem;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+.cal-event:hover { filter: brightness(0.94); }
+.cal-event-title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  flex: 0 0 auto;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--clamp, 3);
+  line-clamp: var(--clamp, 3);
+}
+/* The time keeps its full line (flex 0 0 auto), so notes can never squeeze it. */
+.cal-event-time { opacity: 0.85; font-size: 0.68rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 0 0 auto; min-height: 0; }
+/* Notes sit under the time and are the first thing clipped when space runs out. */
+.cal-event-notes { opacity: 0.75; font-size: 0.65rem; overflow-wrap: anywhere; overflow: hidden; flex: 0 1 auto; min-height: 0; }
+.cal-event--short { padding-top: 1px; padding-bottom: 1px; justify-content: flex-start; }
+
+/* Hold the title to move the event; it lifts while dragging. */
+.cal-event-grab { cursor: grab; }
+.cal-event-moving {
+  opacity: 0.85;
+  z-index: 20;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.cal-event-moving .cal-event-grab { cursor: grabbing; }
+
+/* Overlapping events share the column, so each is narrow. Let the title wrap
+   onto multiple lines (breaking long words if needed) and shrink the text a
+   little so more of it is readable; the block's overflow still clips any
+   excess, and the title takes priority over the time. */
+.cal-event--narrow {
+  font-size: 0.68rem;
+  padding-left: 4px;
+  padding-right: 4px;
+  justify-content: flex-start;
+}
+.cal-event--narrow .cal-event-title {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 0.68rem;
+  line-height: 1.15;
+}
+.cal-event--narrow .cal-event-time { font-size: 0.62rem; }
+
+/* Translucent block shown while dragging out a new event */
+.cal-event.provisional {
+  background: var(--sidebar-bg);
+  opacity: 0.55;
+  border: 1px dashed rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;            /* above the suggestions panel/button and drop preview */
+  background: rgba(0, 0, 0, 0.4);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 100%;
+  max-width: 380px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+.modal h3 { margin-top: 0; }
+.field { display: block; margin-bottom: 14px; }
+.field > span { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+.field textarea { resize: vertical; line-height: 1.5; }
+
+/* Two-button segmented control (to-do type) */
+.seg { display: flex; margin-bottom: 14px; }
+.seg-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.seg-btn + .seg-btn { border-left: none; }
+.seg-btn:first-child { border-radius: 8px 0 0 8px; }
+.seg-btn:last-child { border-radius: 0 8px 8px 0; }
+.seg-btn:hover { background: var(--bg); }
+.seg-btn.active {
+  background: var(--sidebar-bg);
+  border-color: var(--sidebar-bg);
+  color: #fff;
+}
+
+/* "Part of" search + results */
+.typeahead { position: relative; }
+.typeahead-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  margin-top: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 170px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+.typeahead-item { padding: 8px 10px; font-size: 0.85rem; cursor: pointer; }
+.typeahead-item:hover { background: var(--bg); }
+.typeahead-empty { padding: 8px 10px; font-size: 0.8rem; color: var(--muted); }
+
+/* A category locked to its deadline: readable, clearly not editable. */
+#todoCategory:disabled { opacity: 0.55; cursor: not-allowed; }
+#todoCatNote { margin: 4px 0 0; }
+.field-row { display: flex; gap: 12px; }
+.field-row .field { flex: 1; }
+.modal-actions { display: flex; align-items: center; gap: 8px; margin-top: 20px; }
+.modal-actions .spacer { flex: 1; }
+
+/* ============================================================
+   CALENDAR FOOTER — one journal button per day
+   ============================================================ */
+.cal-topbar, .cal-footer {
+  display: grid;
+  grid-template-columns: 60px repeat(7, 1fr);
+  background: var(--surface);
+}
+.cal-topbar { border-bottom: 1px solid var(--border); }
+.cal-footer { border-top: 1px solid var(--border); }
+.cal-topbar .cal-corner, .cal-footer .cal-corner { border-right: 1px solid var(--border); }
+.cal-bar-cell { padding: 6px; border-right: 1px solid var(--border); }
+.cal-bar-cell:last-child { border-right: none; }
+.journal-day-btn {
+  width: 100%;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  padding: 6px 2px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.journal-day-btn:hover { background: #f0f1f3; color: var(--text); }
+.journal-day-btn.has-entry {
+  border-style: solid;
+  border-color: #22c55e;
+  color: #15803d;
+  background: rgba(34, 197, 94, 0.08);
+}
+
+/* ============================================================
+   DAILY JOURNAL MODAL — mood sliders
+   ============================================================ */
+.modal-journal { max-width: 440px; max-height: 86vh; overflow-y: auto; }
+.scale-field { margin-bottom: 16px; }
+.scale-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+.scale-label output {
+  font-weight: 600;
+  font-size: 0.95rem;
+  min-width: 24px;
+  text-align: center;
+  color: var(--accent);
+}
+.scale-slider { width: 100%; }
+
+/* Stack journal buttons in each bar cell */
+.cal-bar-cell { display: flex; flex-direction: column; gap: 4px; }
+
+/* Subheading inside a modal (e.g. "How did each activity feel?") */
+.modal-subhead {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 18px 0 10px;
+}
+
+/* Per-activity rating rows */
+.cat-dot {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.act-time { color: var(--muted); font-size: 0.72rem; }
+
+/* Small directional hint under a slider */
+.slider-hint { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+/* ============================================================
+   CATEGORIES EDITOR + recurring-delete prompt
+   ============================================================ */
+.optional { color: var(--muted); font-weight: normal; }
+
+.cat-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.cat-row .cat-color {
+  width: 42px; height: 34px; padding: 2px;
+  border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer;
+}
+.cat-row .cat-name {
+  flex: 1; padding: 8px 10px;
+  border: 1px solid var(--border); border-radius: 8px;
+  font-size: 0.95rem; font-family: inherit;
+}
+.cat-row .cat-del { font-size: 0.8rem; padding: 6px 10px; }
+#catList { margin-bottom: 12px; }
+
+/* Stacked action buttons (used by the recurring-delete prompt) */
+.modal-actions.stack { flex-direction: column; align-items: stretch; }
+
+/* ============================================================
+   SECTION HEADERS (shared by Goals + Journal)
+   ============================================================ */
+.section-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 12px;
+}
+#addGoalBtn { margin-left: auto; } /* stays right now the Goals title is gone */
+.section-head h2 { margin: 0; font-size: 1.5rem; }
+
+/* ============================================================
+   GOALS
+   ============================================================ */
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+.goal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.goal-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.goal-title { font-weight: 600; }
+.goal-edit { font-size: 0.75rem; padding: 4px 8px; }
+.goal-hours { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+.goal-notes { color: var(--muted); font-size: 0.85rem; margin-top: 6px; line-height: 1.4; overflow-wrap: anywhere; }
+.goal-progress { font-size: 0.8rem; color: var(--accent); margin-top: 8px; }
+.milestones { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.milestone { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; }
+.milestone.done .m-text { text-decoration: line-through; color: var(--muted); }
+.m-date { margin-left: auto; color: var(--muted); font-size: 0.75rem; }
+
+/* Milestone editor rows in the goal modal */
+.ms-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.ms-text, .ms-date {
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 0.9rem; font-family: inherit;
+}
+.ms-text { flex: 1; }
+.ms-del { font-size: 0.8rem; padding: 6px 10px; }
+
+/* ============================================================
+   JOURNAL — week strip
+   ============================================================ */
+.week-days { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin: 12px 0 20px; }
+.week-day {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  cursor: pointer; font: inherit; color: var(--text);
+}
+.week-day:hover { background: #f0f1f3; }
+.week-day.today { border-color: var(--accent); }
+.wd-dow { font-size: 0.7rem; text-transform: uppercase; color: var(--muted); }
+.wd-num { font-weight: 600; }
+.wd-dots { display: flex; gap: 4px; margin-top: 2px; }
+.wd-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); }
+.wd-dot.on { background: #22c55e; }
+
+/* JOURNAL — weekly review card */
+.weekly-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 28px;
+}
+.weekly-card h4 { margin: 0 0 12px; }
+#weeklyGoals { margin-bottom: 14px; }
+.wk-goal {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem;
+}
+.wk-goal:last-child { border-bottom: none; }
+.wk-goal-target { color: var(--muted); font-size: 0.8rem; }
+.wk-hours-input { width: 56px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; font: inherit; }
+.save-status { color: #2e7d32; font-size: 0.85rem; align-self: center; margin-right: 8px; }
+
+/* JOURNAL — rants */
+.rants-head { margin-top: 8px; }
+.rant-composer {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+#rantTitle, #rantText, #rantTags {
+  width: 100%; padding: 10px; border: 1px solid var(--border);
+  border-radius: 8px; font: inherit; box-sizing: border-box;
+}
+#rantTitle { font-weight: 600; }
+#rantText { resize: none; overflow: hidden; line-height: 1.5; min-height: 5rem; }
+.rant-composer-actions { display: flex; justify-content: flex-end; }
+.tag-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
+.tag-chip {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 999px;
+  padding: 4px 10px; font-size: 0.78rem; cursor: pointer; color: var(--muted);
+}
+.tag-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tag-chip.clear { font-style: italic; }
+.rant-list { display: flex; flex-direction: column; gap: 10px; }
+.rant-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px;
+  cursor: pointer;
+}
+.rant-item:hover { border-color: var(--sidebar-bg); background: #f7f9ff; }
+.rant-title { font-weight: 600; }
+.rant-meta { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 0.75rem; margin-bottom: 6px; }
+.rant-del { background: none; border: none; color: var(--muted); font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 0 4px; }
+.rant-del:hover { color: #b91c1c; }
+.rant-body { line-height: 1.5; }
+.rant-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.rant-tag { background: #eef2ff; color: #4338ca; border-radius: 999px; padding: 2px 8px; font-size: 0.72rem; }
+
+/* Rant detail (big popup) */
+.modal-large { max-width: 640px; width: 92%; }
+.rant-modal-meta { color: var(--muted); font-size: 0.8rem; margin-bottom: 14px; }
+.rant-modal-body {
+  line-height: 1.6;
+  max-height: 50vh;
+  overflow-y: auto;
+  margin-bottom: 18px;
+  white-space: normal;
+}
+
+/* The 8th box: weekly journal */
+.week-day.weekly {
+  justify-content: center;
+  background: var(--sidebar-bg);
+  color: #fff;
+  border-color: var(--sidebar-bg);
+  font-weight: 600;
+  text-align: center;
+}
+.week-day.weekly:hover { background: var(--sidebar-bg); filter: brightness(1.1); }
+.wd-weekly-label { font-size: 0.72rem; line-height: 1.15; }
+.week-day.weekly .wd-dot { margin-top: 5px; }
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+.settings-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  max-width: 520px;
+  margin-top: 12px;
+}
+.settings-card h4 { margin: 0 0 6px; }
+.settings-card .hint { margin: 0 0 12px; }
+.settings-card.danger-zone { border-color: #fecaca; }
+
+/* ============================================================
+   GOAL TARGET ROW
+   ============================================================ */
+.target-row { display: flex; gap: 8px; }
+.target-row select { flex: 1; }
+.target-row input { width: 90px; }
+.target-row select, .target-row input {
+  padding: 8px 10px; border: 1px solid var(--border);
+  border-radius: 8px; font-size: 0.95rem; font-family: inherit;
+}
+
+/* ============================================================
+   COMBINED DAY MODAL — section headers
+   ============================================================ */
+.day-section-head {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 18px 0 10px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--border);
+}
+
+/* ============================================================
+   CALENDAR — to-do lines under each day header
+   ============================================================ */
+.cal-todos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 80%;
+  margin-top: 5px;
+}
+.cal-todo-line { height: 3px; border-radius: 2px; cursor: pointer; }
+.cal-todo-line:hover { outline: 1px solid rgba(0,0,0,0.25); }
+.cal-todo-line.done { opacity: 0.35; }
+
+/* Timed to-do marker sitting on the grid at its due time */
+.cal-todo-marker {
+  position: absolute;
+  left: 2px; right: 2px;
+  transform: translateY(-50%);   /* centre the band on the due time */
+  height: 14px;                  /* taller transparent band = easy to click */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 6;                    /* above event blocks */
+  cursor: pointer;
+}
+.cal-todo-dots { display: flex; align-items: center; }
+.cal-todo-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: 0 0 0 1.5px #fff, 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.cal-todo-dot + .cal-todo-dot { margin-left: 2px; } /* a small gap between clustered dots */
+.cal-todo-dot.done { opacity: 0.4; }
+.cal-todo-rule {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.75); /* outline so it pops over events */
+}
+.cal-todo-marker:hover .cal-todo-rule { filter: brightness(1.15); }
+
+/* ============================================================
+   TO-DO BOARD
+   ============================================================ */
+/* minmax(0, 1fr) not 1fr: a plain 1fr has an automatic content-based minimum,
+   so a long deadline name in a card would push its whole column wider. */
+.todo-board { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.todo-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+.todo-col.today { border-color: var(--accent); }
+.todo-col-head {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.todo-col-head .todo-dom { font-weight: 600; color: var(--text); }
+.todo-col-body { padding: 8px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+
+.todo-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+/* A "do on" item is a soft plan, so its edge is dashed; a deadline stays solid. */
+.todo-card--do { border-left-style: dashed; }
+
+/* What a "do on" item is working toward — the deadline's name, then its date
+   on its own line. The arrow hangs in the indent so both lines start at the
+   same column, and a long name wraps instead of stretching the column. */
+.todo-link-chip {
+  position: relative;
+  margin-top: 3px;
+  padding-left: 11px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+.todo-link-arrow { position: absolute; left: 0; top: 0; }
+.todo-link-name { overflow-wrap: anywhere; }
+.todo-link-due { opacity: 0.85; }
+.todo-card:hover { background: #eef0f3; }
+.todo-card input { margin-top: 2px; flex-shrink: 0; }
+.todo-title { line-height: 1.3; word-break: break-word; }
+.todo-card.done .todo-title { text-decoration: line-through; color: var(--muted); }
+
+/* ============================================================
+   SCALE FIELDS — clear "answered vs not answered" + clear button
+   ============================================================ */
+.scale-controls { display: inline-flex; align-items: center; gap: 8px; }
+.scale-out { font-weight: 600; font-size: 0.95rem; min-width: 24px; text-align: right; color: var(--accent); }
+.scale-clear {
+  border: none; background: none; cursor: pointer;
+  color: var(--muted); font-size: 1.1rem; line-height: 1; padding: 0 2px;
+  border-radius: 4px;
+}
+.scale-clear:hover { color: #b91c1c; background: #fee2e2; }
+
+/* Unanswered state: greyed slider, muted "Not answered", hide the clear (×) */
+.scale-field.unanswered .scale-slider { opacity: 0.4; }
+.scale-field.unanswered .scale-out { color: var(--muted); font-weight: 400; font-style: italic; font-size: 0.8rem; }
+.scale-field.unanswered .scale-clear { display: none; }
+
+/* ============================================================
+   COLOUR-CODED CATEGORY SELECT
+   ============================================================ */
+#evtCategory, #todoCategory { transition: border-color 0.12s ease; }
+
+/* ============================================================
+   TO-DO CARD — time/estimate meta line
+   ============================================================ */
+.todo-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.todo-meta { font-size: 0.72rem; color: var(--muted); }
+.todo-card.done .todo-meta { color: var(--border); }
+
+/* Goal card: linked category line */
+.goal-cat { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+
+/* Two buttons grouped on the right of a section header */
+.head-actions { display: flex; gap: 8px; }
+
+/* Small muted note shown inline within a field label */
+.hint-inline { font-weight: 400; color: var(--muted); font-size: 0.82em; }
+
+/* ============================================================
+   Suggestions: the toggle floats at the top-RIGHT and never moves. The
+   schedule is full width when closed and only gets pushed left when the
+   panel opens (which drops in beneath the toggle).
+   ============================================================ */
+#view-schedule.active { display: block; position: relative; }
+.schedule-main { transition: margin-right 0.15s ease; }
+/* When open, leave room for the 210px panel + a 16px gutter on the right */
+#view-schedule.suggest-open .schedule-main { margin-right: 226px; }
+
+.suggest-anchor {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 210px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;   /* button sits at the far right */
+}
+.suggest-toggle { white-space: nowrap; } /* sits in the .sa-buttons row */
+.sa-buttons { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; } /* lands on the arrows row */
+
+/* Filter and Suggestions share the right-hand column, with the filter stacked
+   on top. Same 12px offset and colours as the suggestions panel, so whichever
+   is topmost lines up with the calendar and the two read as one column. */
+.filter-panel {
+  width: 100%;
+  margin-top: 12px;
+  background: #e9eefb;
+  border: 1px solid #d4ddf3;
+  border-radius: 10px;
+  padding: 12px;
+}
+.filter-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px; font-size: 0.8rem; color: var(--muted);
+}
+.filter-list { display: flex; flex-direction: column; gap: 6px; }
+.filter-hint { margin: 0 0 8px; font-size: 0.72rem; color: var(--muted); }
+.filter-row { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+.filter-solo { display: flex; align-items: center; gap: 8px; flex: 1; cursor: pointer; border-radius: 6px; padding: 2px 4px; }
+.filter-solo:hover { background: var(--bg); }
+.filter-solo:hover .filter-name { text-decoration: underline; }
+.filter-swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.filter-name { flex: 1; }
+.btn-mini { padding: 2px 8px; font-size: 0.75rem; }
+#filterBtn.active { background: var(--sidebar-bg); border-color: var(--sidebar-bg); color: #fff; }
+#todoShowDeadlinesBtn.active,
+#todoShowDoOnBtn.active,
+#todoShowDoneBtn.active { background: var(--sidebar-bg); border-color: var(--sidebar-bg); color: #fff; }
+
+/* Event resize grips — small squares in each corner (top corners move the
+   start, bottom corners the end). Corners leave the middle of each edge free
+   to click, so opening the event still works at any size. */
+.cal-resize { position: absolute; width: 12px; height: 8px; z-index: 3; cursor: ns-resize; }
+.cal-resize-top { top: 0; }
+.cal-resize-bottom { bottom: 0; }
+.cal-resize-left { left: 0; }
+.cal-resize-right { right: 0; }
+.cal-resize:hover { background: rgba(255, 255, 255, 0.4); border-radius: 3px; }
+.sa-spacer { font-size: 1.5rem; visibility: hidden; margin: 0; } /* matches the month/year height */
+#suggestBtn.active {
+  background: var(--sidebar-bg);
+  border-color: var(--sidebar-bg);
+  color: #fff;
+}
+
+.suggest-panel {
+  width: 100%;
+  margin-top: 12px;                    /* = the toolbar's bottom margin, so the panel top lines up with the calendar top */
+  display: flex;
+  flex-direction: column;
+  background: #e9eefb;                 /* light blue */
+  border: 1px solid #d4ddf3;
+  border-radius: 10px;
+  padding: 12px;
+  max-height: calc(100vh - 130px);
+  user-select: none;                   /* dragging shouldn't highlight the items' text */
+}
+.suggest-panel[hidden] { display: none; } /* override flex when closed */
+
+.suggest-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.suggest-tab {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.suggest-tab.active {
+  background: var(--sidebar-bg);
+  border-color: var(--sidebar-bg);
+  color: #fff;
+}
+
+.suggest-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 2px;
+}
+.suggest-item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  cursor: grab;
+}
+.suggest-item:active { cursor: grabbing; }
+.suggest-item.dragging { opacity: 0.45; }
+.suggest-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.suggest-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.suggest-empty { font-size: 0.85rem; color: var(--muted); padding: 8px 2px; }
+.suggest-foot { font-size: 0.7rem; color: var(--muted); margin-top: 10px; text-align: center; }
+
+/* Highlight the day column you're about to drop onto */
+/* 1-hour preview sliver shown while dragging a Suggestions item over the grid */
+.cal-event.drop-preview {
+  background: var(--sidebar-bg);
+  opacity: 0.5;
+  border: 1px dashed rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* Inline checkbox row (e.g. "Mark as complete" in the to-do editor) */
+.check-field { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; margin: 2px 0 4px; }
+.check-field input { width: 16px; height: 16px; }
+
+/* ============================================================
+   Centered month/year + week nav (journal & to-do) — now handled
+   by the shared .cal-toolbar / .cal-center layout.
+   ============================================================ */
+
+/* Submitted date/time shown under each rant title in the list */
+.rant-when { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+/* ============================================================
+   Wearables page
+   ============================================================ */
+.import-row {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+.import-row > .settings-card {
+  flex: 1 1 0;
+  min-width: 260px;
+  margin-bottom: 0;
+}
+.wearable-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.wearable-date { font-weight: 600; }
+.wearable-vals { color: var(--muted); font-size: 0.85rem; text-align: right; }
+
+/* Oura import controls */
+#ouraFile { font-size: 0.85rem; }
+.import-msg { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+
+/* ============================================================
+   MOBILE  (<= 720px)
+
+   One breakpoint, appended last so it overrides the desktop rules
+   above without touching them. The big moves:
+     - sidebar  -> fixed bottom tab bar (icons + tiny labels)
+     - 3-zone headers -> stacked, left-aligned
+     - suggestions/filter -> full width, above the calendar
+     - calendar -> scrolls sideways as one unit, page scrolls down
+     - to-do board -> one day per row
+     - modals -> near full width
+   ============================================================ */
+@media (max-width: 720px) {
+
+  /* ---- Layout shell ---- */
+  .app { flex-direction: column; }
+  .main { padding: 12px 12px 78px; }   /* bottom padding clears the tab bar */
+
+  /* ---- Sidebar -> bottom tab bar ---- */
+  .sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    display: flex;
+    gap: 2px;
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
+    transition: none;
+    z-index: 50;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
+  }
+  .sidebar-head { display: none; }     /* brand + collapse arrow: no room, no purpose */
+  .nav-item {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 3px;
+    padding: 7px 2px;
+    margin-bottom: 0;
+    font-size: 0.6rem;
+  }
+  .nav-label {
+    font-size: 0.6rem;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .nav-icon { width: 19px; height: 19px; }
+  /* Long labels don't fit a ~60px tab, so swap in the short form. */
+  .nav-label[data-short] { font-size: 0; }
+  .nav-label[data-short]::after { content: attr(data-short); font-size: 0.6rem; }
+  /* The desktop "collapsed" preference is meaningless here — always show tabs. */
+  .sidebar.collapsed { width: auto; }
+  .sidebar.collapsed .nav-item { flex-direction: column; gap: 3px; padding: 7px 2px; }
+  .sidebar.collapsed .nav-label { display: block; }
+
+  /* ---- Page headers: stack the three zones ---- */
+  .cal-toolbar { flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+  .cal-left, .cal-center, .cal-right { flex: 1 1 100%; }
+  .cal-center { align-items: flex-start; }
+  .cal-right { justify-content: flex-start; }
+  #view-schedule:not(.suggest-open) .cal-right { min-width: 0; }
+  .cal-left h2, .section-head h2 { font-size: 1.25rem; }
+  .head-actions { flex-wrap: wrap; }
+
+  /* ---- Suggestions + filter: full width, above the calendar ---- */
+  .suggest-anchor {
+    position: static;
+    width: 100%;
+    align-items: stretch;
+    margin-bottom: 12px;
+  }
+  .sa-spacer { display: none; }          /* only existed to align with the arrows row */
+  .sa-buttons { justify-content: flex-start; margin-top: 0; }
+  #view-schedule.suggest-open .schedule-main { margin-right: 0; }
+  .suggest-panel { max-height: 45vh; }
+  .filter-panel { margin-top: 8px; }
+
+  /* ---- Calendar ----
+     The whole calendar scrolls sideways as one piece (so the header, all-day
+     bar, grid and footer stay aligned), while the page itself scrolls down.
+     Nesting a vertical scroller inside would give the grid its own sideways
+     scrollbar and break that alignment, so .cal-scroll is opened up here. */
+  .calendar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .cal-scroll { max-height: none; overflow: visible; }
+  .cal-header, .cal-topbar, .cal-grid, .cal-footer {
+    min-width: 620px;
+    grid-template-columns: 44px repeat(7, 1fr);
+  }
+  .cal-hour-label { font-size: 0.62rem; }
+  /* Corner resize grips are mouse-only (see calendar.js), so hide them on touch. */
+  .cal-resize { display: none; }
+
+  /* ---- To-Do board: one day per row ---- */
+  .todo-board { grid-template-columns: 1fr; gap: 6px; }
+  .todo-col { min-height: 0; }
+  .todo-col-head { text-align: left; }
+  #view-todo .cal-left { flex-direction: row; align-items: center; gap: 10px; }
+
+  /* ---- Journal week strip: two rows of four ---- */
+  .week-days { grid-template-columns: repeat(4, 1fr); }
+
+  /* ---- Goals ---- */
+  .goals-grid { grid-template-columns: 1fr; }
+
+  /* ---- Cards / imports ---- */
+  .import-row { flex-direction: column; }
+  .import-row > .settings-card { min-width: 0; }
+
+  /* ---- Modals: near full width, scrollable ---- */
+  .modal, .modal-journal, .modal-large {
+    width: 94%;
+    max-width: none;
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  /* Side-by-side date+time is too cramped; stack them. */
+  .field-row { flex-direction: column; gap: 0; }
+
+  /* ---- Touch targets ---- */
+  .btn { padding: 9px 14px; }
+  .seg-btn { padding: 10px; }
+}

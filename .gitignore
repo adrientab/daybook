@@ -1,0 +1,19 @@
+# Vercel's local link metadata (project + org IDs) — machine-specific
+.vercel
+
+# Secrets — never commit these. Matters once you add Supabase keys.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies, if you ever add a build step
+node_modules/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
