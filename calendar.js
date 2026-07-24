@@ -983,6 +983,10 @@ document.getElementById("delCancel").addEventListener("click", function () {
 /* ============================================================
    First render, then scroll the grid down to ~7 AM
    ============================================================ */
-renderCalendar();
-const scroller = document.querySelector(".cal-scroll");
-if (scroller) scroller.scrollTop = 7 * HOUR_HEIGHT;
+onAppReady(function () {
+  renderCalendar();
+  // Scroll to ~7 AM. This has to happen after the grid is drawn, otherwise
+  // there's nothing tall enough to scroll yet.
+  const scroller = document.querySelector(".cal-scroll");
+  if (scroller) scroller.scrollTop = 7 * HOUR_HEIGHT;
+});

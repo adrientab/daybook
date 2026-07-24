@@ -453,4 +453,4 @@ document.getElementById("tdThisWeek").addEventListener("click", function () {
   todoWeekStart = startOfWeek(new Date()); renderTodos();
 });
 
-renderTodos();
+onAppReady(renderTodos);

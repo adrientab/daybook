@@ -409,4 +409,4 @@ if (sidebarEl) {
   });
 }
 
-renderJournalView();
+onAppReady(renderJournalView);

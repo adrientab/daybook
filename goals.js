@@ -217,4 +217,4 @@ document.getElementById("deleteGoal").addEventListener("click", deleteGoal);
 document.getElementById("cancelGoal").addEventListener("click", closeGoal);
 goalOverlay.addEventListener("click", function (e) { if (e.target === goalOverlay) closeGoal(); });
 
-renderGoals();
+onAppReady(renderGoals);

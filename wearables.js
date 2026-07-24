@@ -73,7 +73,7 @@ function wearableDateLabel(k) {
 }
 
 /* ---- wire up ---- */
-renderWearables(); // render on load so reloading onto #wearables shows history
+onAppReady(renderWearables); // draw once data has loaded
 
 /* ============================================================
    Oura export import (CSV preferred, JSON also handled)

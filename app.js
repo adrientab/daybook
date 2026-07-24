@@ -4,27 +4,154 @@
    to the calendar code too.
    ============================================================ */
 
-/* ---- Storage helper ----
-   Normally this just uses the browser's localStorage. But if the
-   page is opened somewhere localStorage is blocked (like a preview
-   sandbox), it quietly falls back to keeping data in memory so the
-   app still runs. On your own computer, localStorage works and your
-   data persists between sessions. */
-const Store = {
-  _mem: {},
-  get(key) {
-    try { return localStorage.getItem(key); }
-    catch (e) { return key in this._mem ? this._mem[key] : null; }
+/* ---- Storage layer ----
+   All app data lives in an in-memory cache for the whole session:
+
+     Store.load()    async, once at boot — pulls everything into the cache
+     Store.get(k)    synchronous, reads the cache
+     Store.set(k,v)  synchronous, updates the cache, queues a background save
+
+   Reads stay synchronous on purpose. The app reads data in ~90 places; making
+   those await would mean rewriting nearly every function. Instead only the
+   boot sequence is async, and the data (one person's schedule and journal) is
+   small enough to hold in memory comfortably.
+
+   Everything that touches persistence lives in the backend object below, so
+   moving from localStorage to a server means swapping that one object. */
+
+/* Device preferences, not user data: these should differ per device (dark mode
+   on your phone, light on your laptop), so they always stay in this browser
+   and never sync. */
+const LOCAL_ONLY_KEYS = ["theme", "sidebarCollapsed"];
+
+/* Backend: reads/writes the browser's localStorage. If it's blocked (private
+   window, sandboxed preview), the cache still works for the session. */
+const LocalBackend = {
+  name: "local",
+  loadAll: function () {
+    const out = {};
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k) out[k] = localStorage.getItem(k);
+      }
+    } catch (e) { /* blocked -> start empty and run from memory */ }
+    return Promise.resolve(out);
   },
-  set(key, value) {
-    try { localStorage.setItem(key, value); }
-    catch (e) { this._mem[key] = value; }
-  },
-  remove(key) {
-    try { localStorage.removeItem(key); }
-    catch (e) { delete this._mem[key]; }
+  /* changes: [{ key, value }], where value === null means "delete this key". */
+  saveMany: function (changes) {
+    try {
+      changes.forEach(function (c) {
+        if (c.value === null) localStorage.removeItem(c.key);
+        else localStorage.setItem(c.key, c.value);
+      });
+    } catch (e) { /* quota or blocked: the cache still has it this session */ }
+    return Promise.resolve();
   }
 };
+
+const Store = {
+  _mem: {},
+  _dirty: {},          // keys changed since the last flush
+  _timer: null,
+  _backend: LocalBackend,
+  ready: false,
+
+  load: function () {
+    const self = this;
+    return this._backend.loadAll().then(function (data) {
+      self._mem = data || {};
+      // Device prefs always come from this browser, whatever the backend is.
+      LOCAL_ONLY_KEYS.forEach(function (k) {
+        try {
+          const v = localStorage.getItem(k);
+          if (v !== null) self._mem[k] = v;
+        } catch (e) { /* ignore */ }
+      });
+      self.ready = true;
+    });
+  },
+
+  get: function (key) {
+    return (key in this._mem) ? this._mem[key] : null;
+  },
+
+  set: function (key, value) {
+    this._mem[key] = String(value);
+    this._touch(key);
+  },
+
+  remove: function (key) {
+    delete this._mem[key];
+    this._touch(key);
+  },
+
+  /* Every key currently held. Replaces walking localStorage directly. */
+  keys: function () {
+    return Object.keys(this._mem);
+  },
+
+  /* Mark a key as needing saving and schedule a flush. Writes are debounced so
+     a burst of edits becomes one save instead of twenty. */
+  _touch: function (key) {
+    if (LOCAL_ONLY_KEYS.indexOf(key) >= 0) {
+      try {
+        if (key in this._mem) localStorage.setItem(key, this._mem[key]);
+        else localStorage.removeItem(key);
+      } catch (e) { /* ignore */ }
+      return;
+    }
+    this._dirty[key] = true;
+    clearTimeout(this._timer);
+    const self = this;
+    this._timer = setTimeout(function () { self.flush(); }, 400);
+  },
+
+  flush: function () {
+    clearTimeout(this._timer);
+    const keys = Object.keys(this._dirty);
+    if (!keys.length) return Promise.resolve();
+
+    const self = this;
+    const changes = keys.map(function (k) {
+      return { key: k, value: (k in self._mem) ? self._mem[k] : null };
+    });
+    this._dirty = {};
+
+    return this._backend.saveMany(changes).catch(function (e) {
+      // Put them back so the next flush retries rather than losing the edit.
+      changes.forEach(function (c) { self._dirty[c.key] = true; });
+      console.error("Save failed, will retry:", e);
+    });
+  }
+};
+
+/* Don't lose the last few hundred ms of edits when the tab closes or is
+   backgrounded. localStorage writes finish synchronously inside flush(), so
+   this is enough today; a network backend will need more care here. */
+window.addEventListener("pagehide", function () { Store.flush(); });
+document.addEventListener("visibilitychange", function () {
+  if (document.visibilityState === "hidden") Store.flush();
+});
+
+/* ---- Boot ----
+   Files loaded after this one register their first render here instead of
+   running it immediately, so nothing tries to draw before the data has
+   arrived. boot.js (loaded last) awaits Store.load() and then runs them. */
+const _readyQueue = [];
+
+function onAppReady(fn) {
+  if (Store.ready) fn();
+  else _readyQueue.push(fn);
+}
+
+function runAppReady() {
+  while (_readyQueue.length) {
+    const fn = _readyQueue.shift();
+    // One broken view shouldn't stop the rest of the app from starting.
+    try { fn(); } catch (e) { console.error("Init step failed:", e); }
+  }
+}
 
 /* ---- Date helpers ----
    We build date keys from LOCAL date parts (not UTC) so an entry
@@ -148,7 +275,7 @@ window.addEventListener("hashchange", function () {
 });
 
 // On first load, honor the hash so a reload stays on the same view.
-switchView(viewFromHash() || "schedule");
+onAppReady(function () { switchView(viewFromHash() || "schedule"); });
 
 /* ---- Collapse / expand the sidebar (remembers your choice) ---- */
 const sidebar = document.getElementById("sidebar");
@@ -166,7 +293,7 @@ sidebarToggle.addEventListener("click", function () {
   Store.set("sidebarCollapsed", collapsed ? "1" : "0");
 });
 
-applyCollapsed(Store.get("sidebarCollapsed") === "1"); // restore last state
+onAppReady(function () { applyCollapsed(Store.get("sidebarCollapsed") === "1"); }); // restore last state
 
 /* ---- Light / dark theme (remembers your choice) ----
    An inline script in <head> already set data-theme="dark" before paint if
@@ -194,7 +321,7 @@ if (themeToggle) {
   });
 }
 
-applyTheme(Store.get("theme") === "dark" ? "dark" : "light"); // sync label on load
+onAppReady(function () { applyTheme(Store.get("theme") === "dark" ? "dark" : "light"); }); // sync label on load
 
 /* ---- Enter saves the open modal (but not inside a textarea) ---- */
 document.addEventListener("keydown", function (e) {
@@ -221,23 +348,12 @@ function isAppKey(k) {
 
 /* List every app key currently stored. */
 function appKeys() {
-  const keys = [];
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (isAppKey(k)) keys.push(k);
-    }
-  } catch (e) {
-    Object.keys(Store._mem).forEach(function (k) { if (isAppKey(k)) keys.push(k); });
-  }
-  return keys;
+  return Store.keys().filter(isAppKey);
 }
 
 function clearAppData() {
-  appKeys().forEach(function (k) {
-    try { localStorage.removeItem(k); } catch (e) { /* memory cleared below */ }
-    delete Store._mem[k];
-  });
+  appKeys().forEach(function (k) { Store.remove(k); });
+  Store.flush();
 }
 
 /* Gather everything into one downloadable JSON file. */

@@ -11,6 +11,29 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="auth-gate" id="authGate" hidden>
+    <div class="auth-card">
+      <h1 class="auth-brand">Daybook</h1>
+      <p class="auth-sub">Your schedule, journal, and goals in one place.</p>
+
+      <label class="field">
+        <span>Email</span>
+        <input type="email" id="authEmail" autocomplete="email" placeholder="you@example.com">
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input type="password" id="authPassword" autocomplete="current-password" placeholder="At least 8 characters">
+      </label>
+
+      <p class="auth-msg" id="authMsg"></p>
+
+      <div class="auth-actions">
+        <button id="authSignUp" class="btn">Create account</button>
+        <button id="authSignIn" class="btn btn-primary">Sign in</button>
+      </div>
+    </div>
+  </div>
+
   <div class="app">
 
     <!-- ===== SIDEBAR ===== -->
@@ -198,6 +221,12 @@
       <!-- ---- SETTINGS ---- -->
       <section class="view" id="view-settings">
         <div class="section-head"><h2>Settings</h2></div>
+
+        <div class="settings-card" id="accountCard" hidden>
+          <h4>Account</h4>
+          <p class="hint" id="accountWho"></p>
+          <button id="signOutBtn" class="btn" hidden>Sign out</button>
+        </div>
 
         <div class="settings-card">
           <h4>Appearance</h4>
@@ -520,6 +549,8 @@
   </div>
 
   <!-- Load order matters: app.js defines shared helpers used by the others -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
   <script src="app.js"></script>
   <script src="questions.js"></script>
   <script src="journal.js"></script>
@@ -529,5 +560,7 @@
   <script src="todo.js"></script>
   <script src="suggest.js"></script>
   <script src="wearables.js"></script>
+  <script src="auth.js"></script>
+  <script src="boot.js"></script>
 </body>
 </html>
