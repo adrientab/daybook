@@ -17,8 +17,10 @@ function startApp() {
     Store._backend = SupabaseBackend;
   }
 
+  // No migration from local storage: a new account always starts empty.
+  // To bring old data across, use Settings -> export a backup, then import
+  // it once signed in.
   return Store.load()
-    .then(maybeMigrateLocalData)
     .then(function () {
       runAppReady();
       updateAccountUI();

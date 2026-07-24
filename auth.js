@@ -133,46 +133,6 @@ const SupabaseBackend = {
 };
 
 /* ============================================================
-   First-login migration.
-   If the account is empty but this browser has data from before you had
-   accounts, offer to move it up rather than silently stranding it.
-   ============================================================ */
-/* App data that actually syncs. Device preferences (theme, sidebar state)
-   are app keys too, but they're always read from this browser — so if we
-   counted them, a brand-new account would look like it already had data
-   and the migration below would silently skip. */
-function isSyncedAppKey(k) {
-  return isAppKey(k) && LOCAL_ONLY_KEYS.indexOf(k) === -1;
-}
-
-function maybeMigrateLocalData() {
-  if (!Auth.enabled) return Promise.resolve(false);
-
-  // Anything already in the account? Then there's nothing to migrate into.
-  if (Store.keys().some(isSyncedAppKey)) return Promise.resolve(false);
-
-  const local = {};
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (isSyncedAppKey(k)) local[k] = localStorage.getItem(k);
-    }
-  } catch (e) { /* storage blocked: nothing to migrate */ }
-
-  const keys = Object.keys(local);
-  if (!keys.length) return Promise.resolve(false);
-
-  const ok = confirm(
-    "Found " + keys.length + " saved items in this browser from before you had an account.\n\n" +
-    "Copy them into your account? (They'll stay in this browser either way.)"
-  );
-  if (!ok) return Promise.resolve(false);
-
-  keys.forEach(function (k) { Store.set(k, local[k]); });
-  return Store.flush().then(function () { return true; });
-}
-
-/* ============================================================
    Login screen
    ============================================================ */
 const AuthUI = {
@@ -194,9 +154,19 @@ const AuthUI = {
   }
 };
 
+/* "ADRIEN" -> "adrien.tabor@tufts.edu". Anything not in the map is used as-is. */
+function expandEmail(raw) {
+  const typed = (raw || "").trim();
+  if (typeof EMAIL_SHORTCUTS === "object" && EMAIL_SHORTCUTS) {
+    const hit = EMAIL_SHORTCUTS[typed.toLowerCase()];
+    if (hit) return hit;
+  }
+  return typed;
+}
+
 function readAuthForm() {
   return {
-    email: document.getElementById("authEmail").value.trim(),
+    email: expandEmail(document.getElementById("authEmail").value),
     password: document.getElementById("authPassword").value
   };
 }
@@ -208,10 +178,9 @@ function handleAuth(mode) {
     AuthUI.message("Enter an email and password.", true);
     return;
   }
-  if (mode === "signup" && form.password.length < 8) {
-    AuthUI.message("Use at least 8 characters.", true);
-    return;
-  }
+  // Password rules live in Supabase (Authentication -> Providers -> Email), so
+  // there's no second copy of them here to drift out of sync. If a password is
+  // rejected, Supabase's own message is what gets shown below.
 
   AuthUI.busy(true);
   AuthUI.message(mode === "signup" ? "Creating your account\u2026" : "Signing in\u2026");
@@ -239,6 +208,21 @@ document.getElementById("authSignUp").addEventListener("click", function () { ha
 document.getElementById("authPassword").addEventListener("keydown", function (e) {
   if (e.key === "Enter") handleAuth("signin");
 });
+
+/* "Try the demo" — only appears if config.js has demo credentials. */
+const demoBtn = document.getElementById("authDemo");
+if (demoBtn) {
+  const hasDemo =
+    typeof DEMO_EMAIL === "string" && DEMO_EMAIL.indexOf("@") > 0 &&
+    typeof DEMO_PASSWORD === "string" && DEMO_PASSWORD.length > 0;
+
+  demoBtn.hidden = !hasDemo;
+  demoBtn.addEventListener("click", function () {
+    document.getElementById("authEmail").value = DEMO_EMAIL;
+    document.getElementById("authPassword").value = DEMO_PASSWORD;
+    handleAuth("signin");
+  });
+}
 
 const signOutBtn = document.getElementById("signOutBtn");
 if (signOutBtn) {
