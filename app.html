@@ -22,23 +22,68 @@
 
       <div class="auth-body">
         <h1 class="auth-brand">Daybook</h1>
-        <p class="auth-sub">Your week, and how it actually felt.</p>
+        <p class="auth-sub" id="authSub">Your week, and how it actually felt.</p>
 
-        <label class="field">
-          <span>Email</span>
-          <input type="email" id="authEmail" autocomplete="email" placeholder="you@example.com">
-        </label>
-        <label class="field">
-          <span>Password</span>
-          <input type="password" id="authPassword" autocomplete="current-password" placeholder="Your password">
-        </label>
+        <!-- Panel 1: sign in / create account -->
+        <div id="authMain">
+          <label class="field">
+            <span>Email</span>
+            <input type="email" id="authEmail" autocomplete="email" placeholder="you@example.com">
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" id="authPassword" autocomplete="current-password" placeholder="Your password">
+          </label>
+          <button type="button" id="authForgot" class="auth-link">Forgot your password?</button>
+        </div>
+
+        <!-- Panel 2: ask for a reset link -->
+        <div id="authReset" hidden>
+          <label class="field">
+            <span>Email</span>
+            <input type="email" id="resetEmail" autocomplete="email" placeholder="you@example.com">
+          </label>
+          <p class="hint">We'll send a link that lets you set a new password.</p>
+        </div>
+
+        <!-- Panel 3: set a new password (after following the emailed link) -->
+        <div id="authNew" hidden>
+          <label class="field">
+            <span>New password</span>
+            <input type="password" id="newPassword" autocomplete="new-password" placeholder="Your new password">
+          </label>
+        </div>
+
+        <!-- Panel 4: unlock the encrypted data -->
+        <div id="authUnlock" hidden>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" id="unlockPassword" autocomplete="current-password" placeholder="Your password">
+          </label>
+          <button type="button" id="useRecovery" class="auth-link">Use a recovery key instead</button>
+          <label class="field" id="recoveryField" hidden>
+            <span>Recovery key</span>
+            <input type="text" id="recoveryKey" placeholder="Paste your recovery key">
+          </label>
+        </div>
 
         <p class="auth-msg" id="authMsg"></p>
 
-        <div class="auth-actions">
+        <div class="auth-actions" id="authMainActions">
           <button id="authSignUp" class="btn">Create account</button>
           <button id="authSignIn" class="btn btn-primary">Sign in</button>
         </div>
+        <div class="auth-actions" id="authResetActions" hidden>
+          <button id="resetCancel" class="btn">Back</button>
+          <button id="resetSend" class="btn btn-primary">Send link</button>
+        </div>
+        <div class="auth-actions" id="authNewActions" hidden>
+          <button id="newSave" class="btn btn-primary">Save new password</button>
+        </div>
+        <div class="auth-actions" id="authUnlockActions" hidden>
+          <button id="unlockGo" class="btn btn-primary">Unlock</button>
+        </div>
+
         <button id="authDemo" class="btn auth-demo" hidden>Try the demo</button>
 
         <a class="auth-back" href="index.html">&larr; Back to home</a>
@@ -242,6 +287,24 @@
           <h4>Account</h4>
           <p class="hint" id="accountWho"></p>
           <button id="signOutBtn" class="btn" hidden>Sign out</button>
+        </div>
+
+        <div class="settings-card" id="changePwCard" hidden>
+          <h4>Change password</h4>
+          <p class="hint">Your entries stay readable &mdash; nothing is re-encrypted. Only the key that protects them is re-locked with the new password.</p>
+          <label class="field">
+            <span>New password</span>
+            <input type="password" id="changePw" autocomplete="new-password" placeholder="New password">
+          </label>
+          <button id="changePwBtn" class="btn">Update password</button>
+          <p class="hint" id="changePwMsg"></p>
+        </div>
+
+        <div class="settings-card" id="recoveryCard" hidden>
+          <h4>Recovery key</h4>
+          <p class="hint">Your entries are encrypted in your browser, so a forgotten password can't be undone by resetting it &mdash; this key is the only way back in. Save it somewhere safe and private.</p>
+          <button id="showRecoveryBtn" class="btn">Show my recovery key</button>
+          <p class="recovery-out" id="recoveryOut" hidden></p>
         </div>
 
         <div class="settings-card">
@@ -579,6 +642,7 @@
   <script src="demo-data.js"></script>
   <script src="demo.js"></script>
   <script src="auth.js"></script>
+  <script src="crypto.js"></script>
   <script src="boot.js"></script>
 </body>
 </html>

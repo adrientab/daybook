@@ -1282,3 +1282,32 @@ h2 { margin-top: 0; }
 }
 .exit-demo:hover { background: rgba(255, 255, 255, 0.24); }
 .exit-demo[hidden] { display: none; }
+
+/* Text-only link inside the login card ("Forgot your password?") */
+.auth-link {
+  display: inline-block;
+  margin: -4px 0 4px;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.auth-link:hover { color: var(--text); }
+
+/* Recovery key readout (Settings) */
+.recovery-out {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  word-break: break-all;
+  user-select: all;
+}
+.recovery-out[hidden] { display: none; }

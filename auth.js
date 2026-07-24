@@ -13,10 +13,15 @@
    the way: no login screen, and the app runs on localStorage as before.
    ============================================================ */
 
+/* A password-reset link lands back here with "type=recovery" in the URL hash.
+   We read it at load, before supabase-js consumes and clears the hash. */
+const RECOVERY_IN_URL = /type=recovery/.test(location.hash);
+
 const Auth = {
   client: null,
   user: null,
   enabled: false,   // false = no Supabase configured, run local-only
+  recovering: RECOVERY_IN_URL,
 
   /* Work out whether we have a project to talk to, and whether the
      browser already holds a valid session from a previous visit. */
@@ -64,10 +69,47 @@ const Auth = {
       });
   },
 
+  /* Email a link that lets them set a new password. The link must come back
+     to this exact page, and that URL has to be on Supabase's redirect
+     allowlist (Authentication -> URL Configuration). */
+  requestReset: function (email) {
+    return this.client.auth.resetPasswordForEmail(email, {
+      redirectTo: location.origin + location.pathname
+    }).then(function (res) {
+      if (res.error) throw res.error;
+    });
+  },
+
+  /* Set a new password. The same PASSWORD_PAD used at sign-in is applied
+     here — otherwise the new password would never match what the login
+     screen sends, and they'd be locked out by the thing meant to rescue them. */
+  setPassword: function (typed) {
+    const self = this;
+    return this.client.auth.updateUser({ password: typed + PASSWORD_PAD })
+      .then(function (res) {
+        if (res.error) throw res.error;
+        self.user = res.data.user;
+        self.recovering = false;
+        // Drop the recovery tokens so a refresh doesn't re-enter this flow.
+        history.replaceState(null, "", location.pathname + location.search);
+
+        // The data key is wrapped with the OLD password, so it must be
+        // re-wrapped or the entries become unreadable. That's only possible
+        // if this device still holds the key; otherwise the unlock screen
+        // will ask for the recovery key.
+        return Vault.unlockFromCache().then(function (had) {
+          if (!had) return self.user;
+          return Vault.rewrap(typed + PASSWORD_PAD, self.user.id)
+            .then(function () { return self.user; });
+        });
+      });
+  },
+
   signOut: function () {
     const self = this;
-    // Push any pending edits before dropping the session.
+    // Push any pending edits, then drop the encryption key from this device.
     return Store.flush()
+      .then(function () { if (typeof Vault !== "undefined") Vault.lock(); })
       .then(function () { return self.client.auth.signOut(); })
       .then(function () { location.reload(); });
   }
@@ -136,9 +178,40 @@ const SupabaseBackend = {
    Login screen
    ============================================================ */
 const AuthUI = {
+  /* The card has three faces: signing in, asking for a reset link, and
+     choosing a new password. Only one shows at a time. */
+  panels: {
+    main:  ["authMain", "authMainActions"],
+    reset: ["authReset", "authResetActions"],
+    fresh: ["authNew", "authNewActions"],
+    unlock: ["authUnlock", "authUnlockActions"]
+  },
+  subtitles: {
+    main:  "Your week, and how it actually felt.",
+    reset: "Enter your email and we'll send you a reset link.",
+    fresh: "Choose a new password for your account.",
+    unlock: "Unlock your entries to continue."
+  },
+
+  panel: function (name) {
+    const self = this;
+    Object.keys(this.panels).forEach(function (key) {
+      self.panels[key].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.hidden = (key !== name);
+      });
+    });
+    document.getElementById("authSub").textContent = this.subtitles[name];
+    // The demo button belongs to the sign-in face only.
+    const demo = document.getElementById("authDemo");
+    if (demo && name !== "main") demo.hidden = true;
+    this.message("");
+  },
+
   show: function () {
     document.getElementById("authGate").hidden = false;
-    document.getElementById("authEmail").focus();
+    const first = document.getElementById("authEmail");
+    if (first && !first.hidden) first.focus();
   },
   hide: function () {
     document.getElementById("authGate").hidden = true;
@@ -149,8 +222,10 @@ const AuthUI = {
     el.className = "auth-msg" + (isError ? " error" : "");
   },
   busy: function (on) {
-    document.getElementById("authSignIn").disabled = on;
-    document.getElementById("authSignUp").disabled = on;
+    ["authSignIn", "authSignUp", "resetSend", "newSave"].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) el.disabled = on;
+    });
   }
 };
 
@@ -178,16 +253,18 @@ function readAuthForm() {
   const typed = document.getElementById("authPassword").value;
   return {
     email: expandEmail(document.getElementById("authEmail").value),
-    // Keep an empty box empty, so the "enter a password" check still fires.
-    password: typed ? typed + PASSWORD_PAD : ""
+    // An empty box is allowed for now: the padding alone clears Supabase's
+    // minimum length. See the warning in crypto.js about what that costs.
+    password: typed + PASSWORD_PAD,
+    typed: typed
   };
 }
 
 /* Shared by both buttons: validate, run, then start the app. */
 function handleAuth(mode) {
   const form = readAuthForm();
-  if (!form.email || !form.password) {
-    AuthUI.message("Enter an email and password.", true);
+  if (!form.email) {
+    AuthUI.message("Enter an email.", true);
     return;
   }
   // Password rules live in Supabase (Authentication -> Providers -> Email), so
@@ -208,7 +285,7 @@ function handleAuth(mode) {
       return;
     }
     AuthUI.hide();
-    return startApp();
+    return startApp(form.password);
   }).catch(function (e) {
     AuthUI.busy(false);
     AuthUI.message(e && e.message ? e.message : "Something went wrong.", true);
@@ -220,6 +297,119 @@ document.getElementById("authSignUp").addEventListener("click", function () { ha
 document.getElementById("authPassword").addEventListener("keydown", function (e) {
   if (e.key === "Enter") handleAuth("signin");
 });
+
+/* ---- Forgot password ---- */
+document.getElementById("authForgot").addEventListener("click", function () {
+  AuthUI.panel("reset");
+  // Carry over whatever they already typed, so they don't retype it.
+  const typed = document.getElementById("authEmail").value.trim();
+  if (typed) document.getElementById("resetEmail").value = typed;
+  document.getElementById("resetEmail").focus();
+});
+
+document.getElementById("resetCancel").addEventListener("click", function () {
+  AuthUI.panel("main");
+});
+
+document.getElementById("resetSend").addEventListener("click", function () {
+  const email = expandEmail(document.getElementById("resetEmail").value);
+  if (!email) { AuthUI.message("Enter the email for your account.", true); return; }
+
+  AuthUI.busy(true);
+  AuthUI.message("Sending\u2026");
+  Auth.requestReset(email).then(function () {
+    AuthUI.busy(false);
+    // Deliberately not "we found your account" — that would confirm to a
+    // stranger whether an address is registered here.
+    AuthUI.message("If that email has an account, a reset link is on its way.");
+  }).catch(function (e) {
+    AuthUI.busy(false);
+    AuthUI.message(e && e.message ? e.message : "Couldn't send the link.", true);
+  });
+});
+
+document.getElementById("resetEmail").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") document.getElementById("resetSend").click();
+});
+
+/* ---- Set a new password (arrived via the emailed link) ---- */
+document.getElementById("newSave").addEventListener("click", function () {
+  const typed = document.getElementById("newPassword").value;
+  if (!typed) { AuthUI.message("Enter a new password.", true); return; }
+
+  AuthUI.busy(true);
+  AuthUI.message("Saving\u2026");
+  Auth.setPassword(typed).then(function () {
+    AuthUI.hide();
+    AuthUI.panel("main");
+    return startApp();
+  }).catch(function (e) {
+    AuthUI.busy(false);
+    AuthUI.message(e && e.message ? e.message : "Couldn't save that password.", true);
+  });
+});
+
+document.getElementById("newPassword").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") document.getElementById("newSave").click();
+});
+
+/* ---- Unlock (return visit, or after a password reset) ---- */
+document.getElementById("useRecovery").addEventListener("click", function () {
+  document.getElementById("recoveryField").hidden = false;
+  document.getElementById("recoveryKey").focus();
+});
+
+document.getElementById("unlockGo").addEventListener("click", function () {
+  const typed = document.getElementById("unlockPassword").value;
+  const recovery = document.getElementById("recoveryKey").value.trim();
+  const password = typed + PASSWORD_PAD;
+
+  AuthUI.busy(true);
+  AuthUI.message("Unlocking\u2026");
+
+  // A recovery key replaces the password entirely: it re-wraps the data key
+  // under whatever password is in the box now.
+  const run = recovery
+    ? Vault.unlockWithRecovery(recovery, password, Auth.user.id).then(function () { return "unlocked"; })
+    : Vault.unlock(password, Auth.user.id);
+
+  run.then(function (result) {
+    if (result === "wrong-password") {
+      AuthUI.busy(false);
+      AuthUI.message("That password can't unlock your entries. Use your recovery key.", true);
+      document.getElementById("recoveryField").hidden = false;
+      return;
+    }
+    AuthUI.hide();
+    Store._backend = encrypted(SupabaseBackend);
+    return loadAndRun();
+  }).catch(function (e) {
+    AuthUI.busy(false);
+    AuthUI.message(e && e.message ? e.message : "Couldn't unlock.", true);
+  });
+});
+
+document.getElementById("unlockPassword").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") document.getElementById("unlockGo").click();
+});
+
+/* ---- Settings: reveal the recovery key ---- */
+const showRecoveryBtn = document.getElementById("showRecoveryBtn");
+if (showRecoveryBtn) {
+  showRecoveryBtn.addEventListener("click", function () {
+    Vault.recoveryKey().then(function (key) {
+      const out = document.getElementById("recoveryOut");
+      if (!key) { out.textContent = "No key loaded."; out.hidden = false; return; }
+      out.textContent = key;
+      out.hidden = false;
+      showRecoveryBtn.textContent = "Hide";
+      showRecoveryBtn.onclick = function () {
+        out.hidden = true;
+        location.reload();   // simplest way back to the original button state
+      };
+    });
+  });
+}
 
 /* "Try the demo" — only appears if config.js has demo credentials. */
 const demoBtn = document.getElementById("authDemo");
