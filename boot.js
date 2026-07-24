@@ -57,8 +57,8 @@ Auth.init()
     // Demo mode short-circuits everything: no account, nothing saved.
     if (typeof isDemoMode === "function" && isDemoMode()) {
       Store._backend = DemoBackend;
-      const banner = document.getElementById("demoBanner");
-      if (banner) banner.hidden = false;
+      const exit = document.getElementById("exitDemo");
+      if (exit) exit.hidden = false;
       return Store.load().then(function () {
         runAppReady();
         const card = document.getElementById("accountCard");

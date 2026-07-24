@@ -8,30 +8,41 @@
     // Apply the saved theme before the page paints so there's no flash.
     try { if (localStorage.getItem("theme") === "dark") document.documentElement.setAttribute("data-theme", "dark"); } catch (e) {}
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="auth-gate" id="authGate" hidden>
     <div class="auth-card">
-      <h1 class="auth-brand">Daybook</h1>
-      <p class="auth-sub">Your schedule, journal, and goals in one place.</p>
-
-      <label class="field">
-        <span>Email</span>
-        <input type="email" id="authEmail" autocomplete="email" placeholder="you@example.com">
-      </label>
-      <label class="field">
-        <span>Password</span>
-        <input type="password" id="authPassword" autocomplete="current-password" placeholder="Your password">
-      </label>
-
-      <p class="auth-msg" id="authMsg"></p>
-
-      <div class="auth-actions">
-        <button id="authSignUp" class="btn">Create account</button>
-        <button id="authSignIn" class="btn btn-primary">Sign in</button>
+      <div class="auth-strip" aria-hidden="true">
+        <i style="background:#3b82f6"></i><i style="background:#8b5cf6"></i><i style="background:#22c55e"></i><i style="background:#f59e0b"></i><i style="background:#6b7280"></i>
       </div>
-      <button id="authDemo" class="btn auth-demo" hidden>Try the demo</button>
+
+      <div class="auth-body">
+        <h1 class="auth-brand">Daybook</h1>
+        <p class="auth-sub">Your week, and how it actually felt.</p>
+
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="authEmail" autocomplete="email" placeholder="you@example.com">
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input type="password" id="authPassword" autocomplete="current-password" placeholder="Your password">
+        </label>
+
+        <p class="auth-msg" id="authMsg"></p>
+
+        <div class="auth-actions">
+          <button id="authSignUp" class="btn">Create account</button>
+          <button id="authSignIn" class="btn btn-primary">Sign in</button>
+        </div>
+        <button id="authDemo" class="btn auth-demo" hidden>Try the demo</button>
+
+        <a class="auth-back" href="index.html">&larr; Back to home</a>
+      </div>
     </div>
   </div>
 
@@ -67,14 +78,14 @@
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
         <span class="nav-label">Settings</span>
       </button>
+      <a class="nav-item exit-demo" id="exitDemo" href="index.html" hidden>
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        <span class="nav-label">Exit demo</span>
+      </a>
     </nav>
 
     <!-- ===== MAIN CONTENT ===== -->
     <main class="main">
-      <div class="demo-banner" id="demoBanner" hidden>
-        <span>You're in the demo. Changes here aren't saved.</span>
-        <a class="btn btn-primary" href="app.html">Create your own</a>
-      </div>
 
       <!-- ---- SCHEDULE (the calendar) ---- -->
       <section class="view active" id="view-schedule">

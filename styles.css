@@ -82,6 +82,8 @@ body {
 .sidebar {
   width: 220px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
   background: var(--sidebar-bg);
   color: var(--sidebar-text);
   padding: 16px 12px;
@@ -1088,6 +1090,7 @@ h2 { margin-top: 0; }
 
   /* ---- Sidebar -> bottom tab bar ---- */
   .sidebar {
+    flex-direction: row;
     position: fixed;
     left: 0;
     right: 0;
@@ -1195,54 +1198,87 @@ h2 { margin-top: 0; }
   /* ---- Touch targets ---- */
   .btn { padding: 9px 14px; }
   .seg-btn { padding: 10px; }
+
+  /* On the tab bar the exit link is just another tab, not pinned. */
+  .exit-demo { margin-top: 0; }
 }
 
 /* ============================================================
    Login screen
+   Shares the landing page's type and category colours so arriving here
+   from "Get started" doesn't feel like landing in a different product.
    ============================================================ */
 .auth-gate {
   position: fixed;
   inset: 0;
   z-index: 200;                 /* above modals and the bottom tab bar */
-  background: var(--bg);
+  background:
+    radial-gradient(1100px 520px at 50% -10%, rgba(91, 110, 154, 0.16), transparent 70%),
+    var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px;
   overflow-y: auto;
 }
 .auth-gate[hidden] { display: none; }
+
 .auth-card {
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 28px 24px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px -30px rgba(38, 51, 70, 0.55);
 }
-.auth-brand { margin: 0 0 4px; font-size: 1.6rem; }
-.auth-sub { margin: 0 0 22px; color: var(--muted); font-size: 0.9rem; }
-.auth-msg { min-height: 1.2em; margin: 4px 0 14px; font-size: 0.82rem; color: var(--muted); }
+
+/* The five category colours, as a thin strip across the top. */
+.auth-strip { display: flex; height: 4px; }
+.auth-strip i { flex: 1; }
+
+.auth-body { padding: 30px 28px 26px; }
+
+.auth-brand {
+  margin: 0 0 4px;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+  font-size: 2.1rem;
+  letter-spacing: -0.01em;
+}
+.auth-sub {
+  margin: 0 0 26px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.auth-msg { min-height: 1.2em; margin: 2px 0 14px; font-size: 0.82rem; color: var(--muted); }
 .auth-msg.error { color: #dc2626; }
-.auth-actions { display: flex; gap: 8px; justify-content: flex-end; }
-.auth-actions .btn { flex: 1; }
+
+.auth-actions { display: flex; gap: 8px; }
+.auth-actions .btn { flex: 1; padding: 10px 14px; }
 .auth-demo { width: 100%; margin-top: 10px; }
 
-/* Demo mode banner (app.html?demo=1) */
-.demo-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 14px;
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--sidebar-bg);
-  border-radius: var(--radius);
-  background: var(--surface);
-  font-size: 0.88rem;
+.auth-back {
+  display: block;
+  margin-top: 22px;
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--muted);
+  text-decoration: none;
 }
-.demo-banner[hidden] { display: none; }
-.demo-banner .btn { text-decoration: none; }
+.auth-back:hover { color: var(--text); }
+
+/* ---- Exit demo (sidebar, demo mode only) ----
+   Pinned to the bottom of the sidebar and given more weight than the tabs,
+   so it reads as a way out rather than another place to go. */
+.exit-demo {
+  margin-top: auto;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.exit-demo:hover { background: rgba(255, 255, 255, 0.24); }
+.exit-demo[hidden] { display: none; }
