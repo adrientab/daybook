@@ -74,6 +74,7 @@ function updateAccountUI() {
   const who = document.getElementById("accountWho");
   const btn = document.getElementById("signOutBtn");
   const rec = document.getElementById("recoveryCard");
+  const chg = document.getElementById("changePwCard");
   if (!card || !who) return;
 
   card.hidden = false;
@@ -82,10 +83,12 @@ function updateAccountUI() {
                       " \u2014 your data syncs to your account, encrypted.";
     if (btn) btn.hidden = false;
     if (rec) rec.hidden = !Vault.isUnlocked();
+    if (chg) chg.hidden = !Vault.isUnlocked();
   } else {
     who.textContent = "No account connected \u2014 everything is saved in this browser only.";
     if (btn) btn.hidden = true;
     if (rec) rec.hidden = true;
+    if (chg) chg.hidden = true;
   }
 }
 

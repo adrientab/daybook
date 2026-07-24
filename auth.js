@@ -411,6 +411,44 @@ if (showRecoveryBtn) {
   });
 }
 
+/* ---- Settings: change password ----
+   Two things have to move together: the password Supabase checks at sign-in,
+   and the password that unwraps the data key. If the second step ever fails,
+   the recovery key is the way back — so say so loudly rather than quietly. */
+const changePwBtn = document.getElementById("changePwBtn");
+if (changePwBtn) {
+  changePwBtn.addEventListener("click", function () {
+    const typed = document.getElementById("changePw").value;
+    const msg = document.getElementById("changePwMsg");
+    const next = typed + PASSWORD_PAD;
+
+    if (!Vault.isUnlocked()) {
+      msg.textContent = "Your entries aren't unlocked, so the key can't be re-locked. Reload and sign in first.";
+      return;
+    }
+
+    changePwBtn.disabled = true;
+    msg.textContent = "Updating\u2026";
+
+    Auth.client.auth.updateUser({ password: next })
+      .then(function (res) {
+        if (res.error) throw res.error;
+        // Login password changed; now re-wrap the data key to match.
+        return Vault.rewrap(next, Auth.user.id);
+      })
+      .then(function () {
+        changePwBtn.disabled = false;
+        document.getElementById("changePw").value = "";
+        msg.textContent = "Done. Your entries were not re-encrypted \u2014 only the key was re-locked.";
+      })
+      .catch(function (e) {
+        changePwBtn.disabled = false;
+        msg.textContent = "Problem: " + (e && e.message ? e.message : "unknown") +
+          " \u2014 if you can't get back in, use your recovery key on the unlock screen.";
+      });
+  });
+}
+
 /* "Try the demo" — only appears if config.js has demo credentials. */
 const demoBtn = document.getElementById("authDemo");
 if (demoBtn) {
