@@ -119,6 +119,10 @@
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="12" height="10" rx="2"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3M9 17v3a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-3"/><circle cx="12" cy="12" r="1.5"/></svg>
         <span class="nav-label" data-short="Sleep">Sleep &amp; Workouts</span>
       </button>
+      <button class="nav-item" data-view="patterns">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 3 4-6"/></svg>
+        <span class="nav-label">Patterns</span>
+      </button>
       <button class="nav-item" data-view="settings">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
         <span class="nav-label">Settings</span>
@@ -276,6 +280,35 @@
         <div class="settings-card">
           <h4>Sleep history</h4>
           <div id="wearableHistory"></div>
+        </div>
+      </section>
+
+      <!-- ---- PATTERNS ---- -->
+      <section class="view" id="view-patterns">
+        <div class="section-head"><h2>Patterns</h2></div>
+
+        <!-- Shown until there are enough journalled days. -->
+        <div class="settings-card" id="patternsLocked" hidden>
+          <h4>Not enough data yet</h4>
+          <p class="hint">
+            Patterns looks for links between what you do and how you feel &mdash; which
+            activities lift your mood, which drain it, how the night&rsquo;s sleep plays in.
+            To say anything trustworthy, it needs a stretch of journalling to work from.
+          </p>
+          <div class="pattern-progress">
+            <div class="pattern-bar"><span id="patternBarFill"></span></div>
+            <p class="hint" id="patternProgressText"></p>
+          </div>
+          <p class="hint">Keep filling in your morning and evening check-ins and this unlocks on its own.</p>
+        </div>
+
+        <!-- Shown once unlocked. The analysis itself comes later. -->
+        <div class="settings-card" id="patternsReady" hidden>
+          <h4>Coming soon</h4>
+          <p class="hint">
+            You have enough journalled days to start looking for patterns. The insights
+            themselves are still being built &mdash; check back soon.
+          </p>
         </div>
       </section>
 
@@ -639,6 +672,7 @@
   <script src="todo.js"></script>
   <script src="suggest.js"></script>
   <script src="wearables.js"></script>
+  <script src="patterns.js"></script>
   <script src="demo-data.js"></script>
   <script src="demo.js"></script>
   <script src="auth.js"></script>

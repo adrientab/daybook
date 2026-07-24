@@ -1317,3 +1317,20 @@ h2 { margin-top: 0; }
   user-select: all;
 }
 .recovery-out[hidden] { display: none; }
+
+/* Patterns tab: unlock progress */
+.pattern-progress { margin: 14px 0 10px; }
+.pattern-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+.pattern-bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: var(--sidebar-bg);
+  transition: width 0.4s ease;
+}
