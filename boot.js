@@ -54,6 +54,22 @@ function updateAccountUI() {
 
 Auth.init()
   .then(function (user) {
+    // Demo mode short-circuits everything: no account, nothing saved.
+    if (typeof isDemoMode === "function" && isDemoMode()) {
+      Store._backend = DemoBackend;
+      const banner = document.getElementById("demoBanner");
+      if (banner) banner.hidden = false;
+      return Store.load().then(function () {
+        runAppReady();
+        const card = document.getElementById("accountCard");
+        const who = document.getElementById("accountWho");
+        if (card && who) {
+          card.hidden = false;
+          who.textContent = "Demo \u2014 changes aren't saved. Create an account to keep your own.";
+        }
+      });
+    }
+
     // A project is configured but nobody's signed in: wait at the login
     // screen. startApp() runs from there once they're through.
     if (Auth.enabled && !user) {

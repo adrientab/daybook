@@ -164,10 +164,22 @@ function expandEmail(raw) {
   return typed;
 }
 
+/* ---- Temporary: password padding ----
+   Supabase enforces a minimum password length (6 by default). Appending
+   this to every password lets you type a short one while testing without
+   touching that setting.
+
+   It's applied on sign-up and sign-in alike, so the two always match.
+   Set it to "" to switch this off — but note that doing so, or changing
+   the value, locks out any account created under the old setting. */
+const PASSWORD_PAD = "000000";
+
 function readAuthForm() {
+  const typed = document.getElementById("authPassword").value;
   return {
     email: expandEmail(document.getElementById("authEmail").value),
-    password: document.getElementById("authPassword").value
+    // Keep an empty box empty, so the "enter a password" check still fires.
+    password: typed ? typed + PASSWORD_PAD : ""
   };
 }
 

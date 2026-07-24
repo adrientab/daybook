@@ -1,0 +1,316 @@
+/* ============================================================
+   landing.css — the public pages (index.html)
+
+   Palette is pulled from the app itself so the site and the product
+   read as one thing: the slate of the app's sidebar, and the five
+   category colours used as data accents rather than decoration.
+   ============================================================ */
+:root {
+  --paper:  #f2f4f7;
+  --surface:#ffffff;
+  --ink:    #171b24;
+  --muted:  #626b7d;
+  --line:   #e2e6ec;
+  --slate:  #5b6e9a;
+  --deep:   #263346;
+
+  /* the app's categories */
+  --class:    #3b82f6;
+  --work:     #8b5cf6;
+  --exercise: #22c55e;
+  --social:   #f59e0b;
+  --rest:     #6b7280;
+
+  --measure: 1100px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2 {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.08;
+  margin: 0;
+}
+
+a { color: inherit; }
+
+/* ---- Nav ---- */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 28px;
+  background: rgba(242, 244, 247, 0.88);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.wordmark {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 1.5rem;
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+.nav-links { display: flex; align-items: center; gap: 22px; }
+.nav-links a {
+  text-decoration: none;
+  font-size: 0.9rem;
+  color: var(--muted);
+  transition: color 0.15s ease;
+}
+.nav-links a:hover { color: var(--ink); }
+.nav-cta {
+  padding: 7px 15px;
+  border-radius: 999px;
+  background: var(--deep);
+  color: #fff !important;
+  font-weight: 500;
+}
+.nav-cta:hover { background: var(--slate); }
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-block;
+  padding: 11px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.15s ease;
+}
+.btn:hover { transform: translateY(-1px); border-color: var(--slate); }
+.btn-primary {
+  background: var(--deep);
+  border-color: var(--deep);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--slate); border-color: var(--slate); }
+
+/* ---- Hero ---- */
+.hero {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 68px 28px 76px;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 56px;
+  align-items: center;
+}
+.eyebrow {
+  margin: 0 0 18px;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--slate);
+  font-weight: 500;
+}
+.hero h1 { font-size: clamp(2.6rem, 5.4vw, 4rem); }
+.lede {
+  margin: 22px 0 30px;
+  font-size: 1.06rem;
+  color: var(--muted);
+  max-width: 46ch;
+}
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.hero-note { margin: 16px 0 0; font-size: 0.83rem; color: var(--muted); }
+
+/* ---- Signature: the week ribbon ---- */
+.ribbon {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px 20px 16px;
+  box-shadow: 0 18px 50px -28px rgba(38, 51, 70, 0.45);
+}
+.ribbon-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  height: 280px;
+}
+.rib-day { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.rib-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.06em; }
+.rib-col {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  border-radius: 7px;
+  background: linear-gradient(var(--paper), var(--paper)) padding-box;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.blk {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  border-radius: 4px;
+  transform-origin: top center;
+  animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+}
+.blk.class    { background: var(--class); }
+.blk.work     { background: var(--work); }
+.blk.exercise { background: var(--exercise); }
+.blk.social   { background: var(--social); }
+.blk.rest     { background: var(--rest); }
+
+/* Stagger by column so the week fills in left to right. */
+.rib-day:nth-child(1) .blk { animation-delay: 0.05s; }
+.rib-day:nth-child(2) .blk { animation-delay: 0.12s; }
+.rib-day:nth-child(3) .blk { animation-delay: 0.19s; }
+.rib-day:nth-child(4) .blk { animation-delay: 0.26s; }
+.rib-day:nth-child(5) .blk { animation-delay: 0.33s; }
+.rib-day:nth-child(6) .blk { animation-delay: 0.40s; }
+.rib-day:nth-child(7) .blk { animation-delay: 0.47s; }
+
+@keyframes rise {
+  from { opacity: 0; transform: scaleY(0.2); }
+  to   { opacity: 1; transform: scaleY(1); }
+}
+
+/* Mood: one dot per day, darker slate = better day. */
+.mood {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--slate);
+}
+.mood.m4  { opacity: 0.22; }
+.mood.m6  { opacity: 0.42; }
+.mood.m7  { opacity: 0.55; }
+.mood.m8  { opacity: 0.7; }
+.mood.m9  { opacity: 0.85; }
+.mood.m10 { opacity: 1; }
+
+.ribbon-key {
+  margin: 14px 0 0;
+  font-size: 0.76rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ---- Sections ---- */
+.section-title {
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  margin-bottom: 28px;
+}
+.inside, .about, .closing {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.inside { border-top: 1px solid var(--line); }
+
+.tabs { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.tabs li {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 28px;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+  align-items: start;
+}
+.tabs li:first-child { border-top: none; }
+.tabs p { margin: 0; color: var(--muted); max-width: 60ch; }
+
+/* The colour marker ties each feature to its category in the app. */
+.tab-name {
+  position: relative;
+  padding-left: 18px;
+  font-weight: 600;
+  font-size: 1.02rem;
+}
+.tab-name::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--slate);
+}
+.tab-name[data-cat="class"]::before    { background: var(--class); }
+.tab-name[data-cat="work"]::before     { background: var(--work); }
+.tab-name[data-cat="social"]::before   { background: var(--social); }
+.tab-name[data-cat="exercise"]::before { background: var(--exercise); }
+.tab-name[data-cat="rest"]::before     { background: var(--rest); }
+
+.about { border-top: 1px solid var(--line); }
+.about-body { color: var(--muted); max-width: 62ch; margin: 0; }
+.about-body code {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.9em;
+}
+
+.closing {
+  border-top: 1px solid var(--line);
+  text-align: center;
+  padding-top: 64px;
+  padding-bottom: 72px;
+}
+.closing h2 { font-size: clamp(1.9rem, 4vw, 2.8rem); margin-bottom: 26px; }
+.closing .hero-actions { justify-content: center; }
+
+/* ---- Footer ---- */
+.foot {
+  border-top: 1px solid var(--line);
+  padding: 22px 28px 34px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.foot a { text-decoration: none; }
+.foot a:hover { color: var(--ink); }
+
+/* ---- Focus visibility ---- */
+a:focus-visible, .btn:focus-visible {
+  outline: 2px solid var(--slate);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ---- Mobile ---- */
+@media (max-width: 820px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 38px;
+    padding: 44px 20px 56px;
+  }
+  .ribbon-week { height: 210px; }
+  .nav { padding: 12px 18px; }
+  .nav-links { gap: 14px; }
+  .nav-links a { font-size: 0.85rem; }
+  .inside, .about, .closing { padding: 44px 20px; }
+  .tabs li { grid-template-columns: 1fr; gap: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blk { animation: none; }
+  .btn:hover { transform: none; }
+}

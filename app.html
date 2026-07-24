@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daybook</title>
+  <script>
+    // Apply the saved theme before the page paints so there's no flash.
+    try { if (localStorage.getItem("theme") === "dark") document.documentElement.setAttribute("data-theme", "dark"); } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="auth-gate" id="authGate" hidden>
+    <div class="auth-card">
+      <h1 class="auth-brand">Daybook</h1>
+      <p class="auth-sub">Your schedule, journal, and goals in one place.</p>
+
+      <label class="field">
+        <span>Email</span>
+        <input type="email" id="authEmail" autocomplete="email" placeholder="you@example.com">
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input type="password" id="authPassword" autocomplete="current-password" placeholder="Your password">
+      </label>
+
+      <p class="auth-msg" id="authMsg"></p>
+
+      <div class="auth-actions">
+        <button id="authSignUp" class="btn">Create account</button>
+        <button id="authSignIn" class="btn btn-primary">Sign in</button>
+      </div>
+      <button id="authDemo" class="btn auth-demo" hidden>Try the demo</button>
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- ===== SIDEBAR ===== -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-head">
+        <h1>Daybook</h1>
+        <button id="sidebarToggle" class="sidebar-toggle" title="Collapse">&lsaquo;</button>
+      </div>
+      <button class="nav-item active" data-view="schedule">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <span class="nav-label">Schedule</span>
+      </button>
+      <button class="nav-item" data-view="journal">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="nav-label">Journal</span>
+      </button>
+      <button class="nav-item" data-view="todo">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span class="nav-label">To-Do</span>
+      </button>
+      <button class="nav-item" data-view="goals">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+        <span class="nav-label">Goals</span>
+      </button>
+      <button class="nav-item" data-view="wearables">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="12" height="10" rx="2"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3M9 17v3a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-3"/><circle cx="12" cy="12" r="1.5"/></svg>
+        <span class="nav-label" data-short="Sleep">Sleep &amp; Workouts</span>
+      </button>
+      <button class="nav-item" data-view="settings">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        <span class="nav-label">Settings</span>
+      </button>
+    </nav>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main">
+      <div class="demo-banner" id="demoBanner" hidden>
+        <span>You're in the demo. Changes here aren't saved.</span>
+        <a class="btn btn-primary" href="app.html">Create your own</a>
+      </div>
+
+      <!-- ---- SCHEDULE (the calendar) ---- -->
+      <section class="view active" id="view-schedule">
+
+        <!-- Floating anchor on the RIGHT: the toggle stays pinned; the panel
+             drops in beneath it and the schedule only compresses when open. -->
+        <div class="suggest-anchor">
+          <div class="sa-spacer" aria-hidden="true">&nbsp;</div>
+          <div class="sa-buttons">
+            <button id="filterBtn" class="btn">Filter</button>
+            <button id="suggestBtn" class="btn suggest-toggle">Suggestions</button>
+          </div>
+          <div id="filterPanel" class="filter-panel" hidden>
+            <div class="filter-head">
+              <span>Show categories</span>
+              <button id="filterAll" class="btn btn-mini">All</button>
+            </div>
+            <p class="filter-hint">Tap a name to show only that one.</p>
+            <div id="filterList" class="filter-list"></div>
+          </div>
+          <aside id="suggestPanel" class="suggest-panel" hidden>
+            <div class="suggest-tabs">
+              <button id="suggestTodoTab" class="suggest-tab active">To-do</button>
+              <button id="suggestGoalsTab" class="suggest-tab">Goals</button>
+            </div>
+            <div id="suggestBody" class="suggest-body"></div>
+            <p class="suggest-foot">Drag any item onto the grid to schedule it.</p>
+          </aside>
+        </div>
+
+        <div class="schedule-main">
+          <div class="cal-toolbar">
+            <div class="cal-left"><h2 class="schedule-heading">Schedule</h2></div>
+            <div class="cal-center">
+              <h2 id="weekLabel" class="cal-title"></h2>
+              <div class="cal-nav">
+                <button id="prevWeek" class="btn" title="Previous week">&lsaquo;</button>
+                <button id="todayBtn" class="btn">Today</button>
+                <button id="nextWeek" class="btn" title="Next week">&rsaquo;</button>
+              </div>
+            </div>
+            <div class="cal-right"></div>
+          </div>
+
+          <div class="calendar">
+            <!-- mounted into the header's top-left corner by renderCalendar -->
+            <button id="addEventBtn" class="btn btn-primary" title="Add event">+</button>
+            <div class="cal-header" id="calHeader"></div>
+            <!-- Morning buttons sit here, at the top of each day -->
+            <div class="cal-topbar" id="calTop"></div>
+            <div class="cal-scroll">
+              <div class="cal-grid" id="calGrid"></div>
+            </div>
+            <!-- One journal button per day sits here, under each column -->
+            <div class="cal-footer" id="calFooter"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---- JOURNAL (weekly review + rants) ---- -->
+      <section class="view" id="view-journal">
+        <div class="cal-toolbar">
+          <div class="cal-left"><h2>Journal</h2></div>
+          <div class="cal-center">
+            <h3 id="jWeekLabel" class="cal-title"></h3>
+            <div class="cal-nav">
+              <button id="jPrevWeek" class="btn" title="Previous week">&lsaquo;</button>
+              <button id="jThisWeek" class="btn">This week</button>
+              <button id="jNextWeek" class="btn" title="Next week">&rsaquo;</button>
+            </div>
+          </div>
+          <div class="cal-right"></div>
+        </div>
+
+        <div id="weekDays" class="week-days"></div>
+
+        <h3 class="rants-head">Rants</h3>
+        <div class="rant-composer">
+          <input type="text" id="rantTitle" placeholder="Title (e.g. class)">
+          <input type="text" id="rantTags" placeholder="optional tags, comma-separated (e.g. school, stress)">
+          <textarea id="rantText" rows="3" placeholder="What's on your mind?"></textarea>
+          <div class="rant-composer-actions"><button id="addRant" class="btn btn-primary">Add rant</button></div>
+        </div>
+        <div id="rantTagFilter" class="tag-filter"></div>
+        <div id="rantList" class="rant-list"></div>
+      </section>
+
+      <!-- ---- TO-DO (week board) ---- -->
+      <section class="view" id="view-todo">
+        <div class="cal-toolbar">
+          <div class="cal-left">
+            <h2>To-Do</h2>
+            <button id="addTodoBtn" class="btn btn-primary" title="New to-do" aria-label="New to-do">+</button>
+          </div>
+          <div class="cal-center">
+            <h3 id="tdWeekLabel" class="cal-title"></h3>
+            <div class="cal-nav">
+              <button id="tdPrevWeek" class="btn" title="Previous week">&lsaquo;</button>
+              <button id="tdThisWeek" class="btn">This week</button>
+              <button id="tdNextWeek" class="btn" title="Next week">&rsaquo;</button>
+            </div>
+          </div>
+          <div class="cal-right">
+            <div class="head-actions">
+              <button id="todoShowDeadlinesBtn" class="btn active">Deadlines</button>
+              <button id="todoShowDoOnBtn" class="btn active">Plan</button>
+              <button id="todoShowDoneBtn" class="btn active">Completed</button>
+            </div>
+          </div>
+        </div>
+        <div id="todoBoard" class="todo-board"></div>
+      </section>
+
+      <!-- ---- GOALS ---- -->
+      <section class="view" id="view-goals">
+        <div class="section-head">
+          <h2>Goals</h2>
+          <button id="addGoalBtn" class="btn btn-primary">+ New goal</button>
+        </div>
+        <div id="goalsGrid" class="goals-grid"></div>
+      </section>
+
+      <!-- ---- WEARABLES ---- -->
+      <section class="view" id="view-wearables">
+        <div class="section-head"><h2>Sleep &amp; Workouts</h2></div>
+
+        <div class="import-row">
+          <div class="settings-card">
+            <h4>Import from Oura export</h4>
+            <p class="hint">Export your data from Oura (CSV works best; JSON is also accepted), then choose the file here. Matching days fill in automatically and merge with anything already saved.</p>
+            <input type="file" id="ouraFile" accept=".csv,.json,text/csv,application/json">
+            <p id="ouraImportMsg" class="import-msg"></p>
+          </div>
+
+          <div class="settings-card">
+            <h4>Import workouts from Strava</h4>
+            <p class="hint">Request your Strava export (Settings &rarr; My Account &rarr; Download or Delete Your Account), unzip it, and choose the <code>activities.csv</code> here. Each workout is added to your schedule on its date as an Exercise event.</p>
+            <input type="file" id="stravaFile" accept=".csv,text/csv">
+            <p id="stravaImportMsg" class="import-msg"></p>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <h4>Sleep history</h4>
+          <div id="wearableHistory"></div>
+        </div>
+      </section>
+
+      <!-- ---- SETTINGS ---- -->
+      <section class="view" id="view-settings">
+        <div class="section-head"><h2>Settings</h2></div>
+
+        <div class="settings-card" id="accountCard" hidden>
+          <h4>Account</h4>
+          <p class="hint" id="accountWho"></p>
+          <button id="signOutBtn" class="btn" hidden>Sign out</button>
+        </div>
+
+        <div class="settings-card">
+          <h4>Appearance</h4>
+          <p class="hint">Switch between a light and dark color theme. Your choice is remembered on this device.</p>
+          <button id="themeToggle" class="btn btn-primary">Switch to dark mode</button>
+        </div>
+
+        <div class="settings-card">
+          <h4>Categories</h4>
+          <p class="hint">Add, rename, recolor, or remove the categories used across your events, to-dos, and goals.</p>
+          <button id="catBtn" class="btn btn-primary">Edit categories</button>
+        </div>
+
+        <div class="settings-card">
+          <h4>Backup your data</h4>
+          <p class="hint">Download everything to a file you can keep somewhere safe, or restore from one. Importing replaces what's currently in the app.</p>
+          <button id="exportData" class="btn btn-primary">Export to file</button>
+          <button id="importData" class="btn">Import from file</button>
+          <input type="file" id="importFile" accept="application/json,.json" style="display:none">
+        </div>
+
+        <div class="settings-card danger-zone">
+          <h4>Reset all data</h4>
+          <p class="hint">Permanently deletes your schedule, journals, goals, to-dos, and rants. This can't be undone.</p>
+          <button id="resetData" class="btn btn-danger">Reset all data</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===== EVENT MODAL (hidden until opened) ===== -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h3 id="modalTitle">New event</h3>
+
+      <label class="field">
+        <span>Title</span>
+        <input type="text" id="evtTitle" placeholder="e.g. Chemistry class">
+      </label>
+
+      <label class="field">
+        <span>Notes</span>
+        <input type="text" id="evtNotes" placeholder="Optional">
+      </label>
+
+      <label class="field">
+        <span>Date</span>
+        <input type="date" id="evtDate">
+      </label>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Start</span>
+          <input type="time" id="evtStart">
+        </label>
+        <label class="field">
+          <span>End</span>
+          <input type="time" id="evtEnd">
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Category</span>
+        <select id="evtCategory"></select>
+      </label>
+
+      <label class="field" id="repeatField">
+        <span>Repeat every N days <span class="hint-inline">(0 = no repeat)</span></span>
+        <input type="number" id="evtRepeat" min="0" step="1" value="0" placeholder="0">
+      </label>
+
+      <div class="scale-field" id="feelField">
+        <div class="scale-label">
+          <span>How did it feel? <span class="optional">(optional)</span></span>
+          <span class="scale-controls">
+            <output class="scale-out"></output>
+            <button type="button" class="scale-clear" title="Clear answer">&times;</button>
+          </span>
+        </div>
+        <input type="range" min="1" max="10" id="scaleFeel" class="scale-slider">
+        <div class="slider-hint">Also shows up in this day's evening journal.</div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="deleteEvent" class="btn btn-danger">Delete</button>
+        <span class="spacer"></span>
+        <button id="cancelEvent" class="btn">Cancel</button>
+        <button id="saveEvent" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DAILY JOURNAL MODAL (hidden until opened) ===== -->
+  <div class="modal-overlay" id="journalModalOverlay">
+    <div class="modal modal-journal">
+      <h3 id="journalModalTitle">Daily journal</h3>
+
+      <div id="activityRatings"></div>
+
+      <div id="eveningQuestions"></div>
+
+      <div class="modal-subhead">Anything else on your mind?</div>
+      <label class="field"><input type="text" id="eveningRantTitle" placeholder="Optional title"></label>
+      <label class="field"><input type="text" id="eveningRantTags" placeholder="Optional tags, comma-separated"></label>
+      <label class="field"><textarea id="eveningRant" rows="4" placeholder="What's on your mind?"></textarea></label>
+
+      <p class="hint">Everything here is optional &mdash; fill in as much or as little as you like.</p>
+
+      <div class="modal-actions">
+        <span class="spacer"></span>
+        <button id="cancelJournal" class="btn">Cancel</button>
+        <button id="saveJournal" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MORNING CHECK-IN MODAL (hidden until opened) ===== -->
+  <div class="modal-overlay" id="morningModalOverlay">
+    <div class="modal modal-journal">
+      <h3 id="morningModalTitle">Morning check-in</h3>
+
+      <div id="morningQuestions"></div>
+
+      <div class="modal-actions">
+        <span class="spacer"></span>
+        <button id="cancelMorning" class="btn">Cancel</button>
+        <button id="saveMorning" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CATEGORIES EDITOR MODAL ===== -->
+  <div class="modal-overlay" id="catModalOverlay">
+    <div class="modal">
+      <h3>Edit categories</h3>
+      <p class="hint">Rename, recolour, add, or remove. Existing events keep their category.</p>
+      <div id="catList"></div>
+      <button id="addCategory" class="btn">+ Add category</button>
+      <div class="modal-actions">
+        <span class="spacer"></span>
+        <button id="closeCategories" class="btn btn-primary">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RECURRING DELETE PROMPT ===== -->
+  <div class="modal-overlay" id="recurDeleteOverlay">
+    <div class="modal">
+      <h3>Delete recurring event</h3>
+      <p class="hint">This event repeats. What would you like to delete?</p>
+      <div class="modal-actions stack">
+        <button id="delThisOnly" class="btn">This event only</button>
+        <button id="delThisFuture" class="btn btn-danger">This and all future events</button>
+        <button id="delCancel" class="btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GOAL MODAL ===== -->
+  <div class="modal-overlay" id="goalModalOverlay">
+    <div class="modal">
+      <h3 id="goalModalTitle">New goal</h3>
+
+      <label class="field">
+        <span>Goal</span>
+        <input type="text" id="goalTitle" placeholder="e.g. Learn the guitar">
+      </label>
+
+      <label class="field">
+        <span>Notes</span>
+        <input type="text" id="goalNotes" placeholder="Optional">
+      </label>
+
+      <label class="field">
+        <span>Target (optional)</span>
+        <div class="target-row">
+          <select id="goalTargetType">
+            <option value="">No target</option>
+            <option value="hours">Hours per week</option>
+            <option value="timesPerWeek">Times per week</option>
+            <option value="everyNDays">Once every N days</option>
+          </select>
+          <input type="number" id="goalTargetValue" min="0" step="0.5" placeholder="e.g. 3">
+        </div>
+      </label>
+
+      <label class="field">
+        <span>Category it counts toward (optional)</span>
+        <select id="goalCategory"></select>
+      </label>
+
+      <div class="modal-subhead">Milestones (optional)</div>
+      <div id="milestoneList"></div>
+      <button id="addMilestone" class="btn">+ Add milestone</button>
+
+      <div class="modal-actions">
+        <button id="deleteGoal" class="btn btn-danger">Delete</button>
+        <span class="spacer"></span>
+        <button id="cancelGoal" class="btn">Cancel</button>
+        <button id="saveGoal" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== WEEKLY JOURNAL MODAL ===== -->
+  <div class="modal-overlay" id="weeklyModalOverlay">
+    <div class="modal">
+      <h3 id="weeklyModalTitle">Weekly journal</h3>
+      <p class="hint">A goal-focused look back on the week.</p>
+      <div id="weeklyGoals"></div>
+      <div id="weeklyQuestions"></div>
+      <div class="modal-actions">
+        <span class="spacer"></span>
+        <button id="cancelWeekly" class="btn">Cancel</button>
+        <button id="saveWeekly" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== COMBINED DAY MODAL (morning + evening together) ===== -->
+  <div class="modal-overlay" id="dayModalOverlay">
+    <div class="modal modal-journal">
+      <h3 id="dayModalTitle">Day</h3>
+
+      <div class="day-section-head">Morning</div>
+      <div id="dayMorningQuestions"></div>
+
+      <div class="day-section-head">Evening</div>
+
+      <div id="dayActivityRatings"></div>
+
+      <div id="dayEveningQuestions"></div>
+
+      <div class="modal-subhead">Anything else on your mind?</div>
+      <label class="field"><input type="text" id="dayEveningRantTitle" placeholder="Optional title"></label>
+      <label class="field"><input type="text" id="dayEveningRantTags" placeholder="Optional tags, comma-separated"></label>
+      <label class="field"><textarea id="dayEveningRant" rows="4" placeholder="What's on your mind?"></textarea></label>
+
+      <div class="modal-actions">
+        <span class="spacer"></span>
+        <button id="cancelDay" class="btn">Cancel</button>
+        <button id="saveDay" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TO-DO MODAL ===== -->
+  <div class="modal-overlay" id="todoModalOverlay">
+    <div class="modal">
+      <h3 id="todoModalTitle">New to-do</h3>
+      <div class="seg" id="todoKindSeg">
+        <button type="button" class="seg-btn" data-kind="deadline">Deadline</button>
+        <button type="button" class="seg-btn" data-kind="do">Plan</button>
+      </div>
+      <label class="field">
+        <span>Task</span>
+        <input type="text" id="todoTitle" placeholder="e.g. Finish lab report">
+      </label>
+      <label class="field">
+        <span>Notes</span>
+        <input type="text" id="todoNotes" placeholder="Optional">
+      </label>
+      <div class="field-row">
+        <label class="field">
+          <span id="todoDueLabel">Due date</span>
+          <input type="date" id="todoDue">
+        </label>
+        <label class="field" id="todoTimeField">
+          <span>Due time</span>
+          <input type="time" id="todoTime">
+        </label>
+      </div>
+      <label class="field">
+        <span>Estimated hours</span>
+        <input type="number" id="todoEst" min="0" step="0.5" placeholder="e.g. 2">
+      </label>
+      <div class="field" id="todoLinkField">
+        <span>Part of &mdash; optional</span>
+        <div class="typeahead">
+          <input type="text" id="todoLink" autocomplete="off" placeholder="Search deadlines&hellip;">
+          <div class="typeahead-list" id="todoLinkResults" hidden></div>
+        </div>
+      </div>
+      <label class="field" id="todoCategoryField">
+        <span>Category</span>
+        <select id="todoCategory"></select>
+        <p class="hint" id="todoCatNote" hidden>Locked to match its deadline.</p>
+      </label>
+      <label class="check-field" id="todoDoneField">
+        <input type="checkbox" id="todoDone">
+        <span>Mark as complete</span>
+      </label>
+      <div class="modal-actions">
+        <button id="deleteTodo" class="btn btn-danger">Delete</button>
+        <span class="spacer"></span>
+        <button id="cancelTodo" class="btn">Cancel</button>
+        <button id="saveTodo" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rant detail (big popup): full notes, change tags, or delete -->
+  <div class="modal-overlay" id="rantModalOverlay">
+    <div class="modal modal-large">
+      <h3 id="rantModalTitle"></h3>
+      <div id="rantModalMeta" class="rant-modal-meta"></div>
+      <div id="rantModalBody" class="rant-modal-body"></div>
+      <label class="field">
+        <span>Tags</span>
+        <input type="text" id="rantModalTags" placeholder="comma-separated tags">
+      </label>
+      <div class="modal-actions">
+        <button id="rantModalDelete" class="btn btn-danger">Delete</button>
+        <span class="spacer"></span>
+        <button id="rantModalClose" class="btn">Close</button>
+        <button id="rantModalSave" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load order matters: app.js defines shared helpers used by the others -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+  <script src="questions.js"></script>
+  <script src="journal.js"></script>
+  <script src="calendar.js"></script>
+  <script src="goals.js"></script>
+  <script src="journalview.js"></script>
+  <script src="todo.js"></script>
+  <script src="suggest.js"></script>
+  <script src="wearables.js"></script>
+  <script src="demo-data.js"></script>
+  <script src="demo.js"></script>
+  <script src="auth.js"></script>
+  <script src="boot.js"></script>
+</body>
+</html>

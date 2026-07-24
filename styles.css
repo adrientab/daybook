@@ -1228,3 +1228,21 @@ h2 { margin-top: 0; }
 .auth-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .auth-actions .btn { flex: 1; }
 .auth-demo { width: 100%; margin-top: 10px; }
+
+/* Demo mode banner (app.html?demo=1) */
+.demo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--sidebar-bg);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 0.88rem;
+}
+.demo-banner[hidden] { display: none; }
+.demo-banner .btn { text-decoration: none; }
