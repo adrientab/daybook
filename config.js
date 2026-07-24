@@ -15,8 +15,8 @@
    set the project up.
    ============================================================ */
 
-const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";   // e.g. https://abcdefgh.supabase.co
-const SUPABASE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+const SUPABASE_URL = "https://pasaatxeylzrycsqkddu.supabase.co";   // e.g. https://abcdefgh.supabase.co
+const SUPABASE_KEY = "sb_publishable_oGgUHoKG7wVoMpXgcfA8dQ_3KuE2m4b";
 
 /* ---- Optional demo account ----
    Fill these in and a "Try the demo" button appears on the login screen, so
