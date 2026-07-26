@@ -306,6 +306,17 @@ function currentTheme() {
   return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
 }
 
+/* The theme to show: an explicit choice wins; otherwise follow the OS/browser
+   preference (matching the no-flash script in the page head). */
+function resolveTheme() {
+  const saved = Store.get("theme");
+  if (saved === "dark" || saved === "light") return saved;
+  try {
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+  } catch (e) { /* ignore */ }
+  return "light";
+}
+
 function applyTheme(theme) {
   if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
   else document.documentElement.removeAttribute("data-theme");
@@ -322,7 +333,18 @@ if (themeToggle) {
   });
 }
 
-onAppReady(function () { applyTheme(Store.get("theme") === "dark" ? "dark" : "light"); }); // sync label on load
+onAppReady(function () { applyTheme(resolveTheme()); }); // saved choice, else OS preference
+
+/* While the user hasn't picked a theme, follow the OS if it changes live. Once
+   they choose one (saved), their choice sticks and this stops mattering. */
+try {
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
+    if (!Store.ready) return;
+    const saved = Store.get("theme");
+    if (saved === "dark" || saved === "light") return; // explicit choice wins
+    applyTheme(e.matches ? "dark" : "light");
+  });
+} catch (e) { /* older browser: no live updates, still fine */ }
 
 /* ---- Enter saves the open modal (but not inside a textarea) ---- */
 document.addEventListener("keydown", function (e) {

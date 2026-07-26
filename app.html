@@ -5,8 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Daybook</title>
   <script>
-    // Apply the saved theme before the page paints so there's no flash.
-    try { if (localStorage.getItem("theme") === "dark") document.documentElement.setAttribute("data-theme", "dark"); } catch (e) {}
+    // Apply the theme before the page paints so there's no flash. If the user
+    // has chosen one it wins; otherwise follow the OS / browser preference.
+    try {
+      var saved = localStorage.getItem("theme");
+      var dark = saved ? saved === "dark"
+        : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (dark) document.documentElement.setAttribute("data-theme", "dark");
+    } catch (e) {}
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -316,54 +322,95 @@
       <section class="view" id="view-settings">
         <div class="section-head"><h2>Settings</h2></div>
 
-        <div class="settings-card" id="accountCard" hidden>
-          <h4>Account</h4>
-          <p class="hint" id="accountWho"></p>
-          <button id="signOutBtn" class="btn" hidden>Sign out</button>
-        </div>
+        <div class="settings-wrap">
 
-        <div class="settings-card" id="changePwCard" hidden>
-          <h4>Change password</h4>
-          <p class="hint">Your entries stay readable &mdash; nothing is re-encrypted. Only the key that protects them is re-locked with the new password.</p>
-          <label class="field">
-            <span>New password</span>
-            <input type="password" id="changePw" autocomplete="new-password" placeholder="New password">
-          </label>
-          <button id="changePwBtn" class="btn">Update password</button>
-          <p class="hint" id="changePwMsg"></p>
-        </div>
+          <!-- Account group -->
+          <div class="settings-group" id="accountGroup" hidden>
+            <h3 class="settings-group-title">Account</h3>
 
-        <div class="settings-card" id="recoveryCard" hidden>
-          <h4>Recovery key</h4>
-          <p class="hint">Your entries are encrypted in your browser, so a forgotten password can't be undone by resetting it &mdash; this key is the only way back in. Save it somewhere safe and private.</p>
-          <button id="showRecoveryBtn" class="btn">Show my recovery key</button>
-          <p class="recovery-out" id="recoveryOut" hidden></p>
-        </div>
+            <div class="set-row" id="accountCard">
+              <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg></div>
+              <div class="set-body">
+                <div class="set-title">Account</div>
+                <p class="set-desc" id="accountWho"></p>
+              </div>
+              <div class="set-control"><button id="signOutBtn" class="btn" hidden>Sign out</button></div>
+            </div>
 
-        <div class="settings-card">
-          <h4>Appearance</h4>
-          <p class="hint">Switch between a light and dark color theme. Your choice is remembered on this device.</p>
-          <button id="themeToggle" class="btn btn-primary">Switch to dark mode</button>
-        </div>
+            <div class="set-row" id="changePwCard" hidden>
+              <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+              <div class="set-body">
+                <div class="set-title">Change password</div>
+                <p class="set-desc">Your entries stay readable &mdash; nothing is re-encrypted, only the key protecting them is re-locked.</p>
+                <label class="field set-inline-field">
+                  <input type="password" id="changePw" autocomplete="new-password" placeholder="New password">
+                </label>
+                <p class="set-desc" id="changePwMsg"></p>
+              </div>
+              <div class="set-control"><button id="changePwBtn" class="btn">Update</button></div>
+            </div>
 
-        <div class="settings-card">
-          <h4>Categories</h4>
-          <p class="hint">Add, rename, recolor, or remove the categories used across your events, to-dos, and goals.</p>
-          <button id="catBtn" class="btn btn-primary">Edit categories</button>
-        </div>
+            <div class="set-row" id="recoveryCard" hidden>
+              <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7a4 4 0 1 0-4 4"/><path d="M11 11l-6 6v3h3l1-1v-2h2v-2h2l1-1"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg></div>
+              <div class="set-body">
+                <div class="set-title">Recovery key</div>
+                <p class="set-desc">Your entries are encrypted in your browser, so a forgotten password can't be reset away &mdash; this key is the only way back in. Save it somewhere safe.</p>
+                <p class="recovery-out" id="recoveryOut" hidden></p>
+              </div>
+              <div class="set-control"><button id="showRecoveryBtn" class="btn">Show key</button></div>
+            </div>
+          </div>
 
-        <div class="settings-card">
-          <h4>Backup your data</h4>
-          <p class="hint">Download everything to a file you can keep somewhere safe, or restore from one. Importing replaces what's currently in the app.</p>
-          <button id="exportData" class="btn btn-primary">Export to file</button>
-          <button id="importData" class="btn">Import from file</button>
-          <input type="file" id="importFile" accept="application/json,.json" style="display:none">
-        </div>
+          <!-- Preferences group -->
+          <div class="settings-group">
+            <h3 class="settings-group-title">Preferences</h3>
 
-        <div class="settings-card danger-zone">
-          <h4>Reset all data</h4>
-          <p class="hint">Permanently deletes your schedule, journals, goals, to-dos, and rants. This can't be undone.</p>
-          <button id="resetData" class="btn btn-danger">Reset all data</button>
+            <div class="set-row">
+              <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg></div>
+              <div class="set-body">
+                <div class="set-title">Appearance</div>
+                <p class="set-desc">Light or dark theme. Defaults to your device, remembered here once you choose.</p>
+              </div>
+              <div class="set-control"><button id="themeToggle" class="btn">Switch to dark mode</button></div>
+            </div>
+
+            <div class="set-row">
+              <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3"/></svg></div>
+              <div class="set-body">
+                <div class="set-title">Categories</div>
+                <p class="set-desc">Add, rename, recolor, or remove the categories used across events, to-dos, and goals.</p>
+              </div>
+              <div class="set-control"><button id="catBtn" class="btn">Edit</button></div>
+            </div>
+          </div>
+
+          <!-- Data group -->
+          <div class="settings-group">
+            <h3 class="settings-group-title">Your data</h3>
+
+            <div class="set-row">
+              <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></div>
+              <div class="set-body">
+                <div class="set-title">Backup &amp; restore</div>
+                <p class="set-desc">Download everything to a file, or restore from one. Importing replaces what's currently in the app.</p>
+              </div>
+              <div class="set-control set-control-stack">
+                <button id="exportData" class="btn">Export</button>
+                <button id="importData" class="btn">Import</button>
+                <input type="file" id="importFile" accept="application/json,.json" style="display:none">
+              </div>
+            </div>
+
+            <div class="set-row danger-row">
+              <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg></div>
+              <div class="set-body">
+                <div class="set-title">Reset all data</div>
+                <p class="set-desc">Permanently deletes your schedule, journals, goals, to-dos, and rants. This can't be undone.</p>
+              </div>
+              <div class="set-control"><button id="resetData" class="btn btn-danger">Reset</button></div>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -406,7 +453,6 @@
           <button type="button" class="scale-clear" title="Clear answer">&times;</button>
         </div>
         <input type="range" min="1" max="10" id="scaleFeel" class="scale-slider">
-        <div class="slider-hint">Also shows up in this day's evening journal.</div>
       </div>
 
       <!-- Repeat: hidden behind a toggle like the feel field. Two modes —

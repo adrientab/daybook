@@ -496,7 +496,7 @@ h2 { margin-top: 0; }
 }
 /* Just wide enough for MM/DD/YYYY — the picker icon is hidden, so no room is
    reserved for it. Time fields likewise fit HH:MM AM. */
-input.inline-input[type="date"] { width: 6.6em; }
+input.inline-input[type="date"] { width: 6.9em; }
 input.inline-input[type="time"] { width: 6em; }
 /* Drop the native calendar/clock glyphs — they crowd the line and the whole
    field is already clickable. */
@@ -586,7 +586,7 @@ input.inline-input[type="time"] { width: 6em; }
   margin-top: 0;
   padding: 0 0 8px;
   min-height: 1.6em;         /* a touch over one line — compact but not cramped */
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   color: var(--muted);
 }
 
@@ -849,13 +849,27 @@ input.inline-input[type="time"] { width: 6em; }
 .m-date { margin-left: auto; color: var(--muted); font-size: 0.75rem; }
 
 /* Milestone editor rows in the goal modal */
-.ms-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.ms-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
 .ms-text, .ms-date {
   padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
   font-size: 0.9rem; font-family: inherit;
 }
-.ms-text { flex: 1; }
-.ms-del { font-size: 0.8rem; padding: 6px 10px; }
+.ms-text { flex: 1; min-width: 0; }
+.ms-date { flex: 0 0 auto; width: 8.4em; }
+.ms-del {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.ms-del:hover { background: var(--bg); color: var(--text); }
 
 /* ============================================================
    JOURNAL — week strip
@@ -964,6 +978,73 @@ input.inline-input[type="time"] { width: 6em; }
 .settings-card h4 { margin: 0 0 6px; }
 .settings-card .hint { margin: 0 0 12px; }
 .settings-card.danger-zone { border-color: #fecaca; }
+
+/* ============================================================
+   SETTINGS — grouped rows
+   ============================================================ */
+.settings-wrap { max-width: 620px; display: flex; flex-direction: column; gap: 28px; }
+.settings-group-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 10px 2px;
+}
+/* Rows in a group share one rounded card, split by hairlines. */
+.settings-group > .set-row {
+  border: 1px solid var(--border);
+  border-bottom: none;
+  background: var(--surface);
+}
+.settings-group > .set-row:first-of-type { border-radius: 12px 12px 0 0; }
+.settings-group > .set-row:last-of-type { border-radius: 0 0 12px 12px; border-bottom: 1px solid var(--border); }
+.settings-group > .set-row:only-of-type { border-radius: 12px; }
+
+.set-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+}
+.set-row[hidden] { display: none; }
+.set-icon {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: var(--bg);
+  color: var(--sidebar-bg);
+}
+.set-icon svg { width: 18px; height: 18px; }
+.set-body { flex: 1; min-width: 0; }
+.set-title { font-weight: 600; font-size: 0.98rem; margin-bottom: 3px; }
+.set-desc { color: var(--muted); font-size: 0.85rem; margin: 0; line-height: 1.45; }
+.set-control {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding-top: 2px;
+}
+.set-control-stack { flex-direction: column; gap: 6px; align-items: stretch; }
+.set-control-stack .btn { width: 100%; }
+
+.set-inline-field { margin: 10px 0 6px; max-width: 260px; display: block; }
+.set-inline-field input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Danger row: subtle red accent on the icon rather than the whole card. */
+.danger-row .set-icon { background: rgba(220, 38, 38, 0.1); color: #dc2626; }
 
 /* ============================================================
    GOAL TARGET ROW
@@ -1442,6 +1523,11 @@ input.inline-input[type="time"] { width: 6em; }
   }
   /* Side-by-side date+time is too cramped; stack them. */
   .field-row { flex-direction: column; gap: 0; }
+
+  /* ---- Settings rows stack on narrow screens ---- */
+  .set-row { flex-wrap: wrap; }
+  .set-control { width: 100%; padding-top: 8px; }
+  .set-control .btn { flex: 1; }
 
   /* ---- Touch targets ---- */
   .btn { padding: 9px 14px; }
