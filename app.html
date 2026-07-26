@@ -517,45 +517,38 @@
 
   <!-- ===== GOAL MODAL ===== -->
   <div class="modal-overlay" id="goalModalOverlay">
-    <div class="modal">
-      <h3 id="goalModalTitle">New goal</h3>
+    <div class="modal modal-event" id="goalModal">
+      <div class="modal-grip">
+        <span class="modal-grip-dots"></span>
+        <button type="button" id="cancelGoal" class="modal-x" title="Close">&times;</button>
+      </div>
 
-      <label class="field">
-        <span>Goal</span>
-        <input type="text" id="goalTitle" placeholder="e.g. Learn the guitar">
-      </label>
+      <input type="text" id="goalTitle" class="title-input" placeholder="Add goal" autocomplete="off">
 
-      <label class="field">
-        <span>Notes</span>
-        <input type="text" id="goalNotes" placeholder="Optional">
-      </label>
+      <textarea id="goalNotes" class="notes-input notes-top" placeholder="Add notes" rows="1" autocomplete="off"></textarea>
 
-      <label class="field">
-        <span>Target (optional)</span>
-        <div class="target-row">
-          <select id="goalTargetType">
-            <option value="">No target</option>
-            <option value="hours">Hours per week</option>
-            <option value="timesPerWeek">Times per week</option>
-            <option value="everyNDays">Once every N days</option>
-          </select>
-          <input type="number" id="goalTargetValue" min="0" step="0.5" placeholder="e.g. 3">
-        </div>
-      </label>
+      <!-- Target -->
+      <div class="target-row">
+        <select id="goalTargetType" class="inline-select">
+          <option value="">No target</option>
+          <option value="hours">Hours per week</option>
+          <option value="timesPerWeek">Times per week</option>
+          <option value="everyNDays">Once every N days</option>
+        </select>
+        <input type="number" id="goalTargetValue" min="0" step="0.5" class="inline-input est-input" placeholder="—">
+      </div>
 
-      <label class="field">
-        <span>Category it counts toward (optional)</span>
-        <select id="goalCategory"></select>
-      </label>
+      <!-- Category as colour chips -->
+      <div class="chip-row" id="goalCategory" role="radiogroup" aria-label="Category counts toward"></div>
 
-      <div class="modal-subhead">Milestones (optional)</div>
+      <!-- Milestones -->
+      <div class="reveal-title">Milestones</div>
       <div id="milestoneList"></div>
-      <button id="addMilestone" class="btn">+ Add milestone</button>
+      <button id="addMilestone" class="btn btn-sm">+ Add milestone</button>
 
       <div class="modal-actions">
         <button id="deleteGoal" class="btn btn-danger">Delete</button>
         <span class="spacer"></span>
-        <button id="cancelGoal" class="btn">Cancel</button>
         <button id="saveGoal" class="btn btn-primary">Save</button>
       </div>
     </div>
@@ -605,54 +598,56 @@
 
   <!-- ===== TO-DO MODAL ===== -->
   <div class="modal-overlay" id="todoModalOverlay">
-    <div class="modal">
-      <h3 id="todoModalTitle">New to-do</h3>
+    <div class="modal modal-event" id="todoModal">
+      <div class="modal-grip">
+        <span class="modal-grip-dots"></span>
+        <button type="button" id="cancelTodo" class="modal-x" title="Close">&times;</button>
+      </div>
+
       <div class="seg" id="todoKindSeg">
         <button type="button" class="seg-btn" data-kind="deadline">Deadline</button>
         <button type="button" class="seg-btn" data-kind="do">Plan</button>
       </div>
-      <label class="field">
-        <span>Task</span>
-        <input type="text" id="todoTitle" placeholder="e.g. Finish lab report">
-      </label>
-      <label class="field">
-        <span>Notes</span>
-        <input type="text" id="todoNotes" placeholder="Optional">
-      </label>
-      <div class="field-row">
-        <label class="field">
-          <span id="todoDueLabel">Due date</span>
-          <input type="date" id="todoDue">
-        </label>
-        <label class="field" id="todoTimeField">
-          <span>Due time</span>
-          <input type="time" id="todoTime">
-        </label>
-      </div>
-      <label class="field">
-        <span>Estimated hours</span>
-        <input type="number" id="todoEst" min="0" step="0.5" placeholder="e.g. 2">
-      </label>
+
+      <input type="text" id="todoTitle" class="title-input" placeholder="Add task" autocomplete="off">
+
+      <textarea id="todoNotes" class="notes-input notes-top" placeholder="Add notes" rows="1" autocomplete="off"></textarea>
+
+      <!-- When: due date, and (deadlines only) a time -->
+      <p class="when-line">
+        <span id="todoDueLabel">by</span>
+        <input type="date" id="todoDue" class="inline-input">
+        <input type="time" id="todoTime" class="inline-input">
+      </p>
+
+      <!-- Category as colour chips -->
+      <div class="chip-row" id="todoCategory" role="radiogroup" aria-label="Category"></div>
+      <p class="hint" id="todoCatNote" hidden>Locked to match its deadline.</p>
+
+      <!-- Part of (Plan only): tucked behind a reveal like feel/repeat -->
       <div class="field" id="todoLinkField">
-        <span>Part of &mdash; optional</span>
+        <div class="reveal-title">Part of</div>
         <div class="typeahead">
-          <input type="text" id="todoLink" autocomplete="off" placeholder="Search deadlines&hellip;">
+          <input type="text" id="todoLink" class="inline-text" autocomplete="off" placeholder="Search deadlines&hellip;">
           <div class="typeahead-list" id="todoLinkResults" hidden></div>
         </div>
       </div>
-      <label class="field" id="todoCategoryField">
-        <span>Category</span>
-        <select id="todoCategory"></select>
-        <p class="hint" id="todoCatNote" hidden>Locked to match its deadline.</p>
-      </label>
+
+      <!-- Estimated hours: compact inline -->
+      <p class="when-line">
+        <span>Est.</span>
+        <input type="number" id="todoEst" min="0" step="0.5" class="inline-input est-input" placeholder="—">
+        <span>hours</span>
+      </p>
+
       <label class="check-field" id="todoDoneField">
         <input type="checkbox" id="todoDone">
         <span>Mark as complete</span>
       </label>
+
       <div class="modal-actions">
         <button id="deleteTodo" class="btn btn-danger">Delete</button>
         <span class="spacer"></span>
-        <button id="cancelTodo" class="btn">Cancel</button>
         <button id="saveTodo" class="btn btn-primary">Save</button>
       </div>
     </div>

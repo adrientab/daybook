@@ -189,22 +189,41 @@ function toggleTodo(id, done) {
 }
 
 /* ---- Create / edit modal ---- */
-function populateTodoCategories(selectedId) {
-  const sel = document.getElementById("todoCategory");
-  sel.innerHTML = "";
+/* Category as colour chips (same as the schedule modal). The chosen id lives
+   in the row's data-value; readTodoCategory() reads it. When locked to a
+   linked deadline's category, the chips are shown disabled. */
+function populateTodoCategories(selectedId, locked) {
+  const wrap = document.getElementById("todoCategory");
   const cats = getCategories();
+  let chosen = cats.some(function (c) { return c.id === selectedId; })
+    ? selectedId : (cats[0] ? cats[0].id : "");
+
+  wrap.dataset.value = chosen;
+  wrap.innerHTML = "";
+  wrap.classList.toggle("chips-locked", !!locked);
+
   cats.forEach(function (c) {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.name;
-    if (c.id === selectedId) opt.selected = true;
-    sel.appendChild(opt);
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "cat-chip" + (c.id === chosen ? " selected" : "");
+    chip.dataset.id = c.id;
+    chip.style.setProperty("--chip", c.color);
+    chip.disabled = !!locked;
+    chip.innerHTML = '<span class="cat-dot"></span>' + escapeHtml(c.name);
+    chip.onclick = function () {
+      if (locked) return;
+      wrap.dataset.value = c.id;
+      wrap.querySelectorAll(".cat-chip").forEach(function (b) {
+        b.classList.toggle("selected", b === chip);
+      });
+    };
+    wrap.appendChild(chip);
   });
-  if (!cats.some(function (c) { return c.id === selectedId; }) && cats[0]) {
-    sel.value = cats[0].id;
-  }
-  paintCategorySelect(sel);
-  sel.onchange = function () { paintCategorySelect(sel); };
+}
+
+/* Read the chosen category id — replaces the old select.value. */
+function readTodoCategory() {
+  return document.getElementById("todoCategory").dataset.value || "";
 }
 
 /* ---- "Part of" typeahead ----
@@ -261,19 +280,16 @@ function selectLink(id) {
 }
 
 /* A linked item inherits its deadline's category, so show that category and
-   lock the picker rather than letting the two drift apart. */
+   lock the chips rather than letting the two drift apart. */
 function applyLinkLock() {
-  const sel = document.getElementById("todoCategory");
   const note = document.getElementById("todoCatNote");
   const parent = todoLinkId
     ? getTodos().find(function (x) { return x.id === todoLinkId; })
     : null;
   const locked = !!parent && todoKindValue === "do";
 
-  if (locked) sel.value = parent.category;
-  sel.disabled = locked;
+  populateTodoCategories(locked ? parent.category : readTodoCategory(), locked);
   note.hidden = !locked;
-  paintCategorySelect(sel);
 }
 
 /* Show only the fields that make sense for the chosen type. */
@@ -284,8 +300,8 @@ function setTodoKind(kind) {
   document.querySelectorAll("#todoKindSeg .seg-btn").forEach(function (b) {
     b.classList.toggle("active", b.dataset.kind === todoKindValue);
   });
-  document.getElementById("todoDueLabel").textContent = isDo ? "Plan for" : "Due date";
-  document.getElementById("todoTimeField").style.display = isDo ? "none" : "block";
+  document.getElementById("todoDueLabel").textContent = isDo ? "on" : "by";
+  document.getElementById("todoTime").style.display = isDo ? "none" : "";
   document.getElementById("todoLinkField").style.display = isDo ? "block" : "none";
   applyLinkLock(); // a deadline is never locked; a linked "do on" is
 }
@@ -294,11 +310,11 @@ function openTodo(id, presetDate) {
   editingTodoId = id || null;
   const t = id ? getTodos().find(function (x) { return x.id === id; }) : null;
 
-  document.getElementById("todoModalTitle").textContent = t ? "Edit to-do" : "New to-do";
   document.getElementById("todoTitle").value = t ? t.title : "";
   document.getElementById("todoDue").value = t ? t.due : (presetDate || dateKey(new Date()));
   document.getElementById("todoTime").value = t ? (t.dueTime || "") : "";
   document.getElementById("todoNotes").value = t ? (t.notes || "") : "";
+  if (typeof autoGrow === "function") autoGrow(document.getElementById("todoNotes"));
   document.getElementById("todoEst").value = (t && t.estHours != null) ? t.estHours : "";
   populateTodoCategories(t ? t.category : (getCategories()[0] && getCategories()[0].id));
 
@@ -360,7 +376,7 @@ function saveTodo() {
   const parentCat = linkedTo
     ? (getTodos().find(function (x) { return x.id === linkedTo; }) || {}).category
     : null;
-  const category = parentCat || document.getElementById("todoCategory").value;
+  const category = parentCat || readTodoCategory();
 
   if (!title) { alert("Give your to-do a title."); return; }
   if (!due) { alert(isDo ? "Pick a day to plan it for." : "Pick a due date."); return; }
@@ -438,9 +454,11 @@ document.getElementById("todoLink").addEventListener("keydown", function (e) {
   }
 });
 
-document.getElementById("saveTodo").addEventListener("click", saveTodo);
-document.getElementById("deleteTodo").addEventListener("click", deleteTodo);
+document.getElementById("saveTodo").addEventListener("click", saveTodo);document.getElementById("deleteTodo").addEventListener("click", deleteTodo);
 document.getElementById("cancelTodo").addEventListener("click", closeTodo);
+document.getElementById("todoNotes").addEventListener("input", function () {
+  if (typeof autoGrow === "function") autoGrow(this);
+});
 todoOverlay.addEventListener("click", function (e) { if (e.target === todoOverlay) closeTodo(); });
 
 document.getElementById("tdPrevWeek").addEventListener("click", function () {
