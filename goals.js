@@ -156,7 +156,7 @@ function renderMilestoneList() {
     row.innerHTML =
       '<input type="text" class="ms-text" data-i="' + i + '" placeholder="Milestone" value="' + escapeHtml(m.text || "") + '">' +
       '<input type="date" class="ms-date" data-i="' + i + '" value="' + (m.date || "") + '">' +
-      '<button type="button" class="btn ms-del" data-i="' + i + '">Remove</button>';
+      '<button type="button" class="ms-del" data-i="' + i + '" title="Remove" aria-label="Remove milestone">&times;</button>';
     list.appendChild(row);
   });
   list.querySelectorAll(".ms-del").forEach(function (b) {
