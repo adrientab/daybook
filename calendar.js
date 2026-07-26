@@ -1026,20 +1026,27 @@ function resetModalPosition() {
   eventModal.classList.remove("docked");
   eventModal.style.left = "";
   eventModal.style.top = "";
+  const sched = document.getElementById("view-schedule");
+  if (sched) sched.classList.remove("modal-docked");
 }
 
 function dockModal() {
   modalDocked = true;
-  // Only the placement changes — the backdrop stays shaded like a normal modal.
   overlay.classList.add("docked");
   eventModal.classList.add("docked");
   eventModal.style.left = "";
   eventModal.style.top = "";
+  // Push the schedule over so the whole calendar stays visible beside the
+  // docked editor, like the Suggestions panel does.
+  const sched = document.getElementById("view-schedule");
+  if (sched) sched.classList.add("modal-docked");
 }
 function undockModal() {
   modalDocked = false;
   overlay.classList.remove("docked");
   eventModal.classList.remove("docked");
+  const sched = document.getElementById("view-schedule");
+  if (sched) sched.classList.remove("modal-docked");
 }
 
 document.getElementById("modalGrip").addEventListener("pointerdown", function (e) {

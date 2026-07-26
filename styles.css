@@ -29,7 +29,7 @@
   --sidebar-bg: #46577c;
   --sidebar-text: #c3cbdb;
   --accent: #2b3852;
-  --text: #cfd3da;
+  --text: #dde0e6;
   --muted: #9aa3b2;
   --border: #333b47;
 }
@@ -47,6 +47,9 @@
 
 [data-theme="dark"] .suggest-panel,
 [data-theme="dark"] .filter-panel { background: #1c2434; border-color: #2c3750; }
+
+/* Event text picks up the same softened white as the rest of dark mode. */
+[data-theme="dark"] .cal-event { color: #dde0e6; }
 [data-theme="dark"] .suggest-tab,
 [data-theme="dark"] .suggest-item { background: var(--surface); }
 
@@ -623,13 +626,17 @@ input.inline-input[type="time"] { width: 6.5em; }
 }
 
 /* ---- Docked to the side ----
-   Same shaded backdrop as a centred modal; only the panel's placement
-   changes — it pins full-height against the right edge. */
+   The backdrop goes transparent and the schedule shifts over (see
+   .modal-docked below), so the whole calendar sits fully visible and usable
+   right beside the docked editor. */
 .modal-overlay.docked {
+  background: none;
   justify-content: flex-end;
   align-items: stretch;
   padding: 0;
+  pointer-events: none;         /* clicks pass through to the calendar */
 }
+.modal-overlay.docked .modal-event { pointer-events: auto; }
 .modal-event.docked {
   max-width: 340px;
   height: 100vh;
@@ -638,6 +645,9 @@ input.inline-input[type="time"] { width: 6.5em; }
   box-shadow: -12px 0 40px -18px rgba(0, 0, 0, 0.4);
   animation: none;
 }
+/* Shift the calendar left of the docked editor (340px panel + 16px gutter),
+   so the whole week stays visible. Transition is already on .schedule-main. */
+#view-schedule.modal-docked .schedule-main { margin-right: 356px; }
 
 .modal h3 { margin-top: 0; }
 .field { display: block; margin-bottom: 14px; }
@@ -1572,7 +1582,7 @@ input.inline-input[type="time"] { width: 6.5em; }
 /* Live preview of the event being typed in the modal. A dashed ghost so it
    reads as "not saved yet" and doesn't get mistaken for a real block. */
 .cal-event--preview {
-  opacity: 0.4;               /* lighter than real events, reads as a draft */
+  opacity: 0.85;              /* bright and clear — obviously the one you're editing */
   outline: 2px dashed rgba(255, 255, 255, 0.9);
   outline-offset: -3px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
@@ -1587,6 +1597,7 @@ input.inline-input[type="time"] { width: 6.5em; }
 }
 
 @media (max-width: 720px) {
-  /* On phones the docked panel is full-width. */
+  /* On phones the docked panel is full-width and the calendar isn't shifted. */
+  #view-schedule.modal-docked .schedule-main { margin-right: 0; }
   .modal-event.docked { max-width: 100%; }
 }
