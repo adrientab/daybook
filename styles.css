@@ -29,7 +29,7 @@
   --sidebar-bg: #46577c;
   --sidebar-text: #c3cbdb;
   --accent: #2b3852;
-  --text: #e6e8ec;
+  --text: #cfd3da;
   --muted: #9aa3b2;
   --border: #333b47;
 }
@@ -413,7 +413,7 @@ h2 { margin-top: 0; }
 /* ---- Redesigned event modal ---- */
 .modal-event {
   position: relative;
-  max-width: 440px;
+  max-width: 400px;
   padding: 0 22px 20px;
   border-radius: 16px;
   box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.4);
@@ -489,7 +489,10 @@ h2 { margin-top: 0; }
   font: inherit;
   color: var(--text);
   cursor: pointer;
+  width: auto;               /* size to the value, no trailing dead space */
 }
+input.inline-input[type="date"] { width: 8.5em; }
+input.inline-input[type="time"] { width: 6.5em; }
 /* Drop the native calendar/clock glyphs — they crowd the line and the whole
    field is already clickable. */
 .inline-input::-webkit-calendar-picker-indicator { display: none; }
@@ -575,9 +578,9 @@ h2 { margin-top: 0; }
 /* Notes sitting directly under the title: no top border/margin, tighter. */
 .notes-input.notes-top {
   border-top: none;
-  margin-top: 2px;
-  padding: 2px 0 10px;
-  min-height: 2.6em;         /* ~two lines, so it reads as a notes field not a stray line */
+  margin-top: 0;
+  padding: 0 0 8px;
+  min-height: 1.6em;         /* a touch over one line — compact but not cramped */
   font-size: 0.88rem;
   color: var(--muted);
 }
@@ -619,15 +622,14 @@ h2 { margin-top: 0; }
   font-weight: 600;
 }
 
-/* ---- Docked to the side ---- */
+/* ---- Docked to the side ----
+   Same shaded backdrop as a centred modal; only the panel's placement
+   changes — it pins full-height against the right edge. */
 .modal-overlay.docked {
-  background: none;              /* calendar stays usable behind it */
   justify-content: flex-end;
   align-items: stretch;
   padding: 0;
-  pointer-events: none;         /* clicks pass through except on the panel */
 }
-.modal-overlay.docked .modal-event { pointer-events: auto; }
 .modal-event.docked {
   max-width: 340px;
   height: 100vh;
@@ -636,10 +638,7 @@ h2 { margin-top: 0; }
   box-shadow: -12px 0 40px -18px rgba(0, 0, 0, 0.4);
   animation: none;
 }
-/* Docking pushes the schedule over (340px panel + 16px gutter) so the
-   calendar and the editor are both fully visible, like the Suggestions panel.
-   The transition is already on .schedule-main. */
-#view-schedule.modal-docked .schedule-main { margin-right: 356px; }
+
 .modal h3 { margin-top: 0; }
 .field { display: block; margin-bottom: 14px; }
 .field > span { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
@@ -1573,7 +1572,7 @@ h2 { margin-top: 0; }
 /* Live preview of the event being typed in the modal. A dashed ghost so it
    reads as "not saved yet" and doesn't get mistaken for a real block. */
 .cal-event--preview {
-  opacity: 1;                 /* full colour, not shaded */
+  opacity: 0.4;               /* lighter than real events, reads as a draft */
   outline: 2px dashed rgba(255, 255, 255, 0.9);
   outline-offset: -3px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
@@ -1588,7 +1587,6 @@ h2 { margin-top: 0; }
 }
 
 @media (max-width: 720px) {
-  /* No side-dock on phones — the modal is already near full-width. */
-  #view-schedule.modal-docked .schedule-main { margin-right: 0; }
+  /* On phones the docked panel is full-width. */
   .modal-event.docked { max-width: 100%; }
 }
