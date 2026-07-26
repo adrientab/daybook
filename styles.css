@@ -279,7 +279,6 @@ h2 { margin-top: 0; }
 .cal-grid {
   display: grid;
   grid-template-columns: 60px repeat(7, 1fr);
-  position: relative;         /* anchors the docked dim overlay (::after) */
 }
 
 /* Time gutter (left column of hour labels) */
@@ -495,8 +494,10 @@ h2 { margin-top: 0; }
   cursor: pointer;
   width: auto;               /* size to the value, no trailing dead space */
 }
-input.inline-input[type="date"] { width: 8.5em; }
-input.inline-input[type="time"] { width: 6.5em; }
+/* Just wide enough for MM/DD/YYYY — the picker icon is hidden, so no room is
+   reserved for it. Time fields likewise fit HH:MM AM. */
+input.inline-input[type="date"] { width: 6.6em; }
+input.inline-input[type="time"] { width: 6em; }
 /* Drop the native calendar/clock glyphs — they crowd the line and the whole
    field is already clickable. */
 .inline-input::-webkit-calendar-picker-indicator { display: none; }
@@ -628,28 +629,14 @@ input.inline-input[type="time"] { width: 6.5em; }
 
 /* ---- Docked to the side ----
    The editor pins full-height to the right; the schedule shifts over so the
-   whole calendar stays visible beside it. The overlay backdrop is transparent
-   and click-through — the calendar dims ITSELF from the inside (the
-   .modal-docked .cal-grid::after rule below), which is the only way the live
-   preview can sit above the dim: the calendar scrolls, so its contents are
-   clipped inside it and can't be lifted over a full-screen overlay. Dimming
-   inside that same clip lets z-index actually work. */
+   calendar sits beside it. A single shaded backdrop dims the whole screen
+   (calendar included) and catches outside-clicks to close, exactly like the
+   centred modal — the only difference is the box's placement. */
 .modal-overlay.docked {
-  background: none;
+  background: rgba(0, 0, 0, 0.4);
   justify-content: flex-end;
   align-items: stretch;
   padding: 0;
-}
-
-/* Dim layer painted inside the scrolling grid, over the events but under the
-   live preview. */
-#view-schedule.modal-docked .cal-grid::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 5;                   /* above event blocks, below the preview */
-  pointer-events: none;
 }
 .modal-event.docked {
   max-width: 340px;
@@ -1601,13 +1588,6 @@ input.inline-input[type="time"] { width: 6.5em; }
   outline: 2px dashed rgba(255, 255, 255, 0.95);
   outline-offset: -3px;
 }
-/* Above the internal dim (z 5), so the event being created stays full colour
-   while the rest of the calendar is dimmed. The parent column is lifted too,
-   otherwise the block's z-index is trapped inside the column's own layer. */
-#view-schedule.modal-docked .cal-col:has(.cal-event--preview) { z-index: 6; }
-#view-schedule.modal-docked .cal-event--preview {
-  z-index: 6;
-}
 
 /* Heading shown at the top of a revealed section (feel / repeat). */
 .reveal-title {
@@ -1622,3 +1602,55 @@ input.inline-input[type="time"] { width: 6.5em; }
   #view-schedule.modal-docked .schedule-main { margin-right: 0; }
   .modal-event.docked { max-width: 100%; }
 }
+
+/* ============================================================
+   Shared styling for the redesigned To-Do & Goal modals
+   (they reuse .modal-event, .title-input, .notes-top, .chip-row, etc.)
+   ============================================================ */
+
+/* Estimated-hours / target number: small, inline, not full-width. */
+.est-input { width: 4.5em; text-align: center; }
+
+/* Target-type dropdown, styled like the inline fields. */
+.inline-select {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 7px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+}
+.modal-event .target-row { margin: 6px 0 12px; align-items: center; }
+.modal-event .target-row select { flex: 0 1 auto; }
+.modal-event .target-row input { width: 4.5em; }
+
+/* "Part of" typeahead input, matching the notes/title borderless feel. */
+.inline-text {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 7px;
+  padding: 7px 9px;
+  font: inherit;
+  color: var(--text);
+  outline: none;
+}
+.inline-text:focus { border-color: var(--sidebar-bg); }
+
+/* Category chips locked to a linked deadline: dimmed, not clickable. */
+.chip-row.chips-locked { opacity: 0.6; }
+.chip-row.chips-locked .cat-chip { cursor: default; }
+
+/* The "None" category chip has no colour dot fill. */
+.cat-chip.chip-none .cat-dot { background: transparent; border: 1.5px solid var(--muted); }
+
+/* Small button (milestones). */
+.btn-sm { padding: 6px 12px; font-size: 0.85rem; margin-top: 8px; }
+
+/* Reveal-title spacing when it heads a section (Milestones, Part of). */
+.modal-event .reveal-title { margin-top: 14px; }
+.modal-event #todoLinkField .reveal-title { margin-top: 6px; }
+
+/* Complete checkbox row sits a little tighter in the new layout. */
+.modal-event .check-field { margin-top: 12px; }

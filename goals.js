@@ -96,9 +96,9 @@ function openGoal(goalId) {
   editingGoalId = goalId || null;
   const g = goalId ? getGoals().find(function (x) { return x.id === goalId; }) : null;
 
-  document.getElementById("goalModalTitle").textContent = g ? "Edit goal" : "New goal";
   document.getElementById("goalTitle").value = g ? g.title : "";
   document.getElementById("goalNotes").value = g ? (g.notes || "") : "";
+  if (typeof autoGrow === "function") autoGrow(document.getElementById("goalNotes"));
   const t = g ? goalTarget(g) : null;
   document.getElementById("goalTargetType").value = t ? t.type : "";
   document.getElementById("goalTargetValue").value = t ? t.value : "";
@@ -118,19 +118,33 @@ function closeGoal() {
   editingGoalId = null;
 }
 
-/* Category dropdown (with a "None" option) for linking a goal to a category. */
+/* Category chips for linking a goal to a category, including a "None" chip. */
 function populateGoalCategories(selectedId) {
-  const sel = document.getElementById("goalCategory");
-  sel.innerHTML = '<option value="">None</option>';
-  getCategories().forEach(function (c) {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.name;
-    if (c.id === selectedId) opt.selected = true;
-    sel.appendChild(opt);
+  const wrap = document.getElementById("goalCategory");
+  wrap.dataset.value = selectedId || "";
+  wrap.innerHTML = "";
+
+  const options = [{ id: "", name: "None", color: "var(--muted)" }].concat(getCategories());
+  options.forEach(function (c) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "cat-chip" + (c.id === (selectedId || "") ? " selected" : "") +
+      (c.id === "" ? " chip-none" : "");
+    chip.dataset.id = c.id;
+    chip.style.setProperty("--chip", c.color);
+    chip.innerHTML = '<span class="cat-dot"></span>' + escapeHtml(c.name);
+    chip.onclick = function () {
+      wrap.dataset.value = c.id;
+      wrap.querySelectorAll(".cat-chip").forEach(function (b) {
+        b.classList.toggle("selected", b === chip);
+      });
+    };
+    wrap.appendChild(chip);
   });
-  paintCategorySelect(sel);
-  sel.onchange = function () { paintCategorySelect(sel); };
+}
+
+function readGoalCategory() {
+  return document.getElementById("goalCategory").dataset.value || null;
 }
 
 function renderMilestoneList() {
@@ -182,7 +196,7 @@ function saveGoal() {
   const target = (targetType && targetValRaw !== "")
     ? { type: targetType, value: Number(targetValRaw) }
     : null;
-  const category = document.getElementById("goalCategory").value || null;
+  const category = readGoalCategory();
   const notes = document.getElementById("goalNotes").value.trim(); // stored, not shown yet
 
   let goals = getGoals();
@@ -215,6 +229,9 @@ document.getElementById("addMilestone").addEventListener("click", addMilestoneRo
 document.getElementById("saveGoal").addEventListener("click", saveGoal);
 document.getElementById("deleteGoal").addEventListener("click", deleteGoal);
 document.getElementById("cancelGoal").addEventListener("click", closeGoal);
+document.getElementById("goalNotes").addEventListener("input", function () {
+  if (typeof autoGrow === "function") autoGrow(this);
+});
 goalOverlay.addEventListener("click", function (e) { if (e.target === goalOverlay) closeGoal(); });
 
 onAppReady(renderGoals);
