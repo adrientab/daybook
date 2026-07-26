@@ -627,14 +627,29 @@ input.inline-input[type="time"] { width: 6.5em; }
 
 /* ---- Docked to the side ----
    The editor pins full-height to the right and the schedule shifts over so the
-   whole calendar stays visible beside it. The backdrop stays shaded and DOES
-   catch clicks — the calendar behind it isn't interactive, and clicking the
-   dim area closes the editor, same as a centred modal. */
+   whole calendar stays visible beside it. The dim is a fixed layer sitting
+   BELOW the live preview (z 120) but above the calendar, so the preview shows
+   through at full colour with only its own lighter veil. The editor box stays
+   in the overlay (z 100+) — which is why the preview, at 120, never covers it:
+   the overlay's own stacking context floats the box above page-level 120. */
 .modal-overlay.docked {
-  background: rgba(0, 0, 0, 0.4);
+  background: none;
   justify-content: flex-end;
   align-items: stretch;
   padding: 0;
+  z-index: auto;               /* drop the 100 context so children live at page level */
+}
+.modal-overlay.docked::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 110;                 /* above calendar, below the preview (120) */
+  pointer-events: auto;         /* catches outside-clicks to close */
+}
+.modal-overlay.docked .modal-event {
+  position: relative;
+  z-index: 140;                /* box above the lifted preview (120) */
 }
 .modal-event.docked {
   max-width: 340px;
@@ -1582,9 +1597,24 @@ input.inline-input[type="time"] { width: 6.5em; }
 /* Live preview of the event being typed in the modal. A dashed ghost so it
    reads as "not saved yet" and doesn't get mistaken for a real block. */
 .cal-event--preview {
-  opacity: 1;                 /* full colour — nothing darkening it */
+  opacity: 1;
   outline: 2px dashed rgba(255, 255, 255, 0.95);
   outline-offset: -3px;
+}
+/* When the editor is docked, the whole-screen backdrop (z-index 100) would
+   otherwise darken the preview too. Lift the preview above that backdrop — but
+   keep it below the editor box — and give it its OWN veil, lighter than the
+   backdrop, so it reads as dimmed-consistent but clearly more visible. */
+#view-schedule.modal-docked .cal-event--preview {
+  z-index: 120;               /* above the 0.4 backdrop, below the editor box */
+}
+#view-schedule.modal-docked .cal-event--preview::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);   /* lighter than the backdrop's 0.4 */
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 /* Heading shown at the top of a revealed section (feel / repeat). */
