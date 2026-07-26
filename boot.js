@@ -70,6 +70,7 @@ function startApp(password) {
 
 /* Show who's signed in, over in Settings. */
 function updateAccountUI() {
+  const group = document.getElementById("accountGroup");
   const card = document.getElementById("accountCard");
   const who = document.getElementById("accountWho");
   const btn = document.getElementById("signOutBtn");
@@ -77,7 +78,9 @@ function updateAccountUI() {
   const chg = document.getElementById("changePwCard");
   if (!card || !who) return;
 
-  card.hidden = false;
+  // The Account group only appears when there's an account to talk about.
+  if (group) group.hidden = !(Auth.enabled && Auth.user);
+
   if (Auth.enabled && Auth.user) {
     who.textContent = "Signed in as " + Auth.user.email +
                       " \u2014 your data syncs to your account, encrypted.";
@@ -101,10 +104,10 @@ Auth.init()
       if (exit) exit.hidden = false;
       return Store.load().then(function () {
         runAppReady();
-        const card = document.getElementById("accountCard");
+        const group = document.getElementById("accountGroup");
         const who = document.getElementById("accountWho");
-        if (card && who) {
-          card.hidden = false;
+        if (group && who) {
+          group.hidden = false;
           who.textContent = "Demo \u2014 changes aren't saved. Create an account to keep your own.";
         }
       });
