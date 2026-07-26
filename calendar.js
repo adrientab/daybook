@@ -733,6 +733,7 @@ function openModal(data) {
 
 function closeModal() {
   overlay.classList.remove("open");
+  resetModalPosition();     // undock + clear the schedule shift
   editingId = null;
   previewEvent = null;      // drop the live preview
   renderCalendar();

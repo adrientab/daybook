@@ -644,9 +644,10 @@ input.inline-input[type="time"] { width: 6.5em; }
   box-shadow: -12px 0 40px -18px rgba(0, 0, 0, 0.4);
   animation: none;
 }
-/* Shift the calendar left of the docked editor. The 20px gap matches the gap
-   between the page's own sidebar and the schedule (.main padding). */
-#view-schedule.modal-docked .schedule-main { margin-right: 360px; }
+/* Shift the calendar left by exactly the panel's width (340px). The 20px gap to
+   the panel then comes from .main's own right padding — the same 20px that sits
+   between the page sidebar and the calendar on the left. */
+#view-schedule.modal-docked .schedule-main { margin-right: 340px; }
 
 .modal h3 { margin-top: 0; }
 .field { display: block; margin-bottom: 14px; }
@@ -1581,21 +1582,9 @@ input.inline-input[type="time"] { width: 6.5em; }
 /* Live preview of the event being typed in the modal. A dashed ghost so it
    reads as "not saved yet" and doesn't get mistaken for a real block. */
 .cal-event--preview {
-  opacity: 1;                 /* the block itself stays full colour */
-  outline: 2px dashed rgba(255, 255, 255, 0.9);
+  opacity: 1;                 /* full colour — nothing darkening it */
+  outline: 2px dashed rgba(255, 255, 255, 0.95);
   outline-offset: -3px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-  position: absolute;
-}
-/* A thin dark veil ON TOP of the full-colour block (rather than fading the
-   block itself), matching the dim shading used elsewhere. */
-.cal-event--preview::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: inherit;
-  pointer-events: none;
 }
 
 /* Heading shown at the top of a revealed section (feel / repeat). */
