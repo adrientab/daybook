@@ -279,6 +279,7 @@ h2 { margin-top: 0; }
 .cal-grid {
   display: grid;
   grid-template-columns: 60px repeat(7, 1fr);
+  position: relative;         /* anchors the docked dim overlay (::after) */
 }
 
 /* Time gutter (left column of hour labels) */
@@ -626,30 +627,29 @@ input.inline-input[type="time"] { width: 6.5em; }
 }
 
 /* ---- Docked to the side ----
-   The editor pins full-height to the right and the schedule shifts over so the
-   whole calendar stays visible beside it. The dim is a fixed layer sitting
-   BELOW the live preview (z 120) but above the calendar, so the preview shows
-   through at full colour with only its own lighter veil. The editor box stays
-   in the overlay (z 100+) — which is why the preview, at 120, never covers it:
-   the overlay's own stacking context floats the box above page-level 120. */
+   The editor pins full-height to the right; the schedule shifts over so the
+   whole calendar stays visible beside it. The overlay backdrop is transparent
+   and click-through — the calendar dims ITSELF from the inside (the
+   .modal-docked .cal-grid::after rule below), which is the only way the live
+   preview can sit above the dim: the calendar scrolls, so its contents are
+   clipped inside it and can't be lifted over a full-screen overlay. Dimming
+   inside that same clip lets z-index actually work. */
 .modal-overlay.docked {
   background: none;
   justify-content: flex-end;
   align-items: stretch;
   padding: 0;
-  z-index: auto;               /* drop the 100 context so children live at page level */
 }
-.modal-overlay.docked::before {
+
+/* Dim layer painted inside the scrolling grid, over the events but under the
+   live preview. */
+#view-schedule.modal-docked .cal-grid::after {
   content: "";
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
-  z-index: 110;                 /* above calendar, below the preview (120) */
-  pointer-events: auto;         /* catches outside-clicks to close */
-}
-.modal-overlay.docked .modal-event {
-  position: relative;
-  z-index: 140;                /* box above the lifted preview (120) */
+  z-index: 5;                   /* above event blocks, below the preview */
+  pointer-events: none;
 }
 .modal-event.docked {
   max-width: 340px;
@@ -1601,11 +1601,12 @@ input.inline-input[type="time"] { width: 6.5em; }
   outline: 2px dashed rgba(255, 255, 255, 0.95);
   outline-offset: -3px;
 }
-/* When the editor is docked, the whole-screen backdrop (::before below) would
-   otherwise darken the preview too. Lift the preview above that backdrop so it
-   shows at full colour with no shade — only its dashed outline marks it. */
+/* Above the internal dim (z 5), so the event being created stays full colour
+   while the rest of the calendar is dimmed. The parent column is lifted too,
+   otherwise the block's z-index is trapped inside the column's own layer. */
+#view-schedule.modal-docked .cal-col:has(.cal-event--preview) { z-index: 6; }
 #view-schedule.modal-docked .cal-event--preview {
-  z-index: 120;               /* above the 0.4 backdrop, below the editor box */
+  z-index: 6;
 }
 
 /* Heading shown at the top of a revealed section (feel / repeat). */
