@@ -626,18 +626,16 @@ input.inline-input[type="time"] { width: 6.5em; }
 }
 
 /* ---- Docked to the side ----
-   The editor pins full-height to the right and the schedule shifts over
-   (see .modal-docked) so the whole calendar stays visible beside it. The
-   backdrop stays shaded, but lets clicks through so the calendar is still
-   usable underneath the dim. */
+   The editor pins full-height to the right and the schedule shifts over so the
+   whole calendar stays visible beside it. The backdrop stays shaded and DOES
+   catch clicks — the calendar behind it isn't interactive, and clicking the
+   dim area closes the editor, same as a centred modal. */
 .modal-overlay.docked {
   background: rgba(0, 0, 0, 0.4);
   justify-content: flex-end;
   align-items: stretch;
   padding: 0;
-  pointer-events: none;         /* clicks pass through to the calendar */
 }
-.modal-overlay.docked .modal-event { pointer-events: auto; }
 .modal-event.docked {
   max-width: 340px;
   height: 100vh;
@@ -1587,16 +1585,15 @@ input.inline-input[type="time"] { width: 6.5em; }
   outline: 2px dashed rgba(255, 255, 255, 0.9);
   outline-offset: -3px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-  position: absolute;         /* already absolute, but needed for the overlay */
+  position: absolute;
 }
-/* A thin lightening veil ON TOP of the full-colour block, rather than fading
-   the block itself — so the category colour stays vivid and it just reads as
-   "in progress". */
+/* A thin dark veil ON TOP of the full-colour block (rather than fading the
+   block itself), matching the dim shading used elsewhere. */
 .cal-event--preview::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: inherit;
   pointer-events: none;
 }

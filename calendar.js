@@ -1005,8 +1005,8 @@ document.getElementById("evtCategory").addEventListener("click", function (e) {
   if (e.target.closest(".cat-chip")) updateEventPreview();
 });
 overlay.addEventListener("click", function (e) {
-  // Only the dim backdrop closes. When the modal is docked to the side the
-  // backdrop is switched off (see dock), so this won't fire then.
+  // Clicking the dim area (not the box) closes the editor — whether it's
+  // centred or docked to the side.
   if (e.target === overlay) closeModal();
 });
 
