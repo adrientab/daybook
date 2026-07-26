@@ -380,14 +380,11 @@
 
       <input type="text" id="evtTitle" class="title-input" placeholder="Add title" autocomplete="off">
 
-      <input type="text" id="evtNotes" class="notes-input notes-top" placeholder="Add notes" autocomplete="off">
+      <textarea id="evtNotes" class="notes-input notes-top" placeholder="Add notes" rows="1" autocomplete="off"></textarea>
 
-      <!-- When: date on its own line, then the two times together -->
+      <!-- When: date, start, end — all on one line (wraps only if forced) -->
       <p class="when-line">
-        <span>on</span>
         <input type="date" id="evtDate" class="inline-input">
-      </p>
-      <p class="when-line">
         <span>from</span>
         <input type="time" id="evtStart" class="inline-input">
         <span>to</span>
@@ -403,6 +400,7 @@
         <span class="reveal-plus">+</span> How did it feel?
       </button>
       <div class="scale-field" id="feelField" hidden>
+        <div class="reveal-title">How did it feel?</div>
         <div class="scale-label">
           <span class="scale-out-wrap"><output class="scale-out"></output></span>
           <button type="button" class="scale-clear" title="Clear answer">&times;</button>
@@ -417,6 +415,7 @@
         <span class="reveal-plus">+</span> <span id="repeatToggleLabel">Repeat</span>
       </button>
       <div class="repeat-box" id="repeatField" hidden>
+        <div class="reveal-title">Repeat</div>
         <div class="seg" id="repeatModeSeg">
           <button type="button" class="seg-btn active" data-mode="none">Once</button>
           <button type="button" class="seg-btn" data-mode="everyN">Every…</button>

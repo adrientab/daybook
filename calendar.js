@@ -701,6 +701,7 @@ function openModal(data) {
   document.getElementById("evtTitle").value = data.title || "";
   document.getElementById("evtDate").value = data.date || dateKey(new Date());
   document.getElementById("evtNotes").value = data.notes || "";
+  if (typeof autoGrow === "function") autoGrow(document.getElementById("evtNotes"));
   document.getElementById("evtStart").value = data.start || "09:00";
   document.getElementById("evtEnd").value = data.end || "10:00";
   populateCategorySelect(data.category);
@@ -964,6 +965,11 @@ document.getElementById("saveEvent").addEventListener("click", handleSave);
 document.getElementById("deleteEvent").addEventListener("click", handleDelete);
 document.getElementById("cancelEvent").addEventListener("click", closeModal);
 document.getElementById("feelToggle").addEventListener("click", showFeelField);
+
+// Notes grows to fit its content instead of scrolling on one line.
+document.getElementById("evtNotes").addEventListener("input", function () {
+  if (typeof autoGrow === "function") autoGrow(this);
+});
 
 /* Repeat control wiring */
 document.getElementById("repeatToggle").addEventListener("click", function () {

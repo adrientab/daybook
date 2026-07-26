@@ -413,7 +413,7 @@ h2 { margin-top: 0; }
 /* ---- Redesigned event modal ---- */
 .modal-event {
   position: relative;
-  max-width: 400px;
+  max-width: 440px;
   padding: 0 22px 20px;
   border-radius: 16px;
   box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.4);
@@ -473,12 +473,14 @@ h2 { margin-top: 0; }
 .when-line {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   margin: 6px 0 16px;
   color: var(--muted);
   font-size: 0.9rem;
 }
+/* The docked side panel is narrow, so there let it wrap rather than overflow. */
+.modal-event.docked .when-line { flex-wrap: wrap; }
 .inline-input {
   border: 1px solid transparent;
   background: var(--bg);
@@ -559,6 +561,10 @@ h2 { margin-top: 0; }
   padding: 12px 0 4px;
   margin-top: 10px;
   outline: none;
+  resize: none;               /* grows by script instead of a drag handle */
+  overflow: hidden;
+  line-height: 1.4;
+  font-family: inherit;
 }
 .notes-input::placeholder { color: var(--muted); }
 
@@ -1562,10 +1568,17 @@ h2 { margin-top: 0; }
 /* Live preview of the event being typed in the modal. A dashed ghost so it
    reads as "not saved yet" and doesn't get mistaken for a real block. */
 .cal-event--preview {
-  opacity: 0.72;
-  outline: 2px dashed rgba(255, 255, 255, 0.85);
+  outline: 2px dashed rgba(255, 255, 255, 0.9);
   outline-offset: -3px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+/* Heading shown at the top of a revealed section (feel / repeat). */
+.reveal-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 4px 0 8px;
 }
 
 @media (max-width: 720px) {
