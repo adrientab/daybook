@@ -490,6 +490,10 @@ h2 { margin-top: 0; }
   color: var(--text);
   cursor: pointer;
 }
+/* Drop the native calendar/clock glyphs — they crowd the line and the whole
+   field is already clickable. */
+.inline-input::-webkit-calendar-picker-indicator { display: none; }
+.inline-input::-webkit-inner-spin-button { display: none; }
 .inline-input:hover { border-color: var(--border); }
 .inline-input:focus { border-color: var(--sidebar-bg); outline: none; background: var(--surface); }
 
@@ -571,8 +575,9 @@ h2 { margin-top: 0; }
 /* Notes sitting directly under the title: no top border/margin, tighter. */
 .notes-input.notes-top {
   border-top: none;
-  margin-top: 0;
-  padding: 0 0 10px;
+  margin-top: 2px;
+  padding: 2px 0 10px;
+  min-height: 2.6em;         /* ~two lines, so it reads as a notes field not a stray line */
   font-size: 0.88rem;
   color: var(--muted);
 }
@@ -1568,6 +1573,7 @@ h2 { margin-top: 0; }
 /* Live preview of the event being typed in the modal. A dashed ghost so it
    reads as "not saved yet" and doesn't get mistaken for a real block. */
 .cal-event--preview {
+  opacity: 1;                 /* full colour, not shaded */
   outline: 2px dashed rgba(255, 255, 255, 0.9);
   outline-offset: -3px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);

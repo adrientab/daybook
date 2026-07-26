@@ -65,6 +65,10 @@ function formatHour(h) {               // 0 -> "12 AM", 13 -> "1 PM"
 function renderCalendar() {
   const header = document.getElementById("calHeader");
   const grid = document.getElementById("calGrid");
+  // Clear any leftover drag-create ghost so it can't linger behind the modal.
+  document.querySelectorAll(".cal-event.provisional").forEach(function (p) {
+    if (p.parentNode) p.parentNode.removeChild(p);
+  });
   header.innerHTML = "";
   grid.innerHTML = "";
 
