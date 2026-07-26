@@ -409,6 +409,194 @@ h2 { margin-top: 0; }
   overflow-y: auto;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
+
+/* ---- Redesigned event modal ---- */
+.modal-event {
+  position: relative;
+  max-width: 400px;
+  padding: 0 22px 20px;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.4);
+}
+
+/* Grip row: drag handle (the dots) + close button */
+.modal-grip {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  margin: 0 -22px 4px;
+  border-radius: 16px 16px 0 0;
+  cursor: grab;
+  background: var(--surface);
+  touch-action: none;
+}
+.modal-event.dragging .modal-grip { cursor: grabbing; }
+.modal-grip-dots {
+  width: 34px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border);
+}
+.modal-x {
+  position: absolute;
+  right: 12px;
+  top: 3px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.modal-x:hover { background: var(--bg); color: var(--text); }
+
+/* Title, borderless and prominent */
+.title-input {
+  width: 100%;
+  border: none;
+  background: none;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text);
+  padding: 2px 0 6px;
+  outline: none;
+}
+.title-input::placeholder { color: var(--border); }
+
+/* "[date] from [start] to [end]" reads as a sentence */
+.when-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 16px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.inline-input {
+  border: 1px solid transparent;
+  background: var(--bg);
+  border-radius: 7px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+}
+.inline-input:hover { border-color: var(--border); }
+.inline-input:focus { border-color: var(--sidebar-bg); outline: none; background: var(--surface); }
+
+/* Category colour chips */
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.cat-chip .cat-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--chip);
+}
+.cat-chip:hover { border-color: var(--chip); }
+.cat-chip.selected {
+  border-color: var(--chip);
+  background: color-mix(in srgb, var(--chip) 14%, var(--surface));
+  font-weight: 600;
+}
+
+/* "+ How did it feel?" reveal */
+.reveal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 2px;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.reveal-btn:hover { color: var(--text); }
+.reveal-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Notes: quiet single line near the bottom */
+.notes-input {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: none;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  padding: 12px 0 4px;
+  margin-top: 10px;
+  outline: none;
+}
+.notes-input::placeholder { color: var(--muted); }
+
+/* Repeat: small inline sentence */
+.repeat-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 4px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.repeat-line span { margin-bottom: 0; }
+.repeat-line input {
+  width: 52px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+}
+
+/* ---- Docked to the side ---- */
+.modal-overlay.docked {
+  background: none;              /* calendar stays usable behind it */
+  justify-content: flex-end;
+  align-items: stretch;
+  padding: 0;
+  pointer-events: none;         /* clicks pass through except on the panel */
+}
+.modal-overlay.docked .modal-event { pointer-events: auto; }
+.modal-event.docked {
+  max-width: 340px;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+  box-shadow: -12px 0 40px -18px rgba(0, 0, 0, 0.4);
+  animation: none;
+}
 .modal h3 { margin-top: 0; }
 .field { display: block; margin-bottom: 14px; }
 .field > span { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
@@ -1334,3 +1522,7 @@ h2 { margin-top: 0; }
   background: var(--sidebar-bg);
   transition: width 0.4s ease;
 }
+
+/* When dragged, the modal is positioned freely rather than flex-centered. */
+.modal-event.dragging,
+.modal-event[style*="left"] { position: fixed; margin: 0; }

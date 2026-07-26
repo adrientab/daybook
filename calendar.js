@@ -645,28 +645,47 @@ function enableDropCreate(col, ds) {
 const overlay = document.getElementById("modalOverlay");
 
 /* Fill the event form's category dropdown from the (editable) category list. */
+/* The event modal shows categories as colour chips, not a dropdown. The
+   picked id is held in a data attribute so the rest of the code can read it
+   the same way it read the old <select>.value. Other modals still use the
+   shared paintCategorySelect dropdown. */
 function populateCategorySelect(selectedId) {
-  const sel = document.getElementById("evtCategory");
-  sel.innerHTML = "";
+  const wrap = document.getElementById("evtCategory");
   const cats = getCategories();
+  let chosen = cats.some(function (c) { return c.id === selectedId; })
+    ? selectedId : (cats[0] ? cats[0].id : "");
+
+  wrap.dataset.value = chosen;
+  wrap.innerHTML = "";
+
   cats.forEach(function (c) {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.name;
-    if (c.id === selectedId) opt.selected = true;
-    sel.appendChild(opt);
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "cat-chip" + (c.id === chosen ? " selected" : "");
+    chip.dataset.id = c.id;
+    chip.style.setProperty("--chip", c.color);
+    chip.setAttribute("role", "radio");
+    chip.setAttribute("aria-checked", c.id === chosen ? "true" : "false");
+    chip.innerHTML = '<span class="cat-dot"></span>' + escapeHtml(c.name);
+    chip.onclick = function () {
+      wrap.dataset.value = c.id;
+      wrap.querySelectorAll(".cat-chip").forEach(function (b) {
+        const on = b === chip;
+        b.classList.toggle("selected", on);
+        b.setAttribute("aria-checked", on ? "true" : "false");
+      });
+    };
+    wrap.appendChild(chip);
   });
-  // If the saved category was deleted (or none was given), fall back to the first.
-  if (!cats.some(function (c) { return c.id === selectedId; }) && cats[0]) {
-    sel.value = cats[0].id;
-  }
-  paintCategorySelect(sel);
-  sel.onchange = function () { paintCategorySelect(sel); };
+}
+
+/* Reads the chosen category id — replaces the old select.value. */
+function readEventCategory() {
+  return document.getElementById("evtCategory").dataset.value || "";
 }
 
 function openModal(data) {
   editingId = data.id || null;
-  document.getElementById("modalTitle").textContent = editingId ? "Edit event" : "New event";
   document.getElementById("evtTitle").value = data.title || "";
   document.getElementById("evtDate").value = data.date || dateKey(new Date());
   document.getElementById("evtNotes").value = data.notes || "";
@@ -679,8 +698,16 @@ function openModal(data) {
   document.getElementById("repeatField").style.display = editingId ? "none" : "";
   if (!editingId) document.getElementById("evtRepeat").value = "0";
 
+  // "How did it feel?" starts collapsed, so a quick schedule-ahead never sees
+  // it — but it opens automatically when the event already has a rating (i.e.
+  // you're editing something you logged).
   setupScaleField(document.getElementById("feelField"), data.feel);
+  const hasFeel = data.feel != null;
+  document.getElementById("feelField").hidden = !hasFeel;
+  document.getElementById("feelToggle").hidden = hasFeel;
+
   document.getElementById("deleteEvent").style.display = editingId ? "inline-block" : "none";
+  resetModalPosition();
   overlay.classList.add("open");
   document.getElementById("evtTitle").focus();
 }
@@ -690,6 +717,12 @@ function closeModal() {
   editingId = null;
 }
 
+/* Reveal the feel slider (from the "+ How did it feel?" button). */
+function showFeelField() {
+  document.getElementById("feelField").hidden = false;
+  document.getElementById("feelToggle").hidden = true;
+}
+
 function handleSave() {
   const fields = {
     title: document.getElementById("evtTitle").value.trim(),
@@ -697,7 +730,7 @@ function handleSave() {
     notes: document.getElementById("evtNotes").value.trim(), // stored, not shown yet
     start: document.getElementById("evtStart").value,
     end: document.getElementById("evtEnd").value,
-    category: document.getElementById("evtCategory").value,
+    category: readEventCategory(),
     feel: readScale("scaleFeel")
   };
 
@@ -798,8 +831,75 @@ function finishRecurDelete() {
 document.getElementById("saveEvent").addEventListener("click", handleSave);
 document.getElementById("deleteEvent").addEventListener("click", handleDelete);
 document.getElementById("cancelEvent").addEventListener("click", closeModal);
+document.getElementById("feelToggle").addEventListener("click", showFeelField);
 overlay.addEventListener("click", function (e) {
-  if (e.target === overlay) closeModal(); // click the dim background to close
+  // Only the dim backdrop closes. When the modal is docked to the side the
+  // backdrop is switched off (see dock), so this won't fire then.
+  if (e.target === overlay) closeModal();
+});
+
+/* ============================================================
+   Draggable / dockable event modal.
+
+   Grab the grip and move the box anywhere. Drag it past the right edge and
+   it snaps into a side panel (backdrop off, calendar still usable); drag it
+   back toward the middle to undock. Position resets each time it opens.
+   ============================================================ */
+const eventModal = document.getElementById("eventModal");
+let modalDocked = false;
+
+function resetModalPosition() {
+  modalDocked = false;
+  overlay.classList.remove("docked");
+  eventModal.classList.remove("docked");
+  eventModal.style.left = "";
+  eventModal.style.top = "";
+}
+
+function dockModal() {
+  modalDocked = true;
+  overlay.classList.add("docked");
+  eventModal.classList.add("docked");
+  eventModal.style.left = "";
+  eventModal.style.top = "";
+}
+function undockModal() {
+  modalDocked = false;
+  overlay.classList.remove("docked");
+  eventModal.classList.remove("docked");
+}
+
+document.getElementById("modalGrip").addEventListener("pointerdown", function (e) {
+  if (e.target.closest(".modal-x")) return;   // the close button isn't a drag handle
+  e.preventDefault();
+
+  const rect = eventModal.getBoundingClientRect();
+  const offX = e.clientX - rect.left;
+  const offY = e.clientY - rect.top;
+  eventModal.classList.add("dragging");
+
+  function onMove(me) {
+    // Near the right edge -> dock; otherwise float freely at the cursor.
+    if (me.clientX > window.innerWidth - 60) {
+      if (!modalDocked) dockModal();
+      return;
+    }
+    if (modalDocked) undockModal();
+    let x = me.clientX - offX;
+    let y = me.clientY - offY;
+    // Keep it on screen.
+    x = Math.max(6, Math.min(window.innerWidth - rect.width - 6, x));
+    y = Math.max(6, Math.min(window.innerHeight - 44, y));
+    eventModal.style.left = x + "px";
+    eventModal.style.top = y + "px";
+  }
+  function onUp() {
+    eventModal.classList.remove("dragging");
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+  }
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
 });
 
 document.getElementById("addEventBtn").addEventListener("click", function () {

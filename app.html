@@ -372,61 +372,52 @@
 
   <!-- ===== EVENT MODAL (hidden until opened) ===== -->
   <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <h3 id="modalTitle">New event</h3>
-
-      <label class="field">
-        <span>Title</span>
-        <input type="text" id="evtTitle" placeholder="e.g. Chemistry class">
-      </label>
-
-      <label class="field">
-        <span>Notes</span>
-        <input type="text" id="evtNotes" placeholder="Optional">
-      </label>
-
-      <label class="field">
-        <span>Date</span>
-        <input type="date" id="evtDate">
-      </label>
-
-      <div class="field-row">
-        <label class="field">
-          <span>Start</span>
-          <input type="time" id="evtStart">
-        </label>
-        <label class="field">
-          <span>End</span>
-          <input type="time" id="evtEnd">
-        </label>
+    <div class="modal modal-event" id="eventModal">
+      <div class="modal-grip" id="modalGrip" title="Drag to move &middot; drag to the right edge to dock">
+        <span class="modal-grip-dots"></span>
+        <button type="button" id="cancelEvent" class="modal-x" title="Close">&times;</button>
       </div>
 
-      <label class="field">
-        <span>Category</span>
-        <select id="evtCategory"></select>
-      </label>
+      <input type="text" id="evtTitle" class="title-input" placeholder="Add title" autocomplete="off">
 
-      <label class="field" id="repeatField">
-        <span>Repeat every N days <span class="hint-inline">(0 = no repeat)</span></span>
-        <input type="number" id="evtRepeat" min="0" step="1" value="0" placeholder="0">
-      </label>
+      <!-- Fill-in-the-blank line: [date] from [start] to [end] -->
+      <p class="when-line">
+        <input type="date" id="evtDate" class="inline-input">
+        <span>from</span>
+        <input type="time" id="evtStart" class="inline-input">
+        <span>to</span>
+        <input type="time" id="evtEnd" class="inline-input">
+      </p>
 
-      <div class="scale-field" id="feelField">
+      <!-- Category as colour chips instead of a dropdown -->
+      <div class="chip-row" id="evtCategory" role="radiogroup" aria-label="Category"></div>
+
+      <!-- Feel: tucked behind a toggle so it isn't in the way when planning ahead,
+           but one tap away when logging something you already did. -->
+      <button type="button" class="reveal-btn" id="feelToggle">
+        <span class="reveal-plus">+</span> How did it feel?
+      </button>
+      <div class="scale-field" id="feelField" hidden>
         <div class="scale-label">
-          <span>How did it feel? <span class="optional">(optional)</span></span>
-          <span class="scale-controls">
-            <output class="scale-out"></output>
-            <button type="button" class="scale-clear" title="Clear answer">&times;</button>
-          </span>
+          <span class="scale-out-wrap"><output class="scale-out"></output></span>
+          <button type="button" class="scale-clear" title="Clear answer">&times;</button>
         </div>
         <input type="range" min="1" max="10" id="scaleFeel" class="scale-slider">
         <div class="slider-hint">Also shows up in this day's evening journal.</div>
       </div>
 
+      <!-- Notes + repeat, quiet, at the bottom -->
+      <input type="text" id="evtNotes" class="notes-input" placeholder="Add notes" autocomplete="off">
+
+      <label class="field repeat-line" id="repeatField">
+        <span>Repeat every</span>
+        <input type="number" id="evtRepeat" min="0" step="1" value="0">
+        <span>days <span class="hint-inline">(0 = never)</span></span>
+      </label>
+
       <div class="modal-actions">
         <button id="deleteEvent" class="btn btn-danger">Delete</button>
         <span class="spacer"></span>
-        <button id="cancelEvent" class="btn">Cancel</button>
         <button id="saveEvent" class="btn btn-primary">Save</button>
       </div>
     </div>
