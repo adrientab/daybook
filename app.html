@@ -380,9 +380,14 @@
 
       <input type="text" id="evtTitle" class="title-input" placeholder="Add title" autocomplete="off">
 
-      <!-- Fill-in-the-blank line: [date] from [start] to [end] -->
+      <input type="text" id="evtNotes" class="notes-input notes-top" placeholder="Add notes" autocomplete="off">
+
+      <!-- When: date on its own line, then the two times together -->
       <p class="when-line">
+        <span>on</span>
         <input type="date" id="evtDate" class="inline-input">
+      </p>
+      <p class="when-line">
         <span>from</span>
         <input type="time" id="evtStart" class="inline-input">
         <span>to</span>
@@ -406,14 +411,36 @@
         <div class="slider-hint">Also shows up in this day's evening journal.</div>
       </div>
 
-      <!-- Notes + repeat, quiet, at the bottom -->
-      <input type="text" id="evtNotes" class="notes-input" placeholder="Add notes" autocomplete="off">
+      <!-- Repeat: hidden behind a toggle like the feel field. Two modes —
+           every N days, or specific weekdays. -->
+      <button type="button" class="reveal-btn" id="repeatToggle">
+        <span class="reveal-plus">+</span> <span id="repeatToggleLabel">Repeat</span>
+      </button>
+      <div class="repeat-box" id="repeatField" hidden>
+        <div class="seg" id="repeatModeSeg">
+          <button type="button" class="seg-btn active" data-mode="none">Once</button>
+          <button type="button" class="seg-btn" data-mode="everyN">Every…</button>
+          <button type="button" class="seg-btn" data-mode="weekdays">On days…</button>
+        </div>
 
-      <label class="field repeat-line" id="repeatField">
-        <span>Repeat every</span>
-        <input type="number" id="evtRepeat" min="0" step="1" value="0">
-        <span>days <span class="hint-inline">(0 = never)</span></span>
-      </label>
+        <div class="repeat-opt" id="repeatEveryN" hidden>
+          <span>Every</span>
+          <input type="number" id="evtRepeat" min="1" step="1" value="1" class="repeat-num">
+          <span>days</span>
+        </div>
+
+        <div class="repeat-opt" id="repeatWeekdays" hidden>
+          <div class="dow-row" id="dowPicker">
+            <button type="button" class="dow-chip" data-dow="0">Sun</button>
+            <button type="button" class="dow-chip" data-dow="1">Mon</button>
+            <button type="button" class="dow-chip" data-dow="2">Tue</button>
+            <button type="button" class="dow-chip" data-dow="3">Wed</button>
+            <button type="button" class="dow-chip" data-dow="4">Thu</button>
+            <button type="button" class="dow-chip" data-dow="5">Fri</button>
+            <button type="button" class="dow-chip" data-dow="6">Sat</button>
+          </div>
+        </div>
+      </div>
 
       <div class="modal-actions">
         <button id="deleteEvent" class="btn btn-danger">Delete</button>

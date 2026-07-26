@@ -132,7 +132,12 @@ function renderCalendar() {
   }
   grid.appendChild(gutter);
 
-  const events = getEvents();
+  let events = getEvents();
+  // Fold in the live preview: hide the saved copy of whatever's being edited,
+  // then add the in-progress version so the grid reflects the open modal.
+  if (previewEvent) {
+    events = events.filter(function (e) { return e.id !== previewEvent.id; }).concat(previewEvent);
+  }
 
   weekDates.forEach(function (d) {
     const ds = dateKey(d);
@@ -281,7 +286,8 @@ function buildEventBlock(ev, left, width) {
   const block = document.createElement("div");
   block.className = "cal-event" +
     (short ? " cal-event--short" : "") +
-    (narrow ? " cal-event--narrow" : "");
+    (narrow ? " cal-event--narrow" : "") +
+    (ev.__preview ? " cal-event--preview" : "");
   block.style.top = (startMin / 60 * HOUR_HEIGHT) + "px";
   block.style.height = ((endMin - startMin) / 60 * HOUR_HEIGHT) + "px";
   block.style.left = "calc(" + (left * 100) + "% + 1px)";
@@ -303,6 +309,12 @@ function buildEventBlock(ev, left, width) {
     '<span class="cal-event-title">' + escapeHtml(ev.title || "(untitled)") + "</span>" +
     (short ? "" : '<span class="cal-event-time">' + ev.start + "\u2013" + ev.end + "</span>") +
     (!short && ev.notes ? '<span class="cal-event-notes">' + escapeHtml(ev.notes) + "</span>" : "");
+
+  // The live preview is display-only — no click-to-open, drag, or resize.
+  if (ev.__preview) {
+    block.style.pointerEvents = "none";
+    return block;
+  }
 
   block.addEventListener("pointerdown", function (e) { e.stopPropagation(); }); // not a drag-create
   block.addEventListener("click", function (e) {
@@ -695,8 +707,9 @@ function openModal(data) {
 
   // Repeat is only offered when creating a brand-new event; editing always
   // affects just this one occurrence.
-  document.getElementById("repeatField").style.display = editingId ? "none" : "";
-  if (!editingId) document.getElementById("evtRepeat").value = "0";
+  document.getElementById("repeatToggle").style.display = editingId ? "none" : "";
+  document.getElementById("repeatField").hidden = true;
+  if (!editingId) resetRepeat();
 
   // "How did it feel?" starts collapsed, so a quick schedule-ahead never sees
   // it — but it opens automatically when the event already has a rating (i.e.
@@ -709,18 +722,119 @@ function openModal(data) {
   document.getElementById("deleteEvent").style.display = editingId ? "inline-block" : "none";
   resetModalPosition();
   overlay.classList.add("open");
+  updateEventPreview();     // show it on the grid straight away
   document.getElementById("evtTitle").focus();
 }
 
 function closeModal() {
   overlay.classList.remove("open");
   editingId = null;
+  previewEvent = null;      // drop the live preview
+  renderCalendar();
+}
+
+/* ---- Live preview ----
+   While the modal is open, the event being typed is drawn on the schedule in
+   real time. It's held in `previewEvent`, which renderCalendar() folds in
+   alongside the saved events; editing an existing event hides the stored copy
+   so you don't see it twice. */
+let previewEvent = null;
+
+function updateEventPreview() {
+  if (!overlay.classList.contains("open")) { previewEvent = null; renderCalendar(); return; }
+  const date = document.getElementById("evtDate").value;
+  const start = document.getElementById("evtStart").value;
+  const end = document.getElementById("evtEnd").value;
+
+  // Only draw once it describes a real slot.
+  if (!date || !start || !end || timeToMinutes(end) <= timeToMinutes(start)) {
+    previewEvent = null;
+    renderCalendar();
+    return;
+  }
+  previewEvent = {
+    id: editingId || "__preview",
+    title: document.getElementById("evtTitle").value.trim(),
+    date: date, start: start, end: end,
+    category: readEventCategory(),
+    notes: "", feel: null,
+    __preview: true
+  };
+
+  // If the chosen date isn't in the week on screen, follow it there so the
+  // preview is actually visible.
+  const wkStart = dateKey(currentWeekStart);
+  const wkEnd = dateKey(addDays(currentWeekStart, 6));
+  if (date < wkStart || date > wkEnd) {
+    currentWeekStart = startOfWeek(new Date(date + "T00:00:00"));
+  }
+  renderCalendar();
 }
 
 /* Reveal the feel slider (from the "+ How did it feel?" button). */
 function showFeelField() {
   document.getElementById("feelField").hidden = false;
   document.getElementById("feelToggle").hidden = true;
+}
+
+/* ---- Repeat control ----
+   A collapsible section (like the feel field) with three modes: Once, Every N
+   days, or specific weekdays. The toggle label shows the current choice so you
+   can tell it's set without opening it. */
+let repeatMode = "none";           // "none" | "everyN" | "weekdays"
+const repeatWeekdaysSet = new Set();
+
+function resetRepeat() {
+  repeatMode = "none";
+  repeatWeekdaysSet.clear();
+  document.getElementById("evtRepeat").value = "1";
+  setRepeatMode("none");
+  document.querySelectorAll("#dowPicker .dow-chip").forEach(function (c) {
+    c.classList.remove("selected");
+  });
+  updateRepeatLabel();
+}
+
+function showRepeatField() {
+  document.getElementById("repeatField").hidden = false;
+  document.getElementById("repeatToggle").hidden = true;
+}
+
+function setRepeatMode(mode) {
+  repeatMode = mode;
+  document.querySelectorAll("#repeatModeSeg .seg-btn").forEach(function (b) {
+    b.classList.toggle("active", b.dataset.mode === mode);
+  });
+  document.getElementById("repeatEveryN").hidden = (mode !== "everyN");
+  document.getElementById("repeatWeekdays").hidden = (mode !== "weekdays");
+  updateRepeatLabel();
+}
+
+/* Keep the toggle button readable: "Repeat", "Every 3 days", "Mon, Wed, Fri". */
+const DOW_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+function updateRepeatLabel() {
+  const label = document.getElementById("repeatToggleLabel");
+  if (!label) return;
+  if (repeatMode === "everyN") {
+    const n = parseInt(document.getElementById("evtRepeat").value, 10) || 1;
+    label.textContent = n === 1 ? "Every day" : "Every " + n + " days";
+  } else if (repeatMode === "weekdays" && repeatWeekdaysSet.size) {
+    label.textContent = Array.from(repeatWeekdaysSet).sort()
+      .map(function (d) { return DOW_SHORT[d]; }).join(", ");
+  } else {
+    label.textContent = "Repeat";
+  }
+}
+
+/* What the modal is currently asking for, as a plain object handleSave uses. */
+function readRepeat() {
+  if (repeatMode === "everyN") {
+    return { mode: "everyN", step: Math.max(1, parseInt(document.getElementById("evtRepeat").value, 10) || 1) };
+  }
+  if (repeatMode === "weekdays" && repeatWeekdaysSet.size) {
+    return { mode: "weekdays", days: Array.from(repeatWeekdaysSet).sort() };
+  }
+  return { mode: "none" };
 }
 
 function handleSave() {
@@ -751,9 +865,9 @@ function handleSave() {
       return e.id === editingId ? Object.assign({}, e, fields) : e;
     });
   } else {
-    const repeatN = parseInt(document.getElementById("evtRepeat").value, 10) || 0;
-    if (repeatN >= 1) {
-      events = events.concat(expandSeries(fields, repeatN));
+    const repeat = readRepeat();
+    if (repeat.mode !== "none") {
+      events = events.concat(expandSeries(fields, repeat));
     } else {
       events.push(Object.assign({ id: uid("evt") }, fields));
     }
@@ -768,20 +882,38 @@ function handleSave() {
    all sharing a seriesId so "delete all future" can find them later.
    `step` is the gap in days between occurrences.
    feel is reset to null per occurrence — you can't have felt a future repeat. */
-function expandSeries(fields, step) {
+/* Build the occurrences of a repeating event up to the horizon, all sharing a
+   seriesId so "delete this and future" can find them. Two shapes of repeat:
+     everyN    — every `step` days from the start date
+     weekdays  — on the chosen days of the week, each week */
+function expandSeries(fields, repeat) {
   const seriesId = uid("ser");
   const out = [];
-  let d = new Date(fields.date + "T00:00:00");
-  const end = addDays(d, RECUR_HORIZON_DAYS);
-  while (d <= end) {
+  const start = new Date(fields.date + "T00:00:00");
+  const end = addDays(start, RECUR_HORIZON_DAYS);
+
+  function push(d) {
     out.push(Object.assign({}, fields, {
       id: uid("evt") + "-" + out.length,
       date: dateKey(d),
       feel: null,
       seriesId: seriesId,
-      repeat: step
+      repeat: repeat            // store the rule, for future editing
     }));
-    d = addDays(d, step);
+  }
+
+  if (repeat.mode === "weekdays") {
+    const days = repeat.days || [];
+    if (!days.length) { push(start); return out; }   // nothing picked -> just the one
+    let d = new Date(start);
+    while (d <= end) {
+      if (days.indexOf(d.getDay()) !== -1) push(d);
+      d = addDays(d, 1);
+    }
+  } else {
+    const step = Math.max(1, repeat.step || 1);
+    let d = new Date(start);
+    while (d <= end) { push(d); d = addDays(d, step); }
   }
   return out;
 }
@@ -832,6 +964,36 @@ document.getElementById("saveEvent").addEventListener("click", handleSave);
 document.getElementById("deleteEvent").addEventListener("click", handleDelete);
 document.getElementById("cancelEvent").addEventListener("click", closeModal);
 document.getElementById("feelToggle").addEventListener("click", showFeelField);
+
+/* Repeat control wiring */
+document.getElementById("repeatToggle").addEventListener("click", function () {
+  showRepeatField();
+  if (repeatMode === "none") setRepeatMode("everyN"); // open onto a useful default
+});
+document.querySelectorAll("#repeatModeSeg .seg-btn").forEach(function (b) {
+  b.addEventListener("click", function () { setRepeatMode(b.dataset.mode); });
+});
+document.querySelectorAll("#dowPicker .dow-chip").forEach(function (chip) {
+  chip.addEventListener("click", function () {
+    const d = parseInt(chip.dataset.dow, 10);
+    if (repeatWeekdaysSet.has(d)) repeatWeekdaysSet.delete(d);
+    else repeatWeekdaysSet.add(d);
+    chip.classList.toggle("selected");
+    updateRepeatLabel();
+  });
+});
+document.getElementById("evtRepeat").addEventListener("input", updateRepeatLabel);
+
+/* Live preview: any change to the fields that affect the block redraws it. */
+["evtTitle", "evtDate", "evtStart", "evtEnd"].forEach(function (id) {
+  const el = document.getElementById(id);
+  el.addEventListener("input", updateEventPreview);
+  el.addEventListener("change", updateEventPreview);
+});
+// Category chips redraw too (they're rebuilt each open, so delegate on the row).
+document.getElementById("evtCategory").addEventListener("click", function (e) {
+  if (e.target.closest(".cat-chip")) updateEventPreview();
+});
 overlay.addEventListener("click", function (e) {
   // Only the dim backdrop closes. When the modal is docked to the side the
   // backdrop is switched off (see dock), so this won't fire then.
@@ -854,6 +1016,8 @@ function resetModalPosition() {
   eventModal.classList.remove("docked");
   eventModal.style.left = "";
   eventModal.style.top = "";
+  const sched = document.getElementById("view-schedule");
+  if (sched) sched.classList.remove("modal-docked");
 }
 
 function dockModal() {
@@ -862,11 +1026,17 @@ function dockModal() {
   eventModal.classList.add("docked");
   eventModal.style.left = "";
   eventModal.style.top = "";
+  // Push the schedule over so the calendar and the editor are both fully
+  // visible, the same way the Suggestions panel does.
+  const sched = document.getElementById("view-schedule");
+  if (sched) sched.classList.add("modal-docked");
 }
 function undockModal() {
   modalDocked = false;
   overlay.classList.remove("docked");
   eventModal.classList.remove("docked");
+  const sched = document.getElementById("view-schedule");
+  if (sched) sched.classList.remove("modal-docked");
 }
 
 document.getElementById("modalGrip").addEventListener("pointerdown", function (e) {

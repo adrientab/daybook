@@ -562,22 +562,50 @@ h2 { margin-top: 0; }
 }
 .notes-input::placeholder { color: var(--muted); }
 
+/* Notes sitting directly under the title: no top border/margin, tighter. */
+.notes-input.notes-top {
+  border-top: none;
+  margin-top: 0;
+  padding: 0 0 10px;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
 /* Repeat: small inline sentence */
-.repeat-line {
+/* Compact repeat control */
+.repeat-box { margin: 6px 0 4px; }
+.repeat-box .seg { margin-bottom: 10px; }
+.repeat-opt {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 8px 0 4px;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: var(--muted);
 }
-.repeat-line span { margin-bottom: 0; }
-.repeat-line input {
+.repeat-num {
   width: 52px;
   padding: 4px 6px;
   border: 1px solid var(--border);
   border-radius: 6px;
   font: inherit;
+}
+.dow-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.dow-chip {
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.dow-chip:hover { border-color: var(--sidebar-bg); }
+.dow-chip.selected {
+  background: var(--sidebar-bg);
+  border-color: var(--sidebar-bg);
+  color: #fff;
+  font-weight: 600;
 }
 
 /* ---- Docked to the side ---- */
@@ -597,6 +625,10 @@ h2 { margin-top: 0; }
   box-shadow: -12px 0 40px -18px rgba(0, 0, 0, 0.4);
   animation: none;
 }
+/* Docking pushes the schedule over (340px panel + 16px gutter) so the
+   calendar and the editor are both fully visible, like the Suggestions panel.
+   The transition is already on .schedule-main. */
+#view-schedule.modal-docked .schedule-main { margin-right: 356px; }
 .modal h3 { margin-top: 0; }
 .field { display: block; margin-bottom: 14px; }
 .field > span { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
@@ -1526,3 +1558,18 @@ h2 { margin-top: 0; }
 /* When dragged, the modal is positioned freely rather than flex-centered. */
 .modal-event.dragging,
 .modal-event[style*="left"] { position: fixed; margin: 0; }
+
+/* Live preview of the event being typed in the modal. A dashed ghost so it
+   reads as "not saved yet" and doesn't get mistaken for a real block. */
+.cal-event--preview {
+  opacity: 0.72;
+  outline: 2px dashed rgba(255, 255, 255, 0.85);
+  outline-offset: -3px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 720px) {
+  /* No side-dock on phones — the modal is already near full-width. */
+  #view-schedule.modal-docked .schedule-main { margin-right: 0; }
+  .modal-event.docked { max-width: 100%; }
+}
