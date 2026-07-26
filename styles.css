@@ -1601,20 +1601,11 @@ input.inline-input[type="time"] { width: 6.5em; }
   outline: 2px dashed rgba(255, 255, 255, 0.95);
   outline-offset: -3px;
 }
-/* When the editor is docked, the whole-screen backdrop (z-index 100) would
-   otherwise darken the preview too. Lift the preview above that backdrop — but
-   keep it below the editor box — and give it its OWN veil, lighter than the
-   backdrop, so it reads as dimmed-consistent but clearly more visible. */
+/* When the editor is docked, the whole-screen backdrop (::before below) would
+   otherwise darken the preview too. Lift the preview above that backdrop so it
+   shows at full colour with no shade — only its dashed outline marks it. */
 #view-schedule.modal-docked .cal-event--preview {
   z-index: 120;               /* above the 0.4 backdrop, below the editor box */
-}
-#view-schedule.modal-docked .cal-event--preview::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.2);   /* lighter than the backdrop's 0.4 */
-  border-radius: inherit;
-  pointer-events: none;
 }
 
 /* Heading shown at the top of a revealed section (feel / repeat). */
