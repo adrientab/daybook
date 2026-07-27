@@ -10,6 +10,7 @@ const RECUR_HORIZON_DAYS = 365; // how far ahead recurring events are created
    delete) which event is waiting on a "this one / all future" choice. */
 let currentWeekStart = startOfWeek(new Date());
 let editingId = null;
+let autoCatTitle = null;   // title we last auto-set a category for (create mode)
 let pendingDelete = null;
 let addEventBtnEl = null; // moved into the calendar's corner each render
 
@@ -72,12 +73,14 @@ function renderCalendar() {
   header.innerHTML = "";
   grid.innerHTML = "";
 
-  // The 7 dates of this week (Sun..Sat).
+  // Narrow screens show a 4-day window; wider screens show the full 7.
+  const dayCount = visibleDayCount();
   const weekDates = [];
-  for (let i = 0; i < 7; i++) weekDates.push(addDays(currentWeekStart, i));
+  for (let i = 0; i < dayCount; i++) weekDates.push(addDays(currentWeekStart, i));
+  grid.style.setProperty("--day-count", dayCount);
 
-  // Title like "June 2026" — use the week's midpoint so the dominant month shows.
-  const mid = addDays(currentWeekStart, 3);
+  // Title like "June 2026" — use the window's midpoint so the dominant month shows.
+  const mid = addDays(currentWeekStart, Math.floor(dayCount / 2));
   document.getElementById("weekLabel").textContent =
     mid.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
@@ -101,9 +104,10 @@ function renderCalendar() {
       '<span class="dom">' + d.getDate() + "</span>";
 
     // Deadlines with NO time show as thin clickable lines under the date.
-    // "Plan" items are intentions, not commitments, so they stay off the grid.
+    // "Task" items are intentions, not commitments, so they stay off the grid.
+    // Completed deadlines are removed from the calendar entirely (not faded).
     const untimed = todos.filter(function (t) {
-      return t.due === ds && !t.dueTime && todoIsDeadline(t);
+      return t.due === ds && !t.dueTime && todoIsDeadline(t) && !t.done;
     });
     if (untimed.length) {
       const lines = document.createElement("div");
@@ -165,7 +169,7 @@ function renderCalendar() {
 
     // Timed to-dos: cluster ones within ~10 min so their dots sit together.
     const timed = todos
-      .filter(function (t) { return t.due === ds && t.dueTime; })
+      .filter(function (t) { return t.due === ds && t.dueTime && !t.done; })
       .sort(function (a, b) { return timeToMinutes(a.dueTime) - timeToMinutes(b.dueTime); });
     clusterTodos(timed, 10).forEach(function (group) {
       col.appendChild(buildTodoMarker(group));
@@ -582,13 +586,17 @@ function enableDragCreate(col, ds) {
       const ne = Math.max(startMin + 15, cur);
       if (ne !== endMin) { endMin = ne; moved = true; paint(); }
     }
-    function onUp() {
+    function onUp(upEv) {
       col.removeEventListener("pointermove", onMove);
       col.removeEventListener("pointerup", onUp);
       try { col.releasePointerCapture(e.pointerId); } catch (_) {}
       if (prov.parentNode) prov.parentNode.removeChild(prov);
       const finalEnd = moved ? endMin : Math.min(24 * 60, startMin + 60); // a click = 1 hour
-      openModal({ date: ds, start: minutesToTime(startMin), end: minutesToTime(finalEnd) });
+      const colRect = col.getBoundingClientRect();
+      openModal({
+        date: ds, start: minutesToTime(startMin), end: minutesToTime(finalEnd),
+        avoidRect: colRect   // open beside this slot, not over it
+      });
     }
 
     try { col.setPointerCapture(e.pointerId); } catch (_) {}
@@ -727,8 +735,42 @@ function openModal(data) {
   document.getElementById("deleteEvent").style.display = editingId ? "inline-block" : "none";
   resetModalPosition();
   overlay.classList.add("open");
+  autoCatTitle = null;      // fresh auto-category tracking per open
+  positionBesideSlot(data.avoidRect);   // open beside the clicked slot, if any
   updateEventPreview();     // show it on the grid straight away
   document.getElementById("evtTitle").focus();
+}
+
+/* When an event is created by clicking a slot, open the box beside that slot
+   (on whichever side has more room) instead of centered over it — so you can
+   still see where it's landing. Skipped on narrow screens, where the modal is
+   effectively full-width anyway. */
+function positionBesideSlot(rect) {
+  if (!rect) return;
+  if (window.matchMedia("(max-width: 720px)").matches) return;
+
+  const box = eventModal.getBoundingClientRect();
+  const margin = 16;
+  const spaceRight = window.innerWidth - rect.right;
+  const spaceLeft = rect.left;
+
+  let x;
+  if (spaceRight >= box.width + margin) {
+    x = rect.right + margin;                       // room on the right
+  } else if (spaceLeft >= box.width + margin) {
+    x = rect.left - box.width - margin;            // room on the left
+  } else {
+    return;                                        // no room either side: stay centered
+  }
+  let y = rect.top;
+  y = Math.max(12, Math.min(window.innerHeight - box.height - 12, y));
+
+  // Switch the overlay to free-positioning (it's normally flex-centered).
+  overlay.style.justifyContent = "flex-start";
+  overlay.style.alignItems = "flex-start";
+  eventModal.style.position = "fixed";
+  eventModal.style.left = x + "px";
+  eventModal.style.top = y + "px";
 }
 
 function closeModal() {
@@ -976,6 +1018,34 @@ document.getElementById("evtNotes").addEventListener("input", function () {
   if (typeof autoGrow === "function") autoGrow(this);
 });
 
+/* As you type a title, if it matches an event you've made before, adopt that
+   event's category automatically. When the name has been used with several
+   categories, the most recent one wins. Only applies while creating (not
+   editing) and not once you've manually picked a chip for this title. */
+document.getElementById("evtTitle").addEventListener("input", function () {
+  if (editingId) return;
+  const title = this.value.trim().toLowerCase();
+  if (!title) { autoCatTitle = null; return; }
+
+  const matches = getEvents()
+    .filter(function (e) { return (e.title || "").trim().toLowerCase() === title && e.category; });
+  if (!matches.length) return;
+
+  // Most recent: prefer the latest date, then latest start time.
+  matches.sort(function (a, b) {
+    if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+    return (a.start || "") < (b.start || "") ? 1 : -1;
+  });
+  const cat = matches[0].category;
+
+  // Only auto-apply if the user hasn't hand-picked a different chip for this
+  // same title (so we don't fight their choice), then remember we set it.
+  if (autoCatTitle === title) return;
+  populateCategorySelect(cat);
+  autoCatTitle = title;
+  updateEventPreview();
+});
+
 /* Repeat control wiring */
 document.getElementById("repeatToggle").addEventListener("click", function () {
   showRepeatField();
@@ -994,6 +1064,7 @@ document.querySelectorAll("#dowPicker .dow-chip").forEach(function (chip) {
   });
 });
 document.getElementById("evtRepeat").addEventListener("input", updateRepeatLabel);
+attachYearClamp(document.getElementById("evtDate"));
 
 /* Live preview: any change to the fields that affect the block redraws it. */
 ["evtTitle", "evtDate", "evtStart", "evtEnd"].forEach(function (id) {
@@ -1027,6 +1098,10 @@ function resetModalPosition() {
   eventModal.classList.remove("docked", "docked-left", "docked-right");
   eventModal.style.left = "";
   eventModal.style.top = "";
+  eventModal.style.position = "";
+  // Restore the overlay's centered layout (beside-slot opens override it).
+  overlay.style.justifyContent = "";
+  overlay.style.alignItems = "";
   const sched = document.getElementById("view-schedule");
   if (sched) sched.classList.remove("modal-docked", "modal-docked-left", "modal-docked-right");
   document.body.classList.remove("hide-sidebar");
@@ -1106,15 +1181,28 @@ document.getElementById("modalGrip").addEventListener("pointerdown", function (e
 document.getElementById("addEventBtn").addEventListener("click", function () {
   openModal({ date: dateKey(new Date()) });
 });
+/* How many days the schedule shows: 4 on a narrow screen, 7 otherwise. The
+   breakpoint matches the CSS mobile breakpoint. */
+function visibleDayCount() {
+  return window.matchMedia("(max-width: 720px)").matches ? 4 : 7;
+}
+
 document.getElementById("prevWeek").addEventListener("click", function () {
-  currentWeekStart = addDays(currentWeekStart, -7);
+  currentWeekStart = addDays(currentWeekStart, -visibleDayCount());
   renderCalendar();
 });
 document.getElementById("nextWeek").addEventListener("click", function () {
-  currentWeekStart = addDays(currentWeekStart, 7);
+  currentWeekStart = addDays(currentWeekStart, visibleDayCount());
   renderCalendar();
 });
 document.getElementById("todayBtn").addEventListener("click", function () {
+  currentWeekStart = startOfWeek(new Date());
+  renderCalendar();
+});
+
+/* Re-render when crossing the narrow/wide breakpoint so the day count and the
+   window re-anchor cleanly. */
+window.matchMedia("(max-width: 720px)").addEventListener("change", function () {
   currentWeekStart = startOfWeek(new Date());
   renderCalendar();
 });
