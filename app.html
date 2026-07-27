@@ -244,10 +244,11 @@
             </div>
           </div>
           <div class="cal-right">
-            <div class="head-actions">
-              <button id="todoShowDeadlinesBtn" class="btn active">Deadlines</button>
-              <button id="todoShowDoOnBtn" class="btn active">Plan</button>
-              <button id="todoShowDoneBtn" class="btn active">Completed</button>
+            <div class="todo-filters" role="group" aria-label="Show">
+              <span class="todo-filters-label">Show</span>
+              <button id="todoShowDeadlinesBtn" class="filter-chip active"><span class="fc-dot fc-deadline"></span>Deadlines</button>
+              <button id="todoShowDoOnBtn" class="filter-chip active"><span class="fc-dot fc-task"></span>Tasks</button>
+              <button id="todoShowDoneBtn" class="filter-chip active"><span class="fc-check">&checkmark;</span>Completed</button>
             </div>
           </div>
         </div>
@@ -366,6 +367,23 @@
             <h3 class="settings-group-title">Preferences</h3>
 
             <div class="set-row">
+              <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
+              <div class="set-body">
+                <div class="set-title">Week starts on</div>
+                <p class="set-desc">Which day the schedule and to-do board begin on. The relative options (today / yesterday / tomorrow) keep the days you care about in view.</p>
+              </div>
+              <div class="set-control">
+                <select id="weekStartSelect" class="inline-select">
+                  <option value="sunday">Sunday</option>
+                  <option value="monday">Monday</option>
+                  <option value="yesterday">Yesterday</option>
+                  <option value="today">Today</option>
+                  <option value="tomorrow">Tomorrow</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="set-row">
               <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg></div>
               <div class="set-body">
                 <div class="set-title">Appearance</div>
@@ -431,7 +449,7 @@
 
       <!-- When: date, start, end — all on one line (wraps only if forced) -->
       <p class="when-line">
-        <input type="date" id="evtDate" class="inline-input">
+        <input type="date" id="evtDate" class="inline-input" min="2000-01-01" max="2099-12-31">
         <span>from</span>
         <input type="time" id="evtStart" class="inline-input">
         <span>to</span>
@@ -652,7 +670,7 @@
 
       <div class="seg" id="todoKindSeg">
         <button type="button" class="seg-btn" data-kind="deadline">Deadline</button>
-        <button type="button" class="seg-btn" data-kind="do">Plan</button>
+        <button type="button" class="seg-btn" data-kind="do">Task</button>
       </div>
 
       <input type="text" id="todoTitle" class="title-input" placeholder="Add task" autocomplete="off">
@@ -662,7 +680,7 @@
       <!-- When: due date, and (deadlines only) a time -->
       <p class="when-line">
         <span id="todoDueLabel">by</span>
-        <input type="date" id="todoDue" class="inline-input">
+        <input type="date" id="todoDue" class="inline-input" min="2000-01-01" max="2099-12-31">
         <input type="time" id="todoTime" class="inline-input">
       </p>
 

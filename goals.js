@@ -22,29 +22,33 @@ function renderGoals() {
   goals.forEach(function (g) {
     const milestones = g.milestones || [];
     const done = milestones.filter(function (m) { return m.done; }).length;
+    const cat = g.category ? getCategories().find(function (c) { return c.id === g.category; }) : null;
 
     const card = document.createElement("div");
     card.className = "goal-card";
+    if (cat) card.style.setProperty("--goal-accent", cat.color);
 
     let html =
       '<div class="goal-card-head">' +
-        '<span class="goal-title">' + escapeHtml(g.title) + "</span>" +
-        '<button type="button" class="btn goal-edit" data-id="' + g.id + '">Edit</button>' +
+        '<div class="goal-heading">' +
+          '<span class="goal-title">' + escapeHtml(g.title) + "</span>" +
+          (cat ? '<span class="goal-cat-pill"><span class="cat-dot" style="background:' + cat.color + '"></span>' + escapeHtml(cat.name) + "</span>" : "") +
+        "</div>" +
+        '<button type="button" class="btn btn-sm goal-edit" data-id="' + g.id + '">Edit</button>' +
       "</div>";
 
     const targetText = goalTargetText(g);
     if (targetText) {
-      html += '<div class="goal-hours">' + targetText + " target</div>";
+      html += '<div class="goal-target"><span class="goal-target-label">Target</span> ' + targetText + "</div>";
     }
-    if (g.category) {
-      const cat = getCategories().find(function (c) { return c.id === g.category; });
-      if (cat) {
-        html += '<div class="goal-cat"><span class="cat-dot" style="background:' + cat.color + '"></span>' +
-          escapeHtml(cat.name) + "</div>";
-      }
-    }
+
     if (milestones.length) {
-      html += '<div class="goal-progress">' + done + " / " + milestones.length + " milestones</div>";
+      const pct = Math.round((done / milestones.length) * 100);
+      html +=
+        '<div class="goal-progress-row">' +
+          '<div class="goal-progress-bar"><span style="width:' + pct + '%"></span></div>' +
+          '<span class="goal-progress-count">' + done + "/" + milestones.length + "</span>" +
+        "</div>";
       html += '<div class="milestones">';
       milestones.forEach(function (m) {
         html +=
@@ -155,7 +159,7 @@ function renderMilestoneList() {
     row.className = "ms-row";
     row.innerHTML =
       '<input type="text" class="ms-text" data-i="' + i + '" placeholder="Milestone" value="' + escapeHtml(m.text || "") + '">' +
-      '<input type="date" class="ms-date" data-i="' + i + '" value="' + (m.date || "") + '">' +
+      '<input type="date" class="ms-date" data-i="' + i + '" min="2000-01-01" max="2099-12-31" value="' + (m.date || "") + '">' +
       '<button type="button" class="ms-del" data-i="' + i + '" title="Remove" aria-label="Remove milestone">&times;</button>';
     list.appendChild(row);
   });
@@ -175,6 +179,7 @@ function readMilestoneInputs() {
   });
   list.querySelectorAll(".ms-date").forEach(function (inp) {
     milestoneDraft[Number(inp.dataset.i)].date = inp.value;
+    if (typeof attachYearClamp === "function") attachYearClamp(inp);
   });
 }
 

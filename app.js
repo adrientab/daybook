@@ -22,7 +22,7 @@
 /* Device preferences, not user data: these should differ per device (dark mode
    on your phone, light on your laptop), so they always stay in this browser
    and never sync. */
-const LOCAL_ONLY_KEYS = ["theme", "sidebarCollapsed"];
+const LOCAL_ONLY_KEYS = ["theme", "sidebarCollapsed", "weekStart"];
 
 /* Backend: reads/writes the browser's localStorage. If it's blocked (private
    window, sandboxed preview), the cache still works for the session. */
@@ -168,11 +168,53 @@ function addDays(d, n) {
   return x;
 }
 
-/* Returns the Sunday that begins the week containing date d. */
+/* Keep a date input's year inside 2000-2099. The native year segment can't be
+   reprogrammed key-by-key, but this snaps anything out of range back into the
+   20## window (year 5 -> 2005, year 3025 -> 2025) so you can't save a wild
+   year. Call attachYearClamp(input) once per date field. */
+function clampYear(value) {
+  // value is "YYYY-MM-DD" (or "" while incomplete)
+  const m = /^(\d+)-(\d{2})-(\d{2})$/.exec(value || "");
+  if (!m) return value;
+  let y = parseInt(m[1], 10);
+  if (y >= 2000 && y <= 2099) return value;      // already fine
+  const yy = ((y % 100) + 100) % 100;            // last two digits, positive
+  return "20" + pad(yy) + "-" + m[2] + "-" + m[3];
+}
+function attachYearClamp(input) {
+  if (!input) return;
+  input.addEventListener("change", function () {
+    const fixed = clampYear(input.value);
+    if (fixed !== input.value) input.value = fixed;
+  });
+}
+
+/* The week-start preference. "sunday"/"monday" are fixed weekdays; the
+   relative options anchor the week to today and shift it, so the days you
+   care about stay in view. Stored locally (a device preference). */
+const WEEK_START_KEY = "weekStart";
+function getWeekStart() {
+  const v = Store.get(WEEK_START_KEY);
+  return v || "sunday";
+}
+
+/* Returns the date that begins the week containing d, per the preference. */
 function startOfWeek(d) {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
-  x.setDate(x.getDate() - x.getDay()); // getDay(): 0 = Sunday
+  const pref = getWeekStart();
+
+  if (pref === "monday") {
+    const day = x.getDay();
+    x.setDate(x.getDate() + (day === 0 ? -6 : 1 - day));
+    return x;
+  }
+  if (pref === "today") return x;
+  if (pref === "yesterday") { x.setDate(x.getDate() - 1); return x; }
+  if (pref === "tomorrow")  { x.setDate(x.getDate() + 1); return x; }
+
+  // default: Sunday
+  x.setDate(x.getDate() - x.getDay());
   return x;
 }
 
@@ -335,6 +377,26 @@ if (themeToggle) {
 
 onAppReady(function () { applyTheme(resolveTheme()); }); // saved choice, else OS preference
 
+/* ---- Week-start preference ---- */
+onAppReady(function () {
+  // The week views were initialised at load with the default start; now that
+  // the saved preference is available, re-anchor them.
+  if (typeof currentWeekStart !== "undefined") currentWeekStart = startOfWeek(new Date());
+  if (typeof todoWeekStart !== "undefined") todoWeekStart = startOfWeek(new Date());
+
+  const sel = document.getElementById("weekStartSelect");
+  if (!sel) return;
+  sel.value = getWeekStart();
+  sel.addEventListener("change", function () {
+    Store.set(WEEK_START_KEY, sel.value);
+    // Re-anchor every week-based view to the new start and redraw.
+    if (typeof currentWeekStart !== "undefined") currentWeekStart = startOfWeek(new Date());
+    if (typeof todoWeekStart !== "undefined") todoWeekStart = startOfWeek(new Date());
+    if (typeof renderCalendar === "function") renderCalendar();
+    if (typeof renderTodos === "function") renderTodos();
+  });
+});
+
 /* While the user hasn't picked a theme, follow the OS if it changes live. Once
    they choose one (saved), their choice sticks and this stops mattering. */
 try {
@@ -376,7 +438,7 @@ function appKeys() {
 
 function clearAppData() {
   appKeys().forEach(function (k) { Store.remove(k); });
-  Store.flush();
+  return Store.flush();   // returns a promise; callers can await persistence
 }
 
 /* Gather everything into one downloadable JSON file. */
@@ -419,7 +481,7 @@ function importData(file) {
       const v = data[k];
       Store.set(k, typeof v === "string" ? v : JSON.stringify(v));
     });
-    location.reload();
+    Promise.resolve(Store.flush()).then(function () { location.reload(); });
   };
   reader.readAsText(file);
 }
@@ -441,8 +503,7 @@ const resetBtn = document.getElementById("resetData");
 if (resetBtn) {
   resetBtn.addEventListener("click", function () {
     if (!confirm("This permanently deletes all your data. It cannot be undone. Continue?")) return;
-    clearAppData();
-    location.reload();
+    Promise.resolve(clearAppData()).then(function () { location.reload(); });
   });
 }
 
