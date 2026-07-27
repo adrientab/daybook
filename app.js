@@ -173,12 +173,25 @@ function addDays(d, n) {
    20## window (year 5 -> 2005, year 3025 -> 2025) so you can't save a wild
    year. Call attachYearClamp(input) once per date field. */
 function clampYear(value) {
-  // value is "YYYY-MM-DD" (or "" while incomplete)
+  // value is "YYYY-MM-DD" (or "" while incomplete).
   const m = /^(\d+)-(\d{2})-(\d{2})$/.exec(value || "");
   if (!m) return value;
   let y = parseInt(m[1], 10);
-  if (y >= 2000 && y <= 2099) return value;      // already fine
-  const yy = ((y % 100) + 100) % 100;            // last two digits, positive
+  if (y >= 2000 && y <= 2099) return value;      // already a valid 20xx year
+
+  // The native field gives a finished 4-digit year, but browsers build it
+  // differently as you type: Chrome pads on the RIGHT ("25" -> 0025), Safari
+  // pads on the LEFT ("25" -> 2500). Pull the two typed digits out of either
+  // shape and rebuild as 20xx.
+  let yy;
+  if (y > 2099) {
+    // Left-padded: the typed digits are the most significant ones. 2500 -> 25.
+    yy = Math.floor(y / 100) % 100;
+    if (yy === 0) yy = y % 100;                  // fallback for odd shapes
+  } else {
+    // y < 2000, right-padded or a bare small number. 0025 -> 25, 5 -> 5.
+    yy = ((y % 100) + 100) % 100;
+  }
   return "20" + pad(yy) + "-" + m[2] + "-" + m[3];
 }
 function attachYearClamp(input) {

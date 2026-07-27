@@ -629,6 +629,12 @@ input.inline-input[type="time"] { width: 6.1em; }
   color: #fff;
   font-weight: 600;
 }
+/* The event's own weekday is locked on in "On days" mode — it can't be turned
+   off, so show it as fixed rather than clickable. */
+.dow-chip.locked {
+  cursor: default;
+  opacity: 0.85;
+}
 
 /* ---- Docked to the side ----
    The editor pins full-height to one edge; the schedule shifts the other way
