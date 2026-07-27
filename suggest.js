@@ -25,7 +25,17 @@ function toggleSuggest() {
   suggestBtn.classList.toggle("active", open);
   const view = document.getElementById("view-schedule");
   if (view) view.classList.toggle("suggest-open", open); // compresses the schedule
+  // Only one of Filter / Suggestions is open at a time.
+  if (open && typeof closeFilterPanel === "function") closeFilterPanel();
   if (open) renderSuggestPanel();
+}
+
+function closeSuggest() {
+  if (suggestPanel.hidden) return;
+  suggestPanel.hidden = true;
+  suggestBtn.classList.remove("active");
+  const view = document.getElementById("view-schedule");
+  if (view) view.classList.remove("suggest-open");
 }
 
 function setSuggestMode(mode) {
@@ -219,3 +229,5 @@ if (suggestBtn) {
   document.getElementById("suggestTodoTab").addEventListener("click", function () { setSuggestMode("todo"); });
   document.getElementById("suggestGoalsTab").addEventListener("click", function () { setSuggestMode("goals"); });
 }
+const suggestCloseBtn = document.getElementById("suggestClose");
+if (suggestCloseBtn) suggestCloseBtn.addEventListener("click", closeSuggest);

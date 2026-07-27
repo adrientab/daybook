@@ -30,12 +30,10 @@ function renderGoals() {
 
     let html =
       '<div class="goal-card-head">' +
-        '<div class="goal-heading">' +
-          '<span class="goal-title">' + escapeHtml(g.title) + "</span>" +
-          (cat ? '<span class="goal-cat-pill"><span class="cat-dot" style="background:' + cat.color + '"></span>' + escapeHtml(cat.name) + "</span>" : "") +
-        "</div>" +
+        '<span class="goal-title">' + escapeHtml(g.title) + "</span>" +
         '<button type="button" class="btn btn-sm goal-edit" data-id="' + g.id + '">Edit</button>' +
-      "</div>";
+      "</div>" +
+      (cat ? '<div class="goal-heading-meta"><span class="goal-cat-pill"><span class="cat-dot" style="background:' + cat.color + '"></span>' + escapeHtml(cat.name) + "</span></div>" : "");
 
     const targetText = goalTargetText(g);
     if (targetText) {

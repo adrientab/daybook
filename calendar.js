@@ -593,9 +593,17 @@ function enableDragCreate(col, ds) {
       if (prov.parentNode) prov.parentNode.removeChild(prov);
       const finalEnd = moved ? endMin : Math.min(24 * 60, startMin + 60); // a click = 1 hour
       const colRect = col.getBoundingClientRect();
+      // The provisional block's own on-screen rect gives the event's actual
+      // vertical position, so the modal can open at the same height. It's about
+      // to be removed, so read it before that.
+      const slotTop = colRect.top + (startMin / 60 * HOUR_HEIGHT);
+      const slotRect = {
+        left: colRect.left, right: colRect.right,
+        top: slotTop, bottom: slotTop + ((finalEnd - startMin) / 60 * HOUR_HEIGHT)
+      };
       openModal({
         date: ds, start: minutesToTime(startMin), end: minutesToTime(finalEnd),
-        avoidRect: colRect   // open beside this slot, not over it
+        avoidRect: slotRect   // open beside this slot, aligned to its height
       });
     }
 
@@ -762,7 +770,10 @@ function positionBesideSlot(rect) {
   } else {
     return;                                        // no room either side: stay centered
   }
-  let y = rect.top;
+  // Line the modal up with the event vertically: centre it on the slot's
+  // midpoint, then clamp so it stays fully on screen.
+  const slotMid = rect.top + (rect.bottom - rect.top) / 2;
+  let y = slotMid - box.height / 2;
   y = Math.max(12, Math.min(window.innerHeight - box.height - 12, y));
 
   // Switch the overlay to free-positioning (it's normally flex-centered).
@@ -1332,6 +1343,8 @@ function openFilterPanel() {
   const p = document.getElementById("filterPanel");
   if (p) p.hidden = false;
   document.getElementById("filterBtn").classList.add("active");
+  // Only one of Filter / Suggestions is open at a time.
+  if (typeof closeSuggest === "function") closeSuggest();
 }
 function closeFilterPanel() {
   const p = document.getElementById("filterPanel");
