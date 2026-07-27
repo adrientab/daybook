@@ -727,9 +727,11 @@ function openModal(data) {
   populateCategorySelect(data.category);
 
   // Repeat is only offered when creating a brand-new event; editing always
-  // affects just this one occurrence.
+  // affects just this one occurrence. Reset the collapsed/expanded state each
+  // open, or the toggle stays hidden after you've opened it once.
   document.getElementById("repeatToggle").style.display = editingId ? "none" : "";
-  document.getElementById("repeatField").hidden = true;
+  document.getElementById("repeatToggle").hidden = false;   // show the "+ Repeat" toggle again
+  document.getElementById("repeatField").hidden = true;     // collapse the panel
   if (!editingId) resetRepeat();
 
   // "How did it feel?" starts collapsed, so a quick schedule-ahead never sees
@@ -1198,23 +1200,34 @@ function visibleDayCount() {
   return window.matchMedia("(max-width: 720px)").matches ? 4 : 7;
 }
 
-/* On mobile the 4-day window is anchored to the week grid: it always starts on
-   either the week-start day (offset 0) or the week-start day + 4, so the
-   start-of-week day is always shown (at the front of one window, the back of
-   the next). These snap a date to the nearest aligned window start, and step
-   to the next/previous aligned window (Sun->Thu is +4 days, Thu->next Sun +3). */
+/* On mobile the 4-day window is anchored to a stable 7-day grid so the
+   start-of-week day always shows (front of one window, back of the next), and
+   paging alternates +4 then +3 days.
+
+   The grid origin is today's week-start per the setting. For fixed weekdays
+   (Sun/Mon) that origin sits on the repeating weekday grid, so alignment is by
+   day-of-week. For the relative modes (today/yesterday/tomorrow) startOfWeek
+   returns the anchor day itself, so the grid is anchored to today and repeats
+   every 7 days from there — which still yields the +4/+3 cycle. */
+function gridOrigin() {
+  return startOfWeek(new Date());   // stable reference on the 7-day grid
+}
+function windowOffset(d) {
+  const day = new Date(d); day.setHours(0, 0, 0, 0);
+  const diff = Math.round((day - gridOrigin()) / 86400000);
+  return ((diff % 7) + 7) % 7;      // 0..6 position within the 7-day block
+}
 function alignedWindowStart(d) {
   const day = new Date(d); day.setHours(0, 0, 0, 0);
-  const weekStart = startOfWeek(day);
-  const offset = Math.round((day - weekStart) / 86400000); // 0..6
-  return addDays(weekStart, offset < 4 ? 0 : 4);
+  const mod = windowOffset(day);
+  const blockStart = addDays(day, -mod);          // start of this 7-day block
+  return addDays(blockStart, mod < 4 ? 0 : 4);    // snap to offset 0 or 4
 }
 function stepWindow(start, dir) {
   const s = new Date(start); s.setHours(0, 0, 0, 0);
-  const weekStart = startOfWeek(s);
-  const offset = Math.round((s - weekStart) / 86400000); // 0 or 4
-  if (dir > 0) return addDays(s, offset === 0 ? 4 : 3);   // 0->+4 (Thu), 4->+3 (next Sun)
-  return addDays(s, offset === 0 ? -3 : -4);              // 0->-3 (prev Thu), 4->-4 (Sun)
+  const mod = windowOffset(s);                    // 0 or 4 for an aligned start
+  if (dir > 0) return addDays(s, mod === 0 ? 4 : 3);   // 0->+4, 4->+3
+  return addDays(s, mod === 0 ? -3 : -4);              // mirror going back
 }
 
 document.getElementById("prevWeek").addEventListener("click", function () {
