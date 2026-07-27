@@ -183,7 +183,11 @@ function clampYear(value) {
 }
 function attachYearClamp(input) {
   if (!input) return;
-  input.addEventListener("change", function () {
+  // Clamp on BLUR, not on every change: a change fires as each year digit is
+  // typed, so clamping there would reset the field after the first digit (you
+  // could never get past 200x). Waiting for blur lets you type the full year,
+  // then snaps it only if it ended up out of the 2000-2099 range.
+  input.addEventListener("blur", function () {
     const fixed = clampYear(input.value);
     if (fixed !== input.value) input.value = fixed;
   });
