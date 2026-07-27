@@ -851,7 +851,7 @@ function resetRepeat() {
   document.getElementById("evtRepeat").value = "1";
   setRepeatMode("none");
   document.querySelectorAll("#dowPicker .dow-chip").forEach(function (c) {
-    c.classList.remove("selected");
+    c.classList.remove("selected", "locked");
   });
   updateRepeatLabel();
 }
@@ -868,7 +868,28 @@ function setRepeatMode(mode) {
   });
   document.getElementById("repeatEveryN").hidden = (mode !== "everyN");
   document.getElementById("repeatWeekdays").hidden = (mode !== "weekdays");
+  // "On days" must always include the day the event is on, so lock that chip.
+  if (mode === "weekdays") lockEventWeekday();
   updateRepeatLabel();
+}
+
+/* The weekday of the event currently being created/edited (from its date). */
+function eventWeekday() {
+  const v = document.getElementById("evtDate").value;
+  if (!v) return null;
+  return new Date(v + "T00:00:00").getDay();   // 0=Sun..6=Sat
+}
+
+/* Ensure the event's own weekday is selected and shown as locked (can't be
+   turned off — a weekday repeat has to include the day it starts on). */
+function lockEventWeekday() {
+  const wd = eventWeekday();
+  document.querySelectorAll("#dowPicker .dow-chip").forEach(function (c) {
+    const d = parseInt(c.dataset.dow, 10);
+    const isLocked = (d === wd);
+    c.classList.toggle("locked", isLocked);
+    if (isLocked) { repeatWeekdaysSet.add(d); c.classList.add("selected"); }
+  });
 }
 
 /* Keep the toggle button readable: "Repeat", "Every 3 days", "Mon, Wed, Fri". */
@@ -1062,7 +1083,8 @@ document.getElementById("evtTitle").addEventListener("input", function () {
 /* Repeat control wiring */
 document.getElementById("repeatToggle").addEventListener("click", function () {
   showRepeatField();
-  if (repeatMode === "none") setRepeatMode("everyN"); // open onto a useful default
+  // Default to "Never" — the user picks Every/On-days deliberately.
+  if (repeatMode !== "everyN" && repeatMode !== "weekdays") setRepeatMode("none");
 });
 document.querySelectorAll("#repeatModeSeg .seg-btn").forEach(function (b) {
   b.addEventListener("click", function () { setRepeatMode(b.dataset.mode); });
@@ -1070,6 +1092,8 @@ document.querySelectorAll("#repeatModeSeg .seg-btn").forEach(function (b) {
 document.querySelectorAll("#dowPicker .dow-chip").forEach(function (chip) {
   chip.addEventListener("click", function () {
     const d = parseInt(chip.dataset.dow, 10);
+    // The event's own weekday is locked on — it can't be toggled off.
+    if (chip.classList.contains("locked")) return;
     if (repeatWeekdaysSet.has(d)) repeatWeekdaysSet.delete(d);
     else repeatWeekdaysSet.add(d);
     chip.classList.toggle("selected");
@@ -1078,6 +1102,17 @@ document.querySelectorAll("#dowPicker .dow-chip").forEach(function (chip) {
 });
 document.getElementById("evtRepeat").addEventListener("input", updateRepeatLabel);
 attachYearClamp(document.getElementById("evtDate"));
+
+/* If the date changes while in "On days" mode, the locked weekday moves with
+   it. Drop the old lock, then re-lock the new weekday. */
+document.getElementById("evtDate").addEventListener("change", function () {
+  if (repeatMode !== "weekdays") return;
+  document.querySelectorAll("#dowPicker .dow-chip.locked").forEach(function (c) {
+    c.classList.remove("locked");   // old locked day becomes a normal (still selected) chip
+  });
+  lockEventWeekday();
+  updateRepeatLabel();
+});
 
 /* Live preview: any change to the fields that affect the block redraws it. */
 ["evtTitle", "evtDate", "evtStart", "evtEnd"].forEach(function (id) {
