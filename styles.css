@@ -497,7 +497,7 @@ h2 { margin-top: 0; }
 /* Just wide enough for MM/DD/YYYY — the picker icon is hidden, so no room is
    reserved for it. Time fields likewise fit HH:MM AM. */
 input.inline-input[type="date"] { width: 6.9em; }
-input.inline-input[type="time"] { width: 6em; }
+input.inline-input[type="time"] { width: 6.1em; }
 /* Drop the native calendar/clock glyphs — they crowd the line and the whole
    field is already clickable. */
 .inline-input::-webkit-calendar-picker-indicator { display: none; }
@@ -628,28 +628,36 @@ input.inline-input[type="time"] { width: 6em; }
 }
 
 /* ---- Docked to the side ----
-   The editor pins full-height to the right; the schedule shifts over so the
-   calendar sits beside it. A single shaded backdrop dims the whole screen
-   (calendar included) and catches outside-clicks to close, exactly like the
-   centred modal — the only difference is the box's placement. */
+   The editor pins full-height to one edge; the schedule shifts the other way
+   so it stays visible beside the panel. A shaded backdrop dims the screen and
+   catches outside-clicks to close. Dragging to the RIGHT edge docks right
+   (like Suggestions); dragging to the LEFT edge docks left and hides the
+   page's own sidebar, so the panel takes that edge — a mirror image. */
 .modal-overlay.docked {
   background: rgba(0, 0, 0, 0.4);
-  justify-content: flex-end;
   align-items: stretch;
   padding: 0;
 }
+.modal-overlay.docked-right { justify-content: flex-end; }
+.modal-overlay.docked-left  { justify-content: flex-start; }
+
 .modal-event.docked {
   max-width: 340px;
   height: 100vh;
   max-height: 100vh;
   border-radius: 0;
-  box-shadow: -12px 0 40px -18px rgba(0, 0, 0, 0.4);
   animation: none;
 }
-/* Shift the calendar left by exactly the panel's width (340px). The 20px gap to
-   the panel then comes from .main's own right padding — the same 20px that sits
-   between the page sidebar and the calendar on the left. */
-#view-schedule.modal-docked .schedule-main { margin-right: 340px; }
+.modal-event.docked-right { box-shadow: -12px 0 40px -18px rgba(0, 0, 0, 0.4); }
+.modal-event.docked-left  { box-shadow: 12px 0 40px -18px rgba(0, 0, 0, 0.4); }
+
+/* Shift the calendar away from the panel by its width (340px); .main's own
+   20px padding becomes the gap, matching the sidebar-to-calendar gap. */
+#view-schedule.modal-docked-right .schedule-main { margin-right: 340px; }
+#view-schedule.modal-docked-left  .schedule-main { margin-left: 340px; }
+
+/* A left dock hides the app's own sidebar so the panel owns the left edge. */
+body.hide-sidebar .sidebar { display: none; }
 
 .modal h3 { margin-top: 0; }
 .field { display: block; margin-bottom: 14px; }
@@ -844,9 +852,12 @@ input.inline-input[type="time"] { width: 6em; }
 .goal-notes { color: var(--muted); font-size: 0.85rem; margin-top: 6px; line-height: 1.4; overflow-wrap: anywhere; }
 .goal-progress { font-size: 0.8rem; color: var(--accent); margin-top: 8px; }
 .milestones { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
-.milestone { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; }
+.milestone { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; min-width: 0; }
+.milestone input[type="checkbox"] { flex: 0 0 auto; }
+/* Long single-word milestone names shouldn't stretch the card — clip them. */
+.milestone .m-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .milestone.done .m-text { text-decoration: line-through; color: var(--muted); }
-.m-date { margin-left: auto; color: var(--muted); font-size: 0.75rem; }
+.m-date { flex: 0 0 auto; margin-left: auto; color: var(--muted); font-size: 0.75rem; }
 
 /* Milestone editor rows in the goal modal */
 .ms-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
@@ -1219,7 +1230,7 @@ input.inline-input[type="time"] { width: 6em; }
    panel opens (which drops in beneath the toggle).
    ============================================================ */
 #view-schedule.active { display: block; position: relative; }
-.schedule-main { transition: margin-right 0.15s ease; }
+.schedule-main { transition: margin-right 0.15s ease, margin-left 0.15s ease; }
 /* When open, leave room for the 210px panel + a 16px gutter on the right */
 #view-schedule.suggest-open .schedule-main { margin-right: 226px; }
 
@@ -1685,7 +1696,8 @@ input.inline-input[type="time"] { width: 6em; }
 
 @media (max-width: 720px) {
   /* On phones the docked panel is full-width and the calendar isn't shifted. */
-  #view-schedule.modal-docked .schedule-main { margin-right: 0; }
+  #view-schedule.modal-docked-right .schedule-main { margin-right: 0; }
+  #view-schedule.modal-docked-left .schedule-main { margin-left: 0; }
   .modal-event.docked { max-width: 100%; }
 }
 

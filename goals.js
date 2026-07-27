@@ -50,7 +50,7 @@ function renderGoals() {
         html +=
           '<label class="milestone' + (m.done ? " done" : "") + '">' +
             '<input type="checkbox" data-gid="' + g.id + '" data-mid="' + m.id + '"' + (m.done ? " checked" : "") + ">" +
-            '<span class="m-text">' + escapeHtml(m.text) + "</span>" +
+            '<span class="m-text" title="' + escapeHtml(m.text) + '">' + escapeHtml(m.text) + "</span>" +
             (m.date ? '<span class="m-date">' + m.date + "</span>" : "") +
           "</label>";
       });
