@@ -231,3 +231,5 @@ if (suggestBtn) {
 }
 const suggestCloseBtn = document.getElementById("suggestClose");
 if (suggestCloseBtn) suggestCloseBtn.addEventListener("click", closeSuggest);
+const suggestCloseBottomBtn = document.getElementById("suggestCloseBottom");
+if (suggestCloseBottomBtn) suggestCloseBottomBtn.addEventListener("click", closeSuggest);
