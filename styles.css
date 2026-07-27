@@ -1600,7 +1600,8 @@ body.hide-sidebar .sidebar { display: none; }
   /* To-Do filter chips centered too. */
   .todo-filters { flex-wrap: wrap; justify-content: center; }
 
-  /* ---- Suggestions + filter buttons: centered under the title ---- */
+  /* ---- Suggestions + filter buttons: pinned at the very top so they stay
+     visible even when a drawer is open (the drawer starts below them). ---- */
   .suggest-anchor {
     position: static;
     width: 100%;
@@ -1612,20 +1613,53 @@ body.hide-sidebar .sidebar { display: none; }
   .sa-buttons { justify-content: center; margin-top: 0; }
   .filter-panel { margin-top: 8px; }
 
-  /* When Suggestions is open on mobile it locks to the TOP as a fixed drawer,
-     so the calendar below stays put and you can drag items down onto it
-     without the layout shifting. An × in the drawer closes it. */
-  #view-schedule.suggest-open .schedule-main { margin-right: 0; padding-top: 46vh; }
+  /* When a drawer is open, pin the two toggle buttons as a fixed bar at the
+     very top (above the drawer) so you can still see them and switch/close. */
+  #view-schedule.suggest-open .sa-buttons,
+  #view-schedule.filter-open .sa-buttons {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 61;                 /* above the drawer (60) */
+    margin: 0;
+    padding: 8px 12px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* When Suggestions is open on mobile it locks below the pinned button bar as
+     a fixed drawer, so the calendar below stays put and you can drag items down
+     onto it. A Close button sits at the bottom. (~50px = the button bar.) */
+  #view-schedule.suggest-open .schedule-main { margin-right: 0; padding-top: 50vh; }
   #view-schedule.suggest-open .suggest-panel {
     position: fixed;
-    left: 0; right: 0; top: 0;
+    left: 0; right: 0; top: 50px;
     z-index: 60;
-    max-height: 44vh;
+    max-height: 42vh;
     margin: 0;
     border-radius: 0 0 14px 14px;
     box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
   }
+  /* The list scrolls; the tabs and the bottom Close button stay put. */
+  #view-schedule.suggest-open .suggest-body { flex: 1; overflow-y: auto; min-height: 0; }
   .suggest-panel { max-height: 45vh; }
+
+  /* Filter panel behaves exactly like the suggestions drawer on mobile. */
+  #view-schedule.filter-open .schedule-main { padding-top: 50vh; }
+  #view-schedule.filter-open .filter-panel {
+    position: fixed;
+    left: 0; right: 0; top: 50px;
+    z-index: 60;
+    width: auto;
+    max-height: 42vh;
+    margin: 0;
+    border-radius: 0 0 14px 14px;
+    box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+  }
+  #view-schedule.filter-open .filter-list { flex: 1; overflow-y: auto; min-height: 0; }
 
   /* ---- Calendar ----
      On mobile the schedule shows a 4-day window (set in JS) that fits the
@@ -1937,3 +1971,24 @@ body.hide-sidebar .sidebar { display: none; }
 }
 .suggest-close:hover { background: var(--bg); color: var(--text); }
 @media (min-width: 721px) { .suggest-close { display: none; } }
+
+/* Bottom "Close" button — only in the mobile suggestions drawer. */
+.suggest-close-bottom { display: none; }
+@media (max-width: 720px) {
+  /* On mobile the top × is hidden; closing happens from the bottom button. */
+  .suggest-close { display: none; }
+  .suggest-close-bottom {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .suggest-close-bottom:active { background: var(--bg); }
+}

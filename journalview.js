@@ -2,23 +2,29 @@
    journalview.js — the Journal tab
    Top: a Monday-Sunday week with a goal-oriented weekly review.
    Bottom: a rant stream (timeline by default, filterable by tag).
-   Uses app.js (Store, dateKey, addDays, startOfWeekMonday, getGoals),
+   Uses app.js (Store, dateKey, addDays, startOfWeek, getGoals),
    journal.js (hasMorning, hasDaily, openDailyJournal),
    calendar.js (uid, escapeHtml).
    ============================================================ */
 
-let jWeekStart = startOfWeekMonday(new Date()); // Monday of the shown week
+let jWeekStart = startOfWeek(new Date());  // first day of the shown week, per the "Week starts on" setting
 let rantFilter = null;                           // active tag filter, or null
 const weeklyOverlay = document.getElementById("weeklyModalOverlay");
 
-function weeklyKey(monday) { return "weekly-" + dateKey(monday); }
-function getWeekly(monday) {
-  const raw = Store.get(weeklyKey(monday));
+/* The weekly-journal entry is keyed to the displayed week's own start date, so
+   it stays consistent with the "Week starts on" setting and with the seven days
+   actually shown. Daily entries are keyed by their own date and are unaffected.
+   (Note: changing the week-start preference regroups which weekly entry a given
+   day belongs to — the entries aren't lost, they're just filed under the start
+   date that was in effect when written.) */
+function weeklyKey(weekStart) { return "weekly-" + dateKey(weekStart); }
+function getWeekly(weekStart) {
+  const raw = Store.get(weeklyKey(weekStart));
   return raw ? JSON.parse(raw) : null;
 }
-function weekDatesFrom(monday) {
+function weekDatesFrom(start) {
   const out = [];
-  for (let i = 0; i < 7; i++) out.push(addDays(monday, i));
+  for (let i = 0; i < 7; i++) out.push(addDays(start, i));
   return out;
 }
 
@@ -382,7 +388,7 @@ document.getElementById("jNextWeek").addEventListener("click", function () {
   jWeekStart = addDays(jWeekStart, 7); renderJournalView();
 });
 document.getElementById("jThisWeek").addEventListener("click", function () {
-  jWeekStart = startOfWeekMonday(new Date()); renderJournalView();
+  jWeekStart = startOfWeek(new Date()); renderJournalView();
 });
 document.getElementById("addRant").addEventListener("click", addRant);
 document.getElementById("rantModalSave").addEventListener("click", saveRantModal);

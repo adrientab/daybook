@@ -383,6 +383,7 @@ onAppReady(function () {
   // the saved preference is available, re-anchor them.
   if (typeof currentWeekStart !== "undefined") currentWeekStart = startOfWeek(new Date());
   if (typeof todoWeekStart !== "undefined") todoWeekStart = startOfWeek(new Date());
+  if (typeof jWeekStart !== "undefined") jWeekStart = startOfWeek(new Date());
 
   const sel = document.getElementById("weekStartSelect");
   if (!sel) return;
@@ -392,8 +393,10 @@ onAppReady(function () {
     // Re-anchor every week-based view to the new start and redraw.
     if (typeof currentWeekStart !== "undefined") currentWeekStart = startOfWeek(new Date());
     if (typeof todoWeekStart !== "undefined") todoWeekStart = startOfWeek(new Date());
+    if (typeof jWeekStart !== "undefined") jWeekStart = startOfWeek(new Date());
     if (typeof renderCalendar === "function") renderCalendar();
     if (typeof renderTodos === "function") renderTodos();
+    if (typeof renderJournalView === "function") renderJournalView();
   });
 });
 

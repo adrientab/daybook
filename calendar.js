@@ -1198,23 +1198,51 @@ function visibleDayCount() {
   return window.matchMedia("(max-width: 720px)").matches ? 4 : 7;
 }
 
+/* On mobile the 4-day window is anchored to the week grid: it always starts on
+   either the week-start day (offset 0) or the week-start day + 4, so the
+   start-of-week day is always shown (at the front of one window, the back of
+   the next). These snap a date to the nearest aligned window start, and step
+   to the next/previous aligned window (Sun->Thu is +4 days, Thu->next Sun +3). */
+function alignedWindowStart(d) {
+  const day = new Date(d); day.setHours(0, 0, 0, 0);
+  const weekStart = startOfWeek(day);
+  const offset = Math.round((day - weekStart) / 86400000); // 0..6
+  return addDays(weekStart, offset < 4 ? 0 : 4);
+}
+function stepWindow(start, dir) {
+  const s = new Date(start); s.setHours(0, 0, 0, 0);
+  const weekStart = startOfWeek(s);
+  const offset = Math.round((s - weekStart) / 86400000); // 0 or 4
+  if (dir > 0) return addDays(s, offset === 0 ? 4 : 3);   // 0->+4 (Thu), 4->+3 (next Sun)
+  return addDays(s, offset === 0 ? -3 : -4);              // 0->-3 (prev Thu), 4->-4 (Sun)
+}
+
 document.getElementById("prevWeek").addEventListener("click", function () {
-  currentWeekStart = addDays(currentWeekStart, -visibleDayCount());
+  currentWeekStart = visibleDayCount() === 4
+    ? stepWindow(currentWeekStart, -1)          // mobile: aligned 4-day window
+    : addDays(currentWeekStart, -7);            // desktop: whole week
   renderCalendar();
 });
 document.getElementById("nextWeek").addEventListener("click", function () {
-  currentWeekStart = addDays(currentWeekStart, visibleDayCount());
+  currentWeekStart = visibleDayCount() === 4
+    ? stepWindow(currentWeekStart, 1)
+    : addDays(currentWeekStart, 7);
   renderCalendar();
 });
 document.getElementById("todayBtn").addEventListener("click", function () {
-  currentWeekStart = startOfWeek(new Date());
+  // On mobile, land on the aligned window that contains today.
+  currentWeekStart = visibleDayCount() === 4
+    ? alignedWindowStart(new Date())
+    : startOfWeek(new Date());
   renderCalendar();
 });
 
 /* Re-render when crossing the narrow/wide breakpoint so the day count and the
-   window re-anchor cleanly. */
+   window re-anchor cleanly (aligned 4-day window on mobile, full week on wide). */
 window.matchMedia("(max-width: 720px)").addEventListener("change", function () {
-  currentWeekStart = startOfWeek(new Date());
+  currentWeekStart = visibleDayCount() === 4
+    ? alignedWindowStart(new Date())
+    : startOfWeek(new Date());
   renderCalendar();
 });
 
@@ -1343,6 +1371,8 @@ function openFilterPanel() {
   const p = document.getElementById("filterPanel");
   if (p) p.hidden = false;
   document.getElementById("filterBtn").classList.add("active");
+  const view = document.getElementById("view-schedule");
+  if (view) view.classList.add("filter-open");   // drives the mobile drawer layout
   // Only one of Filter / Suggestions is open at a time.
   if (typeof closeSuggest === "function") closeSuggest();
 }
@@ -1351,6 +1381,8 @@ function closeFilterPanel() {
   if (p) p.hidden = true;
   const b = document.getElementById("filterBtn");
   if (b) b.classList.remove("active");
+  const view = document.getElementById("view-schedule");
+  if (view) view.classList.remove("filter-open");
 }
 
 document.getElementById("filterBtn").addEventListener("click", function (e) {
@@ -1358,6 +1390,8 @@ document.getElementById("filterBtn").addEventListener("click", function (e) {
   const p = document.getElementById("filterPanel");
   if (p && p.hidden) openFilterPanel(); else closeFilterPanel();
 });
+const filterCloseBottom = document.getElementById("filterCloseBottom");
+if (filterCloseBottom) filterCloseBottom.addEventListener("click", closeFilterPanel);
 document.getElementById("filterAll").addEventListener("click", function () {
   hiddenCategories.clear();
   renderFilterList();
