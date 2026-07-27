@@ -247,9 +247,9 @@
           <div class="cal-right">
             <div class="todo-filters" role="group" aria-label="Show">
               <span class="todo-filters-label">Show</span>
-              <button id="todoShowDeadlinesBtn" class="filter-chip active"><span class="fc-dot fc-deadline"></span>Deadlines</button>
-              <button id="todoShowDoOnBtn" class="filter-chip active"><span class="fc-dot fc-task"></span>Tasks</button>
-              <button id="todoShowDoneBtn" class="filter-chip active"><span class="fc-check">&checkmark;</span>Completed</button>
+              <button id="todoShowDeadlinesBtn" class="filter-chip active">Deadlines</button>
+              <button id="todoShowDoOnBtn" class="filter-chip active">Tasks</button>
+              <button id="todoShowDoneBtn" class="filter-chip active">Completed</button>
             </div>
           </div>
         </div>
@@ -686,10 +686,7 @@
       </p>
 
       <!-- Category as colour chips -->
-      <div class="chip-row" id="todoCategory" role="radiogroup" aria-label="Category"></div>
-      <p class="hint" id="todoCatNote" hidden>Locked to match its deadline.</p>
-
-      <!-- Part of (Plan only): tucked behind a reveal like feel/repeat -->
+      <!-- Part of (Task only): what this task works toward -->
       <div class="field" id="todoLinkField">
         <div class="reveal-title">Part of</div>
         <div class="typeahead">
@@ -697,6 +694,10 @@
           <div class="typeahead-list" id="todoLinkResults" hidden></div>
         </div>
       </div>
+
+      <!-- Category as colour chips -->
+      <div class="chip-row" id="todoCategory" role="radiogroup" aria-label="Category"></div>
+      <p class="hint" id="todoCatNote" hidden>Locked to match its deadline.</p>
 
       <!-- Estimated hours: compact inline -->
       <p class="when-line">

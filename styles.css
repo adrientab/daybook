@@ -1204,11 +1204,43 @@ body.hide-sidebar .sidebar { display: none; }
 .todo-board { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
 /* Seven day-columns get too cramped to read once the window narrows, well
    before the mobile breakpoint — so drop the To-Do board to one day per row
-   much earlier (~1.75x the 720px mobile breakpoint). */
-@media (max-width: 1260px) {
+   earlier. */
+@media (max-width: 1100px) {
   .todo-board { grid-template-columns: 1fr; gap: 6px; }
   .todo-col { min-height: 0; }
   .todo-col-head { text-align: left; }
+
+  /* Stack the To-Do toolbar zones so the title can centre across the full
+     width (above this it shares a row with the week nav and filters). */
+  #view-todo .cal-toolbar { flex-wrap: wrap; gap: 10px; align-items: center; }
+  #view-todo .cal-left,
+  #view-todo .cal-center,
+  #view-todo .cal-right { flex: 1 1 100%; }
+  #view-todo .cal-center { align-items: center; }
+  #view-todo .cal-right { justify-content: center; }
+  #view-todo .todo-filters { flex-wrap: wrap; justify-content: center; }
+
+  /* To-Do header: title centered across the full width, "+" pinned right so it
+     never pushes the title off-centre. Matches the board dropping to rows. */
+  #view-todo .cal-left {
+    position: relative;
+    display: block;
+    width: 100%;
+  }
+  #view-todo .cal-left h2 {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin: 0;
+    height: auto;
+  }
+  #view-todo #addTodoBtn {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+  }
 }
 .todo-col {
   background: var(--surface);
@@ -1291,7 +1323,7 @@ body.hide-sidebar .sidebar { display: none; }
    TO-DO CARD — time/estimate meta line
    ============================================================ */
 .todo-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.todo-meta { font-size: 0.72rem; color: var(--muted); }
+.todo-meta { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
 .todo-card.done .todo-meta { color: var(--border); }
 
 /* Goal card: linked category line */
@@ -1564,18 +1596,7 @@ body.hide-sidebar .sidebar { display: none; }
   #view-schedule:not(.suggest-open) .cal-right { min-width: 0; }
   .cal-left h2, .section-head h2 { font-size: 1.25rem; }
   .head-actions { flex-wrap: wrap; justify-content: center; }
-  /* To-Do: title truly centered across the full width, with the "+" pinned to
-     the right edge so it doesn't push the title off-centre. */
-  #view-todo .cal-left {
-    position: relative;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-  }
-  #view-todo .cal-left h2 { text-align: center; width: 100%; }
-  #view-todo #addTodoBtn { position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
+  /* (To-Do header centering handled at 1100px, matching the board switch.) */
   /* To-Do filter chips centered too. */
   .todo-filters { flex-wrap: wrap; justify-content: center; }
 
@@ -1894,16 +1915,11 @@ body.hide-sidebar .sidebar { display: none; }
 }
 .filter-chip:hover { color: var(--text); }
 .filter-chip.active { background: var(--bg); color: var(--text); font-weight: 500; }
-/* Inactive chips read as "filtered out" — dimmed and struck lightly. */
+/* Inactive chips read as "filtered out" — dimmed. */
 .filter-chip:not(.active) { opacity: 0.55; }
-.fc-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
-.fc-deadline { background: #ef4444; }
-.fc-task { background: var(--sidebar-bg); }
-.fc-check { font-size: 0.9em; line-height: 1; }
 
-/* Journal page: title centered on all screen sizes (per request). */
-#view-journal .cal-left { display: flex; justify-content: center; }
-#view-journal .cal-left h2 { justify-content: center; text-align: center; }
+/* Journal title centering is applied only on narrow screens (see the mobile
+   media query); on wide screens it stays left-aligned like the other pages. */
 
 /* Suggestions close button — sits at the end of the tab row. Hidden on wide
    screens (the toggle button handles closing there); shown in the mobile
