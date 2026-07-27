@@ -1019,35 +1019,47 @@ overlay.addEventListener("click", function (e) {
    back toward the middle to undock. Position resets each time it opens.
    ============================================================ */
 const eventModal = document.getElementById("eventModal");
-let modalDocked = false;
+let dockedSide = null;   // null | "left" | "right"
 
 function resetModalPosition() {
-  modalDocked = false;
-  overlay.classList.remove("docked");
-  eventModal.classList.remove("docked");
+  dockedSide = null;
+  overlay.classList.remove("docked", "docked-left", "docked-right");
+  eventModal.classList.remove("docked", "docked-left", "docked-right");
   eventModal.style.left = "";
   eventModal.style.top = "";
   const sched = document.getElementById("view-schedule");
-  if (sched) sched.classList.remove("modal-docked");
+  if (sched) sched.classList.remove("modal-docked", "modal-docked-left", "modal-docked-right");
+  document.body.classList.remove("hide-sidebar");
 }
 
-function dockModal() {
-  modalDocked = true;
+function dockModal(side) {
+  dockedSide = side;
   overlay.classList.add("docked");
+  overlay.classList.toggle("docked-left", side === "left");
+  overlay.classList.toggle("docked-right", side === "right");
   eventModal.classList.add("docked");
+  eventModal.classList.toggle("docked-left", side === "left");
+  eventModal.classList.toggle("docked-right", side === "right");
   eventModal.style.left = "";
   eventModal.style.top = "";
-  // Push the schedule over so the whole calendar stays visible beside the
-  // docked editor, like the Suggestions panel does.
+  // Push the page content the other way so both stay visible. A right dock
+  // shifts the schedule left (like Suggestions); a left dock shifts it right
+  // AND hides the page's own sidebar, since the panel takes that side.
   const sched = document.getElementById("view-schedule");
-  if (sched) sched.classList.add("modal-docked");
+  if (sched) {
+    sched.classList.add("modal-docked");
+    sched.classList.toggle("modal-docked-left", side === "left");
+    sched.classList.toggle("modal-docked-right", side === "right");
+  }
+  document.body.classList.toggle("hide-sidebar", side === "left");
 }
 function undockModal() {
-  modalDocked = false;
-  overlay.classList.remove("docked");
-  eventModal.classList.remove("docked");
+  dockedSide = null;
+  overlay.classList.remove("docked", "docked-left", "docked-right");
+  eventModal.classList.remove("docked", "docked-left", "docked-right");
   const sched = document.getElementById("view-schedule");
-  if (sched) sched.classList.remove("modal-docked");
+  if (sched) sched.classList.remove("modal-docked", "modal-docked-left", "modal-docked-right");
+  document.body.classList.remove("hide-sidebar");
 }
 
 document.getElementById("modalGrip").addEventListener("pointerdown", function (e) {
@@ -1063,13 +1075,18 @@ document.getElementById("modalGrip").addEventListener("pointerdown", function (e
     let x = me.clientX - offX;
     let y = me.clientY - offY;
 
-    // Dock the moment the box's own right edge reaches the screen edge, rather
-    // than when the cursor gets close. Undock as soon as it's pulled back in.
+    // Dock the moment the box's own edge reaches a screen edge. Right edge ->
+    // right dock (beside the calendar); left edge -> left dock (mirror, hides
+    // the page sidebar). Pull back toward the middle to undock.
     if (x + rect.width >= window.innerWidth - 2) {
-      if (!modalDocked) dockModal();
+      if (dockedSide !== "right") dockModal("right");
       return;
     }
-    if (modalDocked) undockModal();
+    if (x <= 2) {
+      if (dockedSide !== "left") dockModal("left");
+      return;
+    }
+    if (dockedSide) undockModal();
 
     // Keep it on screen.
     x = Math.max(6, Math.min(window.innerWidth - rect.width - 6, x));
