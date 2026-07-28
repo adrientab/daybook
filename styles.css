@@ -1615,22 +1615,36 @@ body.hide-sidebar .sidebar { display: none; }
   .todo-filters { flex-wrap: wrap; justify-content: center; }
 
   /* ---- Narrow screens ----
-     Row 1: the "Schedule" title, centered at the top.
-     Row 2: Filter (left) · week-nav arrows (center) · Suggestions (right),
-     all on one line. Buttons are not pinned/anchored. */
+     Row 1: "Schedule" title (centered).
+     Row 2: the month/year label (centered).
+     Row 3: Filter (left) · week-nav arrows (center) · Suggestions (right),
+     all level. cal-center uses display:contents so its label and arrows join
+     the toolbar's flex flow directly, letting each land on its own row. */
   .schedule-main .cal-toolbar { flex-wrap: wrap; align-items: center; gap: 8px; }
+
   .schedule-main .cal-left {
-    display: block;
     flex: 1 1 100%;
     order: 0;
     text-align: center;
   }
   .schedule-main .cal-left .schedule-heading { display: block; width: 100%; text-align: center; }
-  /* The three controls share row 2, filter left / arrows centre / suggestions right. */
-  .schedule-main .cal-center { order: 2; flex: 1; padding: 0; }
+
+  .schedule-main .cal-center { display: contents; }
+  .schedule-main #weekLabel {
+    flex: 1 1 100%;
+    order: 1;
+    text-align: center;
+    margin: 0;
+  }
+  /* Row 3: filter (order 2) · arrows (order 3, centered) · suggestions (order 4). */
+  #filterBtn { order: 2; }
+  .schedule-main .cal-nav {
+    order: 3;
+    justify-content: center;
+    margin: 0 auto;            /* centers the arrows between the two buttons */
+  }
+  #suggestBtn { order: 4; }
   .schedule-main .cal-right { display: contents; }
-  #filterBtn { order: 1; }     /* far left of row 2 */
-  #suggestBtn { order: 3; }    /* far right of row 2 */
   #filterBtn, #suggestBtn { flex: 0 0 auto; white-space: nowrap; padding: 6px 10px; }
   .suggest-anchor { position: static; width: 100%; margin: 0; }
 
