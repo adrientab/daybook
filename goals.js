@@ -40,14 +40,8 @@ function renderGoals() {
       html += '<div class="goal-target"><span class="goal-target-label">Target</span> ' + targetText + "</div>";
     }
 
-    // Notes/description come right after the target.
-    if (g.notes) {
-      html += '<div class="goal-notes">' + escapeHtml(g.notes) + "</div>";
-    }
-
     if (milestones.length) {
       const pct = Math.round((done / milestones.length) * 100);
-      // Progress bar heads the milestones section.
       html +=
         '<div class="goal-progress-row">' +
           '<div class="goal-progress-bar"><span style="width:' + pct + '%"></span></div>' +
@@ -63,6 +57,11 @@ function renderGoals() {
           "</label>";
       });
       html += "</div>";
+    }
+
+    // Notes go last, separated by a divider.
+    if (g.notes) {
+      html += '<div class="goal-notes">' + escapeHtml(g.notes) + "</div>";
     }
 
     card.innerHTML = html;

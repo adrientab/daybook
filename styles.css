@@ -921,6 +921,8 @@ body.hide-sidebar .sidebar { display: none; }
   color: var(--muted);
   font-size: 0.85rem;
   margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
