@@ -148,11 +148,6 @@
         <!-- Floating anchor on the RIGHT: the toggle stays pinned; the panel
              drops in beneath it and the schedule only compresses when open. -->
         <div class="suggest-anchor">
-          <div class="sa-spacer" aria-hidden="true">&nbsp;</div>
-          <div class="sa-buttons">
-            <button id="filterBtn" class="btn">Filter</button>
-            <button id="suggestBtn" class="btn suggest-toggle">Suggestions</button>
-          </div>
           <div id="filterPanel" class="filter-panel" hidden>
             <div class="filter-head">
               <span>Show categories</span>
@@ -176,7 +171,10 @@
 
         <div class="schedule-main">
           <div class="cal-toolbar">
-            <div class="cal-left"><h2 class="schedule-heading">Schedule</h2></div>
+            <div class="cal-left">
+              <h2 class="schedule-heading">Schedule</h2>
+              <button id="filterBtn" class="btn">Filter</button>
+            </div>
             <div class="cal-center">
               <h2 id="weekLabel" class="cal-title"></h2>
               <div class="cal-nav">
@@ -185,7 +183,9 @@
                 <button id="nextWeek" class="btn" title="Next week">&rsaquo;</button>
               </div>
             </div>
-            <div class="cal-right"></div>
+            <div class="cal-right">
+              <button id="suggestBtn" class="btn suggest-toggle">Suggestions</button>
+            </div>
           </div>
 
           <div class="calendar">
@@ -452,7 +452,14 @@
 
       <!-- When: date, start, end — all on one line (wraps only if forced) -->
       <p class="when-line">
-        <input type="date" id="evtDate" class="inline-input" min="2000-01-01" max="2099-12-31">
+        <span class="date-field inline-input" data-date-for="evtDate">
+          <input type="hidden" id="evtDate">
+          <input class="df-mm" inputmode="numeric" maxlength="2" placeholder="mm" aria-label="Month">
+          <span class="df-sep">/</span>
+          <input class="df-dd" inputmode="numeric" maxlength="2" placeholder="dd" aria-label="Day">
+          <span class="df-sep">/</span>
+          <span class="df-cc">20</span><input class="df-yy" inputmode="numeric" maxlength="2" placeholder="yy" aria-label="Year">
+        </span>
         <span>from</span>
         <input type="time" id="evtStart" class="inline-input">
         <span>to</span>
@@ -683,7 +690,14 @@
       <!-- When: due date, and (deadlines only) a time -->
       <p class="when-line">
         <span id="todoDueLabel">by</span>
-        <input type="date" id="todoDue" class="inline-input" min="2000-01-01" max="2099-12-31">
+        <span class="date-field inline-input" data-date-for="todoDue">
+          <input type="hidden" id="todoDue">
+          <input class="df-mm" inputmode="numeric" maxlength="2" placeholder="mm" aria-label="Month">
+          <span class="df-sep">/</span>
+          <input class="df-dd" inputmode="numeric" maxlength="2" placeholder="dd" aria-label="Day">
+          <span class="df-sep">/</span>
+          <span class="df-cc">20</span><input class="df-yy" inputmode="numeric" maxlength="2" placeholder="yy" aria-label="Year">
+        </span>
         <input type="time" id="todoTime" class="inline-input">
       </p>
 

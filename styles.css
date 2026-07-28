@@ -497,15 +497,44 @@ h2 { margin-top: 0; }
   cursor: pointer;
   width: auto;               /* size to the value, no trailing dead space */
 }
-/* Just wide enough for MM/DD/YYYY — the picker icon is hidden, so no room is
-   reserved for it. Time fields likewise fit HH:MM AM. */
-input.inline-input[type="date"] { width: 6.9em; }
+/* Time fields fit HH:MM AM. */
 input.inline-input[type="time"] { width: 6.1em; }
-/* Drop the native calendar/clock glyphs — they crowd the line and the whole
-   field is already clickable. */
+/* Drop the native clock glyph. */
 .inline-input::-webkit-calendar-picker-indicator { display: none; }
 .inline-input::-webkit-inner-spin-button { display: none; }
 .inline-input:hover { border-color: var(--border); }
+
+/* ---- Custom date field: MM / DD / 20[YY] ----
+   Replaces the native date input so the year is always "20" + two typed digits.
+   Styled to sit on the fill-in-the-blank line like the old field. */
+.date-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+.date-field .df-mm,
+.date-field .df-dd,
+.date-field .df-yy {
+  width: 1.9ch;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--text);
+  text-align: center;
+  padding: 0;
+  -moz-appearance: textfield;
+}
+.date-field .df-mm::-webkit-inner-spin-button,
+.date-field .df-dd::-webkit-inner-spin-button,
+.date-field .df-yy::-webkit-inner-spin-button { display: none; }
+.date-field .df-mm:focus,
+.date-field .df-dd:focus,
+.date-field .df-yy:focus { outline: none; background: var(--bg); border-radius: 3px; }
+.date-field .df-sep { color: var(--muted); }
+.date-field .df-cc { color: var(--text); }        /* the fixed "20" prefix */
+.date-field .df-mm::placeholder,
+.date-field .df-dd::placeholder,
+.date-field .df-yy::placeholder { color: var(--muted); }
 .inline-input:focus { border-color: var(--sidebar-bg); outline: none; background: var(--surface); }
 
 /* Category colour chips */
@@ -1347,18 +1376,20 @@ body.hide-sidebar .sidebar { display: none; }
    ============================================================ */
 #view-schedule.active { display: block; position: relative; }
 .schedule-main { transition: margin-right 0.15s ease, margin-left 0.15s ease; }
-/* When open, leave room for the 210px panel + a 16px gutter on the right */
-#view-schedule.suggest-open .schedule-main { margin-right: 226px; }
+/* When open, leave room for the 210px panel + a 16px gutter on the right.
+   Either panel (or both, stacked) occupies that right column. */
+#view-schedule.suggest-open .schedule-main,
+#view-schedule.filter-open .schedule-main { margin-right: 226px; }
 
 .suggest-anchor {
   position: absolute;
-  top: 0;
+  top: 58px;                /* below the toolbar row, clearing the buttons */
   right: 0;
   width: 210px;
   z-index: 5;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;   /* button sits at the far right */
+  align-items: stretch;
 }
 .suggest-toggle { white-space: nowrap; } /* sits in the .sa-buttons row */
 .sa-buttons { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; } /* lands on the arrows row */
@@ -1606,64 +1637,52 @@ body.hide-sidebar .sidebar { display: none; }
   /* To-Do filter chips centered too. */
   .todo-filters { flex-wrap: wrap; justify-content: center; }
 
-  /* ---- Suggestions + filter buttons: pinned at the very top so they stay
-     visible even when a drawer is open (the drawer starts below them). ---- */
-  .suggest-anchor {
-    position: static;
-    width: 100%;
-    align-items: stretch;
-    margin-bottom: 12px;
-    order: 4;
-  }
-  .sa-spacer { display: none; }          /* only existed to align with the arrows row */
-  .sa-buttons { justify-content: center; margin-top: 0; }
+  /* ---- Filter (left) and Suggestions (right) flank the week-nav arrows ----
+     They live in the toolbar's cal-left / cal-right zones, so on narrow screens
+     they naturally sit level with the centered arrows. They are NOT pinned or
+     anchored — even with a drawer open they stay in the normal toolbar flow. */
+  .schedule-main .cal-toolbar { flex-wrap: nowrap; align-items: center; gap: 6px; }
+  .schedule-main .cal-left,
+  .schedule-main .cal-right { flex: 0 0 auto; }
+  .schedule-main .cal-center { flex: 1; order: 0; padding: 0; }
+  /* The "Schedule" word is redundant next to the controls on a narrow screen. */
+  .schedule-main .cal-left .schedule-heading { display: none; }
+  .schedule-main .cal-left, .schedule-main .cal-right { width: auto; }
+  #filterBtn, #suggestBtn { white-space: nowrap; padding: 6px 10px; }
+  .suggest-anchor { position: static; width: 100%; margin: 0; }
   .filter-panel { margin-top: 8px; }
 
-  /* When a drawer is open, pin the two toggle buttons as a fixed bar at the
-     very top (above the drawer) so you can still see them and switch/close. */
-  #view-schedule.suggest-open .sa-buttons,
-  #view-schedule.filter-open .sa-buttons {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 61;                 /* above the drawer (60) */
-    margin: 0;
-    padding: 8px 12px;
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-  }
-
-  /* When Suggestions is open on mobile it locks below the pinned button bar as
-     a fixed drawer, so the calendar below stays put and you can drag items down
-     onto it. A Close button sits at the bottom. (~50px = the button bar.) */
-  #view-schedule.suggest-open .schedule-main { margin-right: 0; padding-top: 50vh; }
+  /* Suggestions / Filter drawers on mobile: they open in normal flow directly
+     below the toolbar (buttons stay put, in line with the arrows), splitting
+     the screen with the calendar. Not fixed/anchored. A Close button sits at
+     the bottom of each. */
+  #view-schedule.suggest-open .schedule-main { margin-right: 0; }
   #view-schedule.suggest-open .suggest-panel {
-    position: fixed;
-    left: 0; right: 0; top: 50px;
-    z-index: 60;
+    position: static;
+    width: auto;
     max-height: 42vh;
-    margin: 0;
-    border-radius: 0 0 14px 14px;
+    margin: 0 0 10px;
+    border-radius: 12px;
     box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.45);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
-  /* The list scrolls; the tabs and the bottom Close button stay put. */
   #view-schedule.suggest-open .suggest-body { flex: 1; overflow-y: auto; min-height: 0; }
   .suggest-panel { max-height: 45vh; }
 
-  /* Filter panel behaves exactly like the suggestions drawer on mobile. */
-  #view-schedule.filter-open .schedule-main { padding-top: 50vh; }
+  /* Filter panel drawer behaves the same way. */
+  #view-schedule.filter-open .schedule-main { margin-right: 0; }
   #view-schedule.filter-open .filter-panel {
-    position: fixed;
-    left: 0; right: 0; top: 50px;
-    z-index: 60;
+    position: static;
     width: auto;
     max-height: 42vh;
-    margin: 0;
-    border-radius: 0 0 14px 14px;
+    margin: 0 0 10px;
+    border-radius: 12px;
     box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.45);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
   #view-schedule.filter-open .filter-list { flex: 1; overflow-y: auto; min-height: 0; }
 

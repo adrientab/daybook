@@ -168,42 +168,103 @@ function addDays(d, n) {
   return x;
 }
 
-/* Keep a date input's year inside 2000-2099. The native year segment can't be
-   reprogrammed key-by-key, but this snaps anything out of range back into the
-   20## window (year 5 -> 2005, year 3025 -> 2025) so you can't save a wild
-   year. Call attachYearClamp(input) once per date field. */
-function clampYear(value) {
-  // value is "YYYY-MM-DD" (or "" while incomplete).
-  const m = /^(\d+)-(\d{2})-(\d{2})$/.exec(value || "");
-  if (!m) return value;
-  let y = parseInt(m[1], 10);
-  if (y >= 2000 && y <= 2099) return value;      // already a valid 20xx year
+/* ============================================================
+   Custom inline date field
+   ------------------------------------------------------------
+   The native <input type="date"> year segment can't be limited to two digits,
+   so we replace it with a small control: MM / DD / 20[YY]. The year is always
+   prefixed "20" and accepts exactly two typed digits ("25" -> 2025). Each field
+   keeps its original id on a HIDDEN input holding the ISO value ("YYYY-MM-DD"),
+   so every existing read/write of `.value` keeps working unchanged. After code
+   sets a hidden value, call syncDateField(id) to refresh the visible boxes.
+   ============================================================ */
 
-  // The native field gives a finished 4-digit year, but browsers build it
-  // differently as you type: Chrome pads on the RIGHT ("25" -> 0025), Safari
-  // pads on the LEFT ("25" -> 2500). Pull the two typed digits out of either
-  // shape and rebuild as 20xx.
-  let yy;
-  if (y > 2099) {
-    // Left-padded: the typed digits are the most significant ones. 2500 -> 25.
-    yy = Math.floor(y / 100) % 100;
-    if (yy === 0) yy = y % 100;                  // fallback for odd shapes
-  } else {
-    // y < 2000, right-padded or a bare small number. 0025 -> 25, 5 -> 5.
-    yy = ((y % 100) + 100) % 100;
+/* Turn a .date-field wrapper into a working control. The wrapper contains the
+   hidden ISO input plus the three visible boxes (.df-mm/.df-dd/.df-yy). */
+function setupDateField(wrap) {
+  if (!wrap || wrap.dataset.ready) return;
+  wrap.dataset.ready = "1";
+  const hidden = wrap.querySelector("input[type=hidden]");
+  const mm = wrap.querySelector(".df-mm");
+  const dd = wrap.querySelector(".df-dd");
+  const yy = wrap.querySelector(".df-yy");
+  if (!hidden || !mm || !dd || !yy) return;
+
+  function onlyDigits(s) { return (s || "").replace(/\D/g, ""); }
+
+  // Visible boxes -> hidden ISO value. Fire input/change so any listeners on
+  // the hidden input (live preview, repeat weekday re-lock) still respond.
+  function toHidden() {
+    const M = parseInt(mm.value, 10);
+    const D = parseInt(dd.value, 10);
+    const Y = onlyDigits(yy.value);
+    const prev = hidden.value;
+    if (M >= 1 && M <= 12 && D >= 1 && D <= 31 && Y.length === 2) {
+      hidden.value = "20" + Y + "-" + pad(M) + "-" + pad(D);
+    } else {
+      hidden.value = "";
+    }
+    if (hidden.value !== prev) {
+      hidden.dispatchEvent(new Event("input", { bubbles: true }));
+      hidden.dispatchEvent(new Event("change", { bubbles: true }));
+    }
   }
-  return "20" + pad(yy) + "-" + m[2] + "-" + m[3];
-}
-function attachYearClamp(input) {
-  if (!input) return;
-  // Clamp on BLUR, not on every change: a change fires as each year digit is
-  // typed, so clamping there would reset the field after the first digit (you
-  // could never get past 200x). Waiting for blur lets you type the full year,
-  // then snaps it only if it ended up out of the 2000-2099 range.
-  input.addEventListener("blur", function () {
-    const fixed = clampYear(input.value);
-    if (fixed !== input.value) input.value = fixed;
+
+  // Hidden ISO value -> visible boxes (used when code sets the date).
+  function fromHidden() {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(hidden.value || "");
+    if (m) { mm.value = m[2]; dd.value = m[3]; yy.value = m[1].slice(2); }
+    else { mm.value = ""; dd.value = ""; yy.value = ""; }
+  }
+  wrap._sync = fromHidden;
+
+  // Typing: keep to digits, auto-advance once a box is full.
+  mm.addEventListener("input", function () {
+    mm.value = onlyDigits(mm.value).slice(0, 2);
+    if (mm.value.length === 2) dd.focus();
+    toHidden();
   });
+  dd.addEventListener("input", function () {
+    dd.value = onlyDigits(dd.value).slice(0, 2);
+    if (dd.value.length === 2) yy.focus();
+    toHidden();
+  });
+  yy.addEventListener("input", function () {
+    yy.value = onlyDigits(yy.value).slice(0, 2);
+    toHidden();
+  });
+
+  // Backspace at the start of a box hops to the previous one.
+  dd.addEventListener("keydown", function (e) {
+    if (e.key === "Backspace" && dd.selectionStart === 0 && !dd.value) mm.focus();
+  });
+  yy.addEventListener("keydown", function (e) {
+    if (e.key === "Backspace" && yy.selectionStart === 0 && !yy.value) dd.focus();
+  });
+
+  // On blur, pad single digits and clamp month/day into range.
+  function padBlur() {
+    if (mm.value) { let M = Math.min(12, Math.max(1, parseInt(mm.value, 10) || 1)); mm.value = pad(M); }
+    if (dd.value) { let D = Math.min(31, Math.max(1, parseInt(dd.value, 10) || 1)); dd.value = pad(D); }
+    if (yy.value.length === 1) yy.value = pad(parseInt(yy.value, 10) || 0);
+    toHidden();
+  }
+  [mm, dd, yy].forEach(function (b) { b.addEventListener("blur", padBlur); });
+
+  fromHidden(); // reflect any value already in the hidden input
+}
+
+/* Refresh a field's visible boxes after its hidden value was set in code. */
+function syncDateField(id) {
+  const hidden = document.getElementById(id);
+  if (!hidden) return;
+  const wrap = hidden.closest(".date-field");
+  if (wrap && typeof wrap._sync === "function") wrap._sync();
+}
+
+/* Initialise every date field on the page (call again after adding new ones). */
+function initDateFields(root) {
+  (root || document).querySelectorAll(".date-field").forEach(setupDateField);
 }
 
 /* The week-start preference. "sunday"/"monday" are fixed weekdays; the

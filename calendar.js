@@ -720,6 +720,7 @@ function openModal(data) {
   editingId = data.id || null;
   document.getElementById("evtTitle").value = data.title || "";
   document.getElementById("evtDate").value = data.date || dateKey(new Date());
+  if (typeof syncDateField === "function") syncDateField("evtDate");
   document.getElementById("evtNotes").value = data.notes || "";
   if (typeof autoGrow === "function") autoGrow(document.getElementById("evtNotes"));
   document.getElementById("evtStart").value = data.start || "09:00";
@@ -1101,7 +1102,7 @@ document.querySelectorAll("#dowPicker .dow-chip").forEach(function (chip) {
   });
 });
 document.getElementById("evtRepeat").addEventListener("input", updateRepeatLabel);
-attachYearClamp(document.getElementById("evtDate"));
+if (typeof initDateFields === "function") initDateFields();
 
 /* If the date changes while in "On days" mode, the locked weekday moves with
    it. Drop the old lock, then re-lock the new weekday. */
@@ -1421,8 +1422,10 @@ function openFilterPanel() {
   document.getElementById("filterBtn").classList.add("active");
   const view = document.getElementById("view-schedule");
   if (view) view.classList.add("filter-open");   // drives the mobile drawer layout
-  // Only one of Filter / Suggestions is open at a time.
-  if (typeof closeSuggest === "function") closeSuggest();
+  // On narrow screens there's only room for one drawer, so opening Filter
+  // closes Suggestions. On wide screens both can be open at once.
+  if (typeof isNarrow === "function" && isNarrow() &&
+      typeof closeSuggest === "function") closeSuggest();
 }
 function closeFilterPanel() {
   const p = document.getElementById("filterPanel");
