@@ -1348,9 +1348,8 @@ body.hide-sidebar .sidebar { display: none; }
 #view-schedule.active { display: block; position: relative; }
 .schedule-main { transition: margin-right 0.15s ease, margin-left 0.15s ease; }
 /* When open, leave room for the 210px panel + a 16px gutter on the right.
-   Either panel (or both, stacked) occupies that right column. */
-#view-schedule.suggest-open .schedule-main,
-#view-schedule.filter-open .schedule-main { margin-right: 226px; }
+   Only Suggestions shifts the schedule; Filter is a popup that overlays. */
+#view-schedule.suggest-open .schedule-main { margin-right: 226px; }
 
 .suggest-anchor {
   position: absolute;
@@ -1368,13 +1367,20 @@ body.hide-sidebar .sidebar { display: none; }
 /* Filter and Suggestions share the right-hand column, with the filter stacked
    on top. Same 12px offset and colours as the suggestions panel, so whichever
    is topmost lines up with the calendar and the two read as one column. */
+/* Filter is a compact popup that drops from the top-right, near its button —
+   not a full-height sidebar. (Suggestions stays the right-hand drag panel.) */
 .filter-panel {
-  width: 100%;
-  margin-top: 12px;
+  position: absolute;
+  top: 58px;
+  right: 0;
+  width: 230px;
+  z-index: 8;
+  margin: 0;
   background: #e9eefb;
   border: 1px solid #d4ddf3;
   border-radius: 10px;
   padding: 12px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.35);
 }
 .filter-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -1608,20 +1614,25 @@ body.hide-sidebar .sidebar { display: none; }
   /* To-Do filter chips centered too. */
   .todo-filters { flex-wrap: wrap; justify-content: center; }
 
-  /* ---- Narrow screens: Filter moves to the LEFT, Suggestions stays RIGHT,
-     both flanking the centered week-nav arrows. On wide screens they sit
-     together on the right (default). Not pinned/anchored. ---- */
-  .schedule-main .cal-toolbar { flex-wrap: nowrap; align-items: center; gap: 6px; }
-  .schedule-main .cal-left { display: none; }         /* "Schedule" word hidden here */
-  .schedule-main .cal-center { flex: 1; order: 0; padding: 0; }
-  .schedule-main .cal-right {
-    display: contents;        /* let its two buttons place independently in the row */
+  /* ---- Narrow screens ----
+     Row 1: the "Schedule" title, centered at the top.
+     Row 2: Filter (left) · week-nav arrows (center) · Suggestions (right),
+     all on one line. Buttons are not pinned/anchored. */
+  .schedule-main .cal-toolbar { flex-wrap: wrap; align-items: center; gap: 8px; }
+  .schedule-main .cal-left {
+    display: block;
+    flex: 1 1 100%;
+    order: 0;
+    text-align: center;
   }
-  #filterBtn { order: -1; }   /* jump to the far left, before the arrows */
-  #suggestBtn { order: 1; }   /* stay at the far right */
+  .schedule-main .cal-left .schedule-heading { display: block; width: 100%; text-align: center; }
+  /* The three controls share row 2, filter left / arrows centre / suggestions right. */
+  .schedule-main .cal-center { order: 2; flex: 1; padding: 0; }
+  .schedule-main .cal-right { display: contents; }
+  #filterBtn { order: 1; }     /* far left of row 2 */
+  #suggestBtn { order: 3; }    /* far right of row 2 */
   #filterBtn, #suggestBtn { flex: 0 0 auto; white-space: nowrap; padding: 6px 10px; }
   .suggest-anchor { position: static; width: 100%; margin: 0; }
-  .filter-panel { margin-top: 8px; }
 
   /* Suggestions / Filter drawers on mobile: they open in normal flow directly
      below the toolbar (buttons stay put, in line with the arrows), splitting
