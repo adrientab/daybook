@@ -852,7 +852,7 @@ body.hide-sidebar .sidebar { display: none; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 18px 20px 20px;
+  padding: 12px 20px 20px;
   position: relative;
   overflow: hidden;
 }
@@ -900,7 +900,7 @@ body.hide-sidebar .sidebar { display: none; }
 }
 
 /* Progress bar + count */
-.goal-progress-row { display: flex; align-items: center; gap: 10px; margin: 14px 0 10px; }
+.goal-progress-row { display: flex; align-items: center; gap: 10px; margin: 12px 0 8px; }
 .goal-progress-bar {
   flex: 1;
   height: 6px;
@@ -921,13 +921,10 @@ body.hide-sidebar .sidebar { display: none; }
   color: var(--muted);
   font-size: 0.85rem;
   margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
 .goal-edit { font-size: 0.75rem; padding: 4px 8px; }
-.goal-notes { color: var(--muted); font-size: 0.85rem; margin-top: 6px; line-height: 1.4; overflow-wrap: anywhere; }
 .milestones { margin-top: 4px; display: flex; flex-direction: column; gap: 7px; }
 .milestone { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; min-width: 0; }
 .milestone input[type="checkbox"] { flex: 0 0 auto; }
@@ -1371,9 +1368,9 @@ body.hide-sidebar .sidebar { display: none; }
    not a full-height sidebar. (Suggestions stays the right-hand drag panel.) */
 .filter-panel {
   position: absolute;
-  top: 58px;
+  top: 70px;                /* = suggest-anchor 58px + its 12px, i.e. the calendar's top */
   right: 0;
-  width: 230px;
+  width: 210px;             /* match the Suggestions panel */
   z-index: 8;
   margin: 0;
   background: #e9eefb;
@@ -1636,16 +1633,19 @@ body.hide-sidebar .sidebar { display: none; }
     text-align: center;
     margin: 0;
   }
-  /* Row 3: filter (order 2) · arrows (order 3, centered) · suggestions (order 4). */
-  #filterBtn { order: 2; }
+  /* Row 3: Filter far-left, arrows centered, Suggestions far-right. Giving the
+     two side buttons equal flex-basis makes the space between them symmetric,
+     so the arrows (auto-margined) land at the true screen centre regardless of
+     the buttons' text widths. */
+  #filterBtn { order: 2; flex: 1 1 0; justify-content: flex-start; }
+  #suggestBtn { order: 4; flex: 1 1 0; justify-content: flex-end; }
   .schedule-main .cal-nav {
     order: 3;
+    flex: 0 0 auto;
     justify-content: center;
-    margin: 0 auto;            /* centers the arrows between the two buttons */
   }
-  #suggestBtn { order: 4; }
   .schedule-main .cal-right { display: contents; }
-  #filterBtn, #suggestBtn { flex: 0 0 auto; white-space: nowrap; padding: 6px 10px; }
+  #filterBtn, #suggestBtn { white-space: nowrap; padding: 6px 10px; display: flex; align-items: center; }
   .suggest-anchor { position: static; width: 100%; margin: 0; }
 
   /* Suggestions / Filter drawers on mobile: they open in normal flow directly
