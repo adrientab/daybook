@@ -18,6 +18,9 @@ const suggestBody = document.getElementById("suggestBody");
 const suggestBtn = document.getElementById("suggestBtn");
 let suggestMode = "todo";
 
+/* Narrow screens have room for only one of Filter / Suggestions at a time. */
+function isNarrow() { return window.matchMedia("(max-width: 720px)").matches; }
+
 /* ---- open / close + tab switching ---- */
 function toggleSuggest() {
   suggestPanel.hidden = !suggestPanel.hidden;
@@ -25,8 +28,9 @@ function toggleSuggest() {
   suggestBtn.classList.toggle("active", open);
   const view = document.getElementById("view-schedule");
   if (view) view.classList.toggle("suggest-open", open); // compresses the schedule
-  // Only one of Filter / Suggestions is open at a time.
-  if (open && typeof closeFilterPanel === "function") closeFilterPanel();
+  // On narrow screens there's only room for one drawer, so opening Suggestions
+  // closes Filter. On wide screens both can be open at once.
+  if (open && isNarrow() && typeof closeFilterPanel === "function") closeFilterPanel();
   if (open) renderSuggestPanel();
 }
 
