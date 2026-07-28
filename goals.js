@@ -157,18 +157,10 @@ function renderMilestoneList() {
     row.className = "ms-row";
     row.innerHTML =
       '<input type="text" class="ms-text" data-i="' + i + '" placeholder="Milestone" value="' + escapeHtml(m.text || "") + '">' +
-      '<span class="date-field ms-date" data-i="' + i + '" data-date-for="ms-date-' + i + '">' +
-        '<input type="hidden" id="ms-date-' + i + '" value="' + (m.date || "") + '">' +
-        '<input class="df-mm" inputmode="numeric" maxlength="2" placeholder="mm" aria-label="Month">' +
-        '<span class="df-sep">/</span>' +
-        '<input class="df-dd" inputmode="numeric" maxlength="2" placeholder="dd" aria-label="Day">' +
-        '<span class="df-sep">/</span>' +
-        '<span class="df-cc">20</span><input class="df-yy" inputmode="numeric" maxlength="2" placeholder="yy" aria-label="Year">' +
-      '</span>' +
+      '<input type="date" class="ms-date" data-i="' + i + '" min="2000-01-01" max="2099-12-31" value="' + (m.date || "") + '">' +
       '<button type="button" class="ms-del" data-i="' + i + '" title="Remove" aria-label="Remove milestone">&times;</button>';
     list.appendChild(row);
   });
-  if (typeof initDateFields === "function") initDateFields(list);
   list.querySelectorAll(".ms-del").forEach(function (b) {
     b.addEventListener("click", function () {
       readMilestoneInputs();
@@ -183,9 +175,8 @@ function readMilestoneInputs() {
   list.querySelectorAll(".ms-text").forEach(function (inp) {
     milestoneDraft[Number(inp.dataset.i)].text = inp.value.trim();
   });
-  list.querySelectorAll(".ms-date").forEach(function (wrap) {
-    const hidden = wrap.querySelector("input[type=hidden]");
-    milestoneDraft[Number(wrap.dataset.i)].date = hidden ? hidden.value : "";
+  list.querySelectorAll(".ms-date").forEach(function (inp) {
+    milestoneDraft[Number(inp.dataset.i)].date = inp.value;
   });
 }
 

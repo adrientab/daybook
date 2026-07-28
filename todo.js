@@ -312,7 +312,6 @@ function openTodo(id, presetDate) {
 
   document.getElementById("todoTitle").value = t ? t.title : "";
   document.getElementById("todoDue").value = t ? t.due : (presetDate || dateKey(new Date()));
-  if (typeof syncDateField === "function") syncDateField("todoDue");
   document.getElementById("todoTime").value = t ? (t.dueTime || "") : "";
   document.getElementById("todoNotes").value = t ? (t.notes || "") : "";
   if (typeof autoGrow === "function") autoGrow(document.getElementById("todoNotes"));
@@ -456,7 +455,6 @@ document.getElementById("todoLink").addEventListener("keydown", function (e) {
 });
 
 document.getElementById("saveTodo").addEventListener("click", saveTodo);
-if (typeof initDateFields === "function") initDateFields();
 document.getElementById("deleteTodo").addEventListener("click", deleteTodo);
 document.getElementById("cancelTodo").addEventListener("click", closeTodo);
 document.getElementById("todoNotes").addEventListener("input", function () {

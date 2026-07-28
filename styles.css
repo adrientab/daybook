@@ -219,7 +219,7 @@ h2 { margin-top: 0; }
 }
 #view-todo .cal-left h2 { height: auto; }
 .cal-center .cal-title { font-size: 1.5rem; color: var(--muted); } /* month/year, quieter than the title */
-.cal-right { flex: 1; display: flex; justify-content: flex-end; }
+.cal-right { flex: 1; display: flex; justify-content: flex-end; gap: 6px; }
 /* Guard: while the panel is closed the toggle floats over the toolbar's left
    corner, so reserve space there on narrow windows to keep the centered
    group from sliding underneath it. (Not needed when open — the toggle is
@@ -497,44 +497,15 @@ h2 { margin-top: 0; }
   cursor: pointer;
   width: auto;               /* size to the value, no trailing dead space */
 }
-/* Time fields fit HH:MM AM. */
+/* Just wide enough for MM/DD/YYYY — the picker icon is hidden, so no room is
+   reserved for it. Time fields likewise fit HH:MM AM. */
+input.inline-input[type="date"] { width: 7.4em; }
 input.inline-input[type="time"] { width: 6.1em; }
-/* Drop the native clock glyph. */
+/* Drop the native calendar/clock glyphs — they crowd the line and the whole
+   field is already clickable. */
 .inline-input::-webkit-calendar-picker-indicator { display: none; }
 .inline-input::-webkit-inner-spin-button { display: none; }
 .inline-input:hover { border-color: var(--border); }
-
-/* ---- Custom date field: MM / DD / 20[YY] ----
-   Replaces the native date input so the year is always "20" + two typed digits.
-   Styled to sit on the fill-in-the-blank line like the old field. */
-.date-field {
-  display: inline-flex;
-  align-items: center;
-  gap: 1px;
-}
-.date-field .df-mm,
-.date-field .df-dd,
-.date-field .df-yy {
-  width: 1.9ch;
-  border: none;
-  background: none;
-  font: inherit;
-  color: var(--text);
-  text-align: center;
-  padding: 0;
-  -moz-appearance: textfield;
-}
-.date-field .df-mm::-webkit-inner-spin-button,
-.date-field .df-dd::-webkit-inner-spin-button,
-.date-field .df-yy::-webkit-inner-spin-button { display: none; }
-.date-field .df-mm:focus,
-.date-field .df-dd:focus,
-.date-field .df-yy:focus { outline: none; background: var(--bg); border-radius: 3px; }
-.date-field .df-sep { color: var(--muted); }
-.date-field .df-cc { color: var(--text); }        /* the fixed "20" prefix */
-.date-field .df-mm::placeholder,
-.date-field .df-dd::placeholder,
-.date-field .df-yy::placeholder { color: var(--muted); }
 .inline-input:focus { border-color: var(--sidebar-bg); outline: none; background: var(--surface); }
 
 /* Category colour chips */
@@ -1637,18 +1608,18 @@ body.hide-sidebar .sidebar { display: none; }
   /* To-Do filter chips centered too. */
   .todo-filters { flex-wrap: wrap; justify-content: center; }
 
-  /* ---- Filter (left) and Suggestions (right) flank the week-nav arrows ----
-     They live in the toolbar's cal-left / cal-right zones, so on narrow screens
-     they naturally sit level with the centered arrows. They are NOT pinned or
-     anchored — even with a drawer open they stay in the normal toolbar flow. */
+  /* ---- Narrow screens: Filter moves to the LEFT, Suggestions stays RIGHT,
+     both flanking the centered week-nav arrows. On wide screens they sit
+     together on the right (default). Not pinned/anchored. ---- */
   .schedule-main .cal-toolbar { flex-wrap: nowrap; align-items: center; gap: 6px; }
-  .schedule-main .cal-left,
-  .schedule-main .cal-right { flex: 0 0 auto; }
+  .schedule-main .cal-left { display: none; }         /* "Schedule" word hidden here */
   .schedule-main .cal-center { flex: 1; order: 0; padding: 0; }
-  /* The "Schedule" word is redundant next to the controls on a narrow screen. */
-  .schedule-main .cal-left .schedule-heading { display: none; }
-  .schedule-main .cal-left, .schedule-main .cal-right { width: auto; }
-  #filterBtn, #suggestBtn { white-space: nowrap; padding: 6px 10px; }
+  .schedule-main .cal-right {
+    display: contents;        /* let its two buttons place independently in the row */
+  }
+  #filterBtn { order: -1; }   /* jump to the far left, before the arrows */
+  #suggestBtn { order: 1; }   /* stay at the far right */
+  #filterBtn, #suggestBtn { flex: 0 0 auto; white-space: nowrap; padding: 6px 10px; }
   .suggest-anchor { position: static; width: 100%; margin: 0; }
   .filter-panel { margin-top: 8px; }
 
