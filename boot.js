@@ -100,6 +100,11 @@ Auth.init()
     // Demo mode short-circuits everything: no account, nothing saved.
     if (typeof isDemoMode === "function" && isDemoMode()) {
       Store._backend = DemoBackend;
+      // The demo always starts Sunday-first (the visitor can change this in
+      // Settings during the session — that write persists locally and wins).
+      if (typeof WEEK_START_KEY !== "undefined") {
+        try { localStorage.setItem(WEEK_START_KEY, "sunday"); } catch (_) {}
+      }
       const exit = document.getElementById("exitDemo");
       if (exit) exit.hidden = false;
       return Store.load().then(function () {

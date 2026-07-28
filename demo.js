@@ -16,11 +16,16 @@ function isDemoMode() {
   return /[?&]demo=1\b/.test(location.search) || /(^|#)demo$/.test(location.hash);
 }
 
-/* "Wed" -> the date key for Wednesday of the current week. */
+/* "Wed" -> the date key for that day of the current week.
+   Anchored to a true SUNDAY (independent of the week-start preference) so the
+   demo's Sun..Sat data always lands on the right weekdays. The demo also sets
+   the display to Sunday-first on boot; the visitor can change that in Settings. */
 function demoDate(dayName) {
-  const start = startOfWeek(new Date());          // Sunday, same as the app
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - d.getDay());            // back up to Sunday
   const offset = DAY_INDEX[dayName];
-  return dateKey(addDays(start, offset == null ? 0 : offset));
+  return dateKey(addDays(d, offset == null ? 0 : offset));
 }
 
 /* Build the whole dataset in the app's own storage shape. */
