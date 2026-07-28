@@ -145,18 +145,20 @@
       <!-- ---- SCHEDULE (the calendar) ---- -->
       <section class="view active" id="view-schedule">
 
+        <!-- Filter popup drops from the top-right, near its button. -->
+        <div id="filterPanel" class="filter-panel" hidden>
+          <div class="filter-head">
+            <span>Show categories</span>
+            <button id="filterAll" class="btn btn-mini">All</button>
+          </div>
+          <p class="filter-hint">Tap a name to show only that one.</p>
+          <div id="filterList" class="filter-list"></div>
+          <button id="filterCloseBottom" class="suggest-close-bottom" aria-label="Close filters">&times; Close</button>
+        </div>
+
         <!-- Floating anchor on the RIGHT: the toggle stays pinned; the panel
              drops in beneath it and the schedule only compresses when open. -->
         <div class="suggest-anchor">
-          <div id="filterPanel" class="filter-panel" hidden>
-            <div class="filter-head">
-              <span>Show categories</span>
-              <button id="filterAll" class="btn btn-mini">All</button>
-            </div>
-            <p class="filter-hint">Tap a name to show only that one.</p>
-            <div id="filterList" class="filter-list"></div>
-            <button id="filterCloseBottom" class="suggest-close-bottom" aria-label="Close filters">&times; Close</button>
-          </div>
           <aside id="suggestPanel" class="suggest-panel" hidden>
             <div class="suggest-tabs">
               <button id="suggestTodoTab" class="suggest-tab active">To-do</button>
