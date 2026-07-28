@@ -40,8 +40,19 @@ function renderGoals() {
       html += '<div class="goal-target"><span class="goal-target-label">Target</span> ' + targetText + "</div>";
     }
 
+    // Notes/description come right after the target.
+    if (g.notes) {
+      html += '<div class="goal-notes">' + escapeHtml(g.notes) + "</div>";
+    }
+
     if (milestones.length) {
       const pct = Math.round((done / milestones.length) * 100);
+      // Progress bar heads the milestones section.
+      html +=
+        '<div class="goal-progress-row">' +
+          '<div class="goal-progress-bar"><span style="width:' + pct + '%"></span></div>' +
+          '<span class="goal-progress-count">' + done + "/" + milestones.length + "</span>" +
+        "</div>";
       html += '<div class="milestones">';
       milestones.forEach(function (m) {
         html +=
@@ -52,17 +63,6 @@ function renderGoals() {
           "</label>";
       });
       html += "</div>";
-      // Progress bar sits below the milestone list (where the divider used to be).
-      html +=
-        '<div class="goal-progress-row">' +
-          '<div class="goal-progress-bar"><span style="width:' + pct + '%"></span></div>' +
-          '<span class="goal-progress-count">' + done + "/" + milestones.length + "</span>" +
-        "</div>";
-    }
-
-    // Notes go last so they sit at the bottom of the card.
-    if (g.notes) {
-      html += '<div class="goal-notes">' + escapeHtml(g.notes) + "</div>";
     }
 
     card.innerHTML = html;
