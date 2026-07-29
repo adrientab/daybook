@@ -100,11 +100,13 @@ Auth.init()
     // Demo mode short-circuits everything: no account, nothing saved.
     if (typeof isDemoMode === "function" && isDemoMode()) {
       Store._backend = DemoBackend;
-      // The demo always starts Sunday-first (the visitor can change this in
-      // Settings during the session — that write persists locally and wins).
-      if (typeof WEEK_START_KEY !== "undefined") {
-        try { localStorage.setItem(WEEK_START_KEY, "sunday"); } catch (_) {}
-      }
+      // The demo always starts Sunday-first with the nav sidebar open (the
+      // visitor can change both during the session — those writes persist
+      // locally and win on the next render).
+      try {
+        if (typeof WEEK_START_KEY !== "undefined") localStorage.setItem(WEEK_START_KEY, "sunday");
+        localStorage.setItem("sidebarCollapsed", "0");
+      } catch (_) {}
       const exit = document.getElementById("exitDemo");
       if (exit) exit.hidden = false;
       return Store.load().then(function () {

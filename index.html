@@ -118,47 +118,124 @@
   </section>
 
   <!-- ============ The two halves ============ -->
-  <section class="halves">
-    <div class="half">
-      <span class="half-tag" data-cat="work">Plan</span>
-      <h2>Everything you have to do, in front of you.</h2>
-      <p>
-        Your schedule, your hard deadlines, and the days you plan to work toward
-        them &mdash; in one view. Set goals in the shape you actually think in
-        (twice a week, once every three days) and see, at a glance, whether
-        you&rsquo;re keeping up or slipping.
-      </p>
+  <!-- ============================================================
+       FEATURE TOUR — alternating screenshot + text.
+       Drop real app screenshots into each .shot-img (see the shot list).
+       ============================================================ -->
+  <section class="tour">
+
+    <p class="tour-intro">Here&rsquo;s what&rsquo;s inside &mdash; take the demo for a spin as you scroll.</p>
+
+    <!-- 1 · SCHEDULE (basics) — image left, text right -->
+    <div class="feature">
+      <figure class="shot">
+        <img class="shot-img" src="shots/schedule-drag.png"
+             alt="Dragging on the calendar grid to create an event">
+        <figcaption class="shot-cap">Drag on the grid to block out time.</figcaption>
+      </figure>
+      <div class="feature-copy">
+        <span class="feature-tag" data-cat="class">Schedule</span>
+        <h2>Your week, the way a calendar should feel.</h2>
+        <p>
+          Drag anywhere on the grid to create an event &mdash; no forms, no
+          fuss. Colour-code by the kind of time it is, set it to repeat, and
+          rate how it actually felt afterward. It&rsquo;s the ordinary weekly
+          calendar you already know, just quicker to fill.
+        </p>
+      </div>
     </div>
-    <div class="half">
-      <span class="half-tag" data-cat="social">Understand</span>
-      <h2>See how your days shape your mood.</h2>
-      <p>
-        A quick check-in each morning and night sits right alongside what you
-        actually did. Over time, the pattern surfaces: which activities lift you,
-        which drain you, and what a good week actually looks like for you.
-      </p>
+
+    <!-- 2 · GOALS — image right, text left -->
+    <div class="feature feature--reverse">
+      <figure class="shot">
+        <img class="shot-img" src="shots/goals.png"
+             alt="The goals page with progress bars and milestones">
+        <figcaption class="shot-cap">Goals with milestones and progress.</figcaption>
+      </figure>
+      <div class="feature-copy">
+        <span class="feature-tag" data-cat="exercise">Goals</span>
+        <h2>Keep the big things from slipping your mind.</h2>
+        <p>
+          Set the goals you care about &mdash; read more, run faster, learn
+          an instrument &mdash; and track them in the shape you actually think
+          in: twice a week, once every three days, a few hours. Break each one
+          into milestones and watch the bar fill as you go.
+        </p>
+      </div>
     </div>
+
+    <!-- 3 · TO-DO (deadlines + tasks that lead to them) — image left, text right -->
+    <div class="feature">
+      <figure class="shot">
+        <img class="shot-img" src="shots/todo-board.png"
+             alt="The to-do board showing deadlines with tasks nested beneath them">
+        <figcaption class="shot-cap">Deadlines, with the tasks that lead up to them.</figcaption>
+      </figure>
+      <div class="feature-copy">
+        <span class="feature-tag" data-cat="work">To-Do</span>
+        <h2>Deadlines up top, the work that gets you there beneath.</h2>
+        <p>
+          A hard deadline and the steps to reach it aren&rsquo;t the same thing,
+          so they don&rsquo;t look the same here. Your essay is due Thursday;
+          the outline, draft, and finish tasks that build toward it live right
+          under it. See the whole path, not just the due date.
+        </p>
+      </div>
+    </div>
+
+    <!-- 4 · SUGGESTIONS → SCHEDULE (drag tasks in) — image right, text left -->
+    <div class="feature feature--reverse">
+      <figure class="shot">
+        <img class="shot-img" src="shots/suggestions-drag.png"
+             alt="Dragging a task from the suggestions panel onto the schedule">
+        <figcaption class="shot-cap">Drag a task straight onto your week.</figcaption>
+      </figure>
+      <div class="feature-copy">
+        <span class="feature-tag" data-cat="class">Planning</span>
+        <h2>Turn your to-do list into an actual plan.</h2>
+        <p>
+          Open the suggestions panel and your unscheduled tasks are right there
+          beside the calendar. Brainstorming your week? Just drag a task onto a
+          day and it becomes real time on your schedule. The gap between
+          &ldquo;I should&rdquo; and &ldquo;it&rsquo;s planned&rdquo; disappears.
+        </p>
+      </div>
+    </div>
+
+    <!-- 5 · SMART / PATTERNS — full-width finale -->
+    <div class="feature feature--wide">
+      <div class="feature-copy feature-copy--center">
+        <span class="feature-tag" data-cat="social">Patterns</span>
+        <h2>And quietly, it learns what a good week looks like&nbsp;for&nbsp;you.</h2>
+        <p>
+          A quick check-in each morning and night sits right alongside what you
+          actually did. Over a few weeks, the pattern surfaces &mdash; which
+          activities lift you, which drain you, how much sleep your good days
+          really need. Not generic advice. Your own data, telling you what
+          works.
+        </p>
+      </div>
+      <figure class="shot shot--wide">
+        <img class="shot-img" src="shots/patterns.png"
+             alt="The patterns page correlating activities with mood">
+        <figcaption class="shot-cap">Your days and your mood, side by side.</figcaption>
+      </figure>
+    </div>
+
+    <div class="tour-cta">
+      <a class="btn btn-primary" href="app.html?demo=1">Open the demo</a>
+      <a class="btn" href="app.html">Create an account</a>
+    </div>
+
   </section>
 
   <!-- ============ What's inside ============ -->
   <section class="inside">
-    <h2 class="section-title">What&rsquo;s inside</h2>
+    <h2 class="section-title">Also inside</h2>
     <ul class="tabs">
-      <li>
-        <span class="tab-name" data-cat="class">Schedule</span>
-        <p>Block out the week by dragging on the grid. Colour-code by what kind of time it is, and rate how each activity actually felt.</p>
-      </li>
-      <li>
-        <span class="tab-name" data-cat="work">To-Do</span>
-        <p>Two kinds of task, because they aren&rsquo;t the same thing: hard deadlines, and the days you plan to do the work. Plans can point at the deadline they serve.</p>
-      </li>
       <li>
         <span class="tab-name" data-cat="social">Journal</span>
         <p>A short check-in each morning and night, plus somewhere to write freely when a day needs more than a number.</p>
-      </li>
-      <li>
-        <span class="tab-name" data-cat="exercise">Goals</span>
-        <p>Set a target in the shape you actually think in &mdash; once every three days, twice a week, three hours &mdash; and see how long it&rsquo;s been.</p>
       </li>
       <li>
         <span class="tab-name" data-cat="rest">Sleep &amp; Workouts</span>
