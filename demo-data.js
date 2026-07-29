@@ -33,7 +33,7 @@ const DEMO_LIFE = {
     /* Sunday — a reset / prep day before the week */
     { day: "Sun", start: "11:00", end: "12:00", title: "Piano practice",     category: "rest",     feel: 8 },
     { day: "Sun", start: "14:00", end: "17:00", title: "Reading + week prep", category: "class",    feel: 6 },
-    { day: "Sun", start: "18:00", end: "19:00", title: "Call home",           category: "social",   feel: 9 },
+    { day: "Sun", start: "18:00", end: "19:00", title: "Call mom",           category: "social",   feel: 9 },
 
     /* Monday */
     { day: "Mon", start: "09:30", end: "10:45", title: "Organic Chemistry",   category: "class",    feel: 5 },
@@ -71,28 +71,29 @@ const DEMO_LIFE = {
      including Friday and Saturday — as easy things to drag onto the schedule. */
   todos: [
     /* Deadlines */
-    { kind: "deadline", day: "Thu", time: "23:59", title: "Psych essay: identity & memory", category: "class", est: 6, done: false },
-    { kind: "deadline", day: "Wed", time: "23:59", title: "Ochem problem set 5",            category: "class", est: 3, done: false },
+    { kind: "deadline", day: "Thu", time: "23:00", title: "Psych essay: identity & memory", category: "class", est: 6, done: false },
+    { kind: "deadline", day: "Wed", time: "23:00", title: "Calc problem set",            category: "class", est: 3, done: false },
     { kind: "deadline", day: "Fri", time: "17:00", title: "Apply for summer internship",     category: "work",  est: 2, done: false },
-    { kind: "deadline", day: "Mon", time: "12:00", title: "Register for spring courses",     category: "class", est: 1, done: false },
-    { kind: "deadline", day: "Tue", time: "09:00", title: "Email professor about extension", category: "class", est: 0.5, done: true },
+    { kind: "deadline", day: "Mon", time: "15:30", title: "Register for spring courses",     category: "class", est: 1, done: false },
 
     /* Plan tasks that build toward the essay. The Wed "Draft" and Thu "Finish"
        tasks also appear as blocks on the schedule — i.e. dragged onto the grid. */
-    { kind: "plan", day: "Sun", title: "Pick essay topic + reread the prompt", category: "class", est: 1, partOf: "Psych essay: identity & memory" },
+    { kind: "plan", day: "Sun", title: "Pick psych essay topic",               category: "class", est: 1, partOf: "Psych essay: identity & memory" },
     { kind: "plan", day: "Mon", title: "Outline the essay",                    category: "class", est: 1, partOf: "Psych essay: identity & memory" },
     { kind: "plan", day: "Wed", title: "Draft the essay",                      category: "class", est: 3, partOf: "Psych essay: identity & memory" },
     { kind: "plan", day: "Thu", title: "Finish the essay",                     category: "class", est: 2, partOf: "Psych essay: identity & memory" },
 
+    { kind: "plan", day: "Tue", title: "Work on Calc pset",                     category: "class", est: 2, partOf: "Calc problem set" },
+
     /* Loose tasks scattered around — good candidates to drag onto the grid */
     { kind: "plan", day: "Sun", title: "Clean my room",              category: "rest",   est: 1 },
-    { kind: "plan", day: "Mon", title: "Email professor",            category: "class",  est: 0.5 },
+    { kind: "plan", day: "Mon", title: "Email Professor P",            category: "class",  est: 0.5 },
     { kind: "plan", day: "Tue", title: "Buy a desk lamp at Target",  category: "rest",   est: 1 },
     { kind: "plan", day: "Wed", title: "Call mom",                   category: "social", est: 0.5 },
     { kind: "plan", day: "Fri", title: "Do laundry",                 category: "rest",   est: 1 },
     { kind: "plan", day: "Fri", title: "Meal prep for next week",    category: "rest",   est: 1 },
     { kind: "plan", day: "Sat", title: "Grocery run",               category: "rest",    est: 1 },
-    { kind: "plan", day: "Sat", title: "Coffee with a friend",       category: "social", est: 1 }
+    { kind: "plan", day: "Sat", title: "Coffee with a Jim",       category: "social", est: 1 }
   ],
 
   /* ---- Goals ----
@@ -107,18 +108,18 @@ const DEMO_LIFE = {
       milestones: [
         { text: "Finish Educated \u2014 Tara Westover", done: true },
         { text: "Read Circe \u2014 Madeline Miller", done: false },
-        { text: "Start The Midnight Library", done: false }
+        { text: "Read The Midnight Library", done: false }
       ]
     },
     {
-      title: "Improve running ability",
+      title: "Go running",
       target: { type: "timesPerWeek", value: 3 },
       category: "exercise",
-      notes: "Building toward a spring 10k. Chasing times, not just miles.",
+      notes: "Preparing for the spring 5k..",
       milestones: [
-        { text: "Run a 9:00 min/mile pace", done: true },
-        { text: "Sub-25:00 5k", done: false },
-        { text: "Sub-52:00 10k", done: false }
+        { text: "Sub-25:00 5k", done: true },
+        { text: "Sub-23:00 5k", done: false },
+        { text: "Sub-21:00 5k", done: false }
       ]
     },
     {
