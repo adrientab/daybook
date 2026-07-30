@@ -26,6 +26,10 @@
 
 * { box-sizing: border-box; }
 
+html { scroll-behavior: smooth; }
+/* Anchor targets clear the sticky header (~57px) when jumped to. */
+#top, #tour, #about { scroll-margin-top: 72px; }
+
 body {
   margin: 0;
   background: var(--paper);
@@ -133,6 +137,8 @@ a { color: inherit; }
 }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .hero-note { margin: 16px 0 0; font-size: 0.83rem; color: var(--muted); }
+.hero-note a { color: var(--class); text-decoration: none; font-weight: 500; }
+.hero-note a:hover { text-decoration: underline; }
 
 /* ---- Signature: the week ribbon ---- */
 .ribbon {
@@ -381,9 +387,9 @@ a:focus-visible, .btn:focus-visible {
 /* Each feature: image on one side, copy on the other. */
 .feature {
   display: grid;
-  grid-template-columns: 1.3fr 0.85fr;
+  grid-template-columns: 1.6fr 1fr;
   align-items: center;
-  gap: 44px;
+  gap: 40px;
   margin-bottom: 72px;
 }
 .feature--reverse .shot { order: 2; }        /* image moves to the right */
