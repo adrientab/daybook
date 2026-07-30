@@ -1636,26 +1636,40 @@ body.hide-sidebar .sidebar { display: none; }
   }
   .schedule-main .cal-left .schedule-heading { display: block; width: 100%; text-align: center; }
 
+  /* Mobile toolbar rows:
+     1) Schedule title (centered)
+     2) month/year label (centered)
+     3) the week-nav arrows, centered on the SCREEN, with Filter pinned to the
+        left edge and Suggestions to the right edge of that same row. Pinning
+        the buttons absolutely keeps the arrows dead-centre regardless of the
+        buttons' widths. */
   .schedule-main .cal-center { display: contents; }
   .schedule-main #weekLabel {
-    flex: 1 1 100%;
     order: 1;
+    flex: 1 1 100%;
     text-align: center;
     margin: 0;
   }
-  /* Row 3: Filter far-left, arrows centered, Suggestions far-right. The two
-     buttons hug their text; the centered nav takes the free space (auto side
-     margins) so the arrows sit at the true centre and the buttons sit at the
-     edges — without stretching the buttons to fill the row. */
-  #filterBtn { order: 2; flex: 0 0 auto; }
-  #suggestBtn { order: 4; flex: 0 0 auto; }
   .schedule-main .cal-nav {
-    order: 3;
-    flex: 0 0 auto;
-    justify-content: center;
-    margin: 0 auto;
+    order: 2;
+    position: relative;       /* anchor for the flanking buttons */
+    flex: 1 1 100%;
+    display: flex;
+    justify-content: center;  /* arrows centered on the full-width row */
   }
   .schedule-main .cal-right { display: contents; }
+  .schedule-main #filterBtn {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .schedule-main #suggestBtn {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
   #filterBtn, #suggestBtn { white-space: nowrap; padding: 6px 10px; display: inline-flex; align-items: center; }
   .suggest-anchor { position: static; width: 100%; margin: 0; }
 
@@ -1679,6 +1693,16 @@ body.hide-sidebar .sidebar { display: none; }
   }
   #view-schedule.suggest-open .suggest-body { flex: 1; overflow-y: auto; min-height: 0; }
   .suggest-panel { max-height: 45vh; }
+
+  /* Compact the mobile drawer: less padding up top, and no dead space between
+     the list and the Close button. (The list itself stays full-size.) */
+  #view-schedule.suggest-open .suggest-panel,
+  #view-schedule.filter-open .filter-panel { padding: 8px 12px 8px; }
+  #view-schedule.suggest-open .suggest-tabs { margin-bottom: 8px; }
+  #view-schedule.suggest-open .suggest-foot { margin-top: 4px; }
+  #view-schedule.suggest-open .suggest-close-bottom,
+  #view-schedule.filter-open .suggest-close-bottom { margin-top: 6px; }
+  #view-schedule.filter-open .filter-hint { margin-bottom: 6px; }
 
   /* Filter panel drawer behaves the same way. */
   #view-schedule.filter-open .schedule-main { margin-right: 0; padding-top: 46vh; }
