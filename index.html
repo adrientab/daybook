@@ -13,11 +13,11 @@
 <body>
 
 <header class="nav" id="top">
-  <a class="wordmark" href="#top">Daybook</a>
+  <a class="wordmark" href="#" data-scroll="top">Daybook</a>
   <nav class="nav-links">
-    <a href="#top">Home</a>
-    <a href="app.html?demo=1">Demo</a>
-    <a href="#about">About</a>
+    <a href="#" data-scroll="top">Home</a>
+    <a href="#" data-scroll="tour">Tour</a>
+    <a href="#" data-scroll="about">About</a>
     <a class="nav-cta" href="app.html">Get started</a>
   </nav>
 </header>
@@ -39,10 +39,13 @@
         against your journal, to show you how what you do shapes how you feel.
       </p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="app.html?demo=1">Open the demo</a>
-        <a class="btn" href="app.html">Create an account</a>
+        <a class="btn btn-primary" href="app.html">Create an account</a>
       </div>
-      <p class="hero-note">The demo is the real app with an example week in it. Nothing to sign up for.</p>
+      <p class="hero-note">
+        Or <a href="app.html?demo=1">try the demo</a> &mdash; the real app with an
+        example week already in it, nothing to sign up for &mdash; or just scroll
+        for a quick tour.
+      </p>
     </div>
 
     <!-- The signature: a week drawn the way the app draws it, with each
@@ -122,11 +125,47 @@
        FEATURE TOUR — alternating screenshot + text.
        Drop real app screenshots into each .shot-img (see the shot list).
        ============================================================ -->
-  <section class="tour">
+  <section class="tour" id="tour">
 
     <p class="tour-intro">Here&rsquo;s what&rsquo;s inside &mdash; take the demo for a spin as you scroll.</p>
 
-    <!-- 1 · SCHEDULE (create + drag from suggestions) — image left, text right -->
+    <!-- 1 · GOALS — image left, text right -->
+    <div class="feature">
+      <figure class="shot">
+        <img class="shot-img" src="shots/goals.png"
+             alt="The goals page with progress bars and milestones">
+      </figure>
+      <div class="feature-copy">
+        <span class="feature-tag" data-cat="exercise">Goals</span>
+        <h2>Keep the big things from slipping your mind.</h2>
+        <p>
+          Set the goals you care about &mdash; read more, run faster, learn an
+          instrument &mdash; and track them in the shape you actually think in:
+          twice a week, once every three days, a few hours. Break each one into
+          milestones and watch the bar fill as you go.
+        </p>
+      </div>
+    </div>
+
+    <!-- 2 · TO-DO — image right, text left -->
+    <div class="feature feature--reverse">
+      <figure class="shot">
+        <img class="shot-img" src="shots/todo-board.png"
+             alt="The to-do board showing deadlines with the tasks that lead up to them">
+      </figure>
+      <div class="feature-copy">
+        <span class="feature-tag" data-cat="work">To-Do</span>
+        <h2>Deadlines up top, the work that gets you there beneath.</h2>
+        <p>
+          A hard deadline and the steps to reach it aren&rsquo;t the same thing,
+          so they don&rsquo;t look the same here. Your essay is due Thursday; the
+          outline, draft, and finish tasks that build toward it link right back
+          to it. See the whole path, not just the due date.
+        </p>
+      </div>
+    </div>
+
+    <!-- 3 · SCHEDULE (create + drag from suggestions) — image left, text right -->
     <div class="feature">
       <figure class="shot">
         <img class="shot-img" src="shots/suggestions-drag.png"
@@ -147,42 +186,6 @@
           drag one onto a day and it becomes real time on your schedule. The gap
           between &ldquo;I should&rdquo; and &ldquo;it&rsquo;s planned&rdquo;
           disappears.
-        </p>
-      </div>
-    </div>
-
-    <!-- 2 · GOALS — image right, text left -->
-    <div class="feature feature--reverse">
-      <figure class="shot">
-        <img class="shot-img" src="shots/goals.png"
-             alt="The goals page with progress bars and milestones">
-      </figure>
-      <div class="feature-copy">
-        <span class="feature-tag" data-cat="exercise">Goals</span>
-        <h2>Keep the big things from slipping your mind.</h2>
-        <p>
-          Set the goals you care about &mdash; read more, run faster, learn an
-          instrument &mdash; and track them in the shape you actually think in:
-          twice a week, once every three days, a few hours. Break each one into
-          milestones and watch the bar fill as you go.
-        </p>
-      </div>
-    </div>
-
-    <!-- 3 · TO-DO — image left, text right -->
-    <div class="feature">
-      <figure class="shot">
-        <img class="shot-img" src="shots/todo-board.png"
-             alt="The to-do board showing deadlines with the tasks that lead up to them">
-      </figure>
-      <div class="feature-copy">
-        <span class="feature-tag" data-cat="work">To-Do</span>
-        <h2>Deadlines up top, the work that gets you there beneath.</h2>
-        <p>
-          A hard deadline and the steps to reach it aren&rsquo;t the same thing,
-          so they don&rsquo;t look the same here. Your essay is due Thursday; the
-          outline, draft, and finish tasks that build toward it link right back
-          to it. See the whole path, not just the due date.
         </p>
       </div>
     </div>
@@ -229,15 +232,14 @@
   <section class="about" id="about">
     <h2 class="section-title">About</h2>
     <p class="about-body">
-      Daybook started from a small, personal frustration: the instinct to reach
-      for my phone in every spare moment, when what I actually wanted was a
-      nudge toward the things I&rsquo;d told myself mattered. So I built the
-      thing I wished existed &mdash; a single place to keep yourself organized
-      and your mind focused on what&rsquo;s important to you.
+      Daybook is made by Adrien Tabor, a student at Tufts. I built it to replace
+      the reflex of reaching for my phone in every spare moment with a nudge
+      toward the things I&rsquo;d told myself mattered &mdash; a single place to
+      stay organized and keep my mind on what&rsquo;s important.
     </p>
     <p class="about-body">
-      Made by Adrien Tabor &mdash;
-      <a href="mailto:adrien.tabor@tufts.edu">adrien.tabor@tufts.edu</a>.
+      Questions or feedback? &mdash;
+      <a href="mailto:adrien.tabor@tufts.edu">adrien.tabor@tufts.edu</a>
     </p>
   </section>
 
@@ -258,5 +260,22 @@
   <a href="app.html">Sign in</a>
 </footer>
 
+  <script>
+    // Nav scrolls to sections without putting a #hash in the URL, so the
+    // address bar always stays clean (just the domain).
+    document.querySelectorAll("[data-scroll]").forEach(function (link) {
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = link.getAttribute("data-scroll");
+        var target = (id === "top")
+          ? document.body
+          : document.getElementById(id);
+        if (target) {
+          var y = (id === "top") ? 0 : target.getBoundingClientRect().top + window.scrollY - 64;
+          window.scrollTo({ top: y, behavior: "smooth" });
+        }
+      });
+    });
+  </script>
 </body>
 </html>
