@@ -1643,32 +1643,35 @@ body.hide-sidebar .sidebar { display: none; }
     text-align: center;
     margin: 0;
   }
-  /* Row 3: Filter far-left, arrows centered, Suggestions far-right. Giving the
-     two side buttons equal flex-basis makes the space between them symmetric,
-     so the arrows (auto-margined) land at the true screen centre regardless of
-     the buttons' text widths. */
-  #filterBtn { order: 2; flex: 1 1 0; justify-content: flex-start; }
-  #suggestBtn { order: 4; flex: 1 1 0; justify-content: flex-end; }
+  /* Row 3: Filter far-left, arrows centered, Suggestions far-right. The two
+     buttons hug their text; the centered nav takes the free space (auto side
+     margins) so the arrows sit at the true centre and the buttons sit at the
+     edges — without stretching the buttons to fill the row. */
+  #filterBtn { order: 2; flex: 0 0 auto; }
+  #suggestBtn { order: 4; flex: 0 0 auto; }
   .schedule-main .cal-nav {
     order: 3;
     flex: 0 0 auto;
     justify-content: center;
+    margin: 0 auto;
   }
   .schedule-main .cal-right { display: contents; }
-  #filterBtn, #suggestBtn { white-space: nowrap; padding: 6px 10px; display: flex; align-items: center; }
+  #filterBtn, #suggestBtn { white-space: nowrap; padding: 6px 10px; display: inline-flex; align-items: center; }
   .suggest-anchor { position: static; width: 100%; margin: 0; }
 
-  /* Suggestions / Filter drawers on mobile: they open in normal flow directly
-     below the toolbar (buttons stay put, in line with the arrows), splitting
-     the screen with the calendar. Not fixed/anchored. A Close button sits at
-     the bottom of each. */
-  #view-schedule.suggest-open .schedule-main { margin-right: 0; }
+  /* Suggestions / Filter drawers on mobile: fixed to the TOP as a split-screen
+     panel. They stay put while the schedule scrolls beneath, and the schedule
+     is pushed down so the fixed drawer never covers the grid. A Close button
+     sits at the bottom of each. */
+  #view-schedule.suggest-open .schedule-main { margin-right: 0; padding-top: 46vh; }
   #view-schedule.suggest-open .suggest-panel {
-    position: static;
+    position: fixed;
+    left: 0; right: 0; top: 0;
+    z-index: 60;
     width: auto;
-    max-height: 42vh;
-    margin: 0 0 10px;
-    border-radius: 12px;
+    max-height: 44vh;
+    margin: 0;
+    border-radius: 0 0 14px 14px;
     box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.45);
     display: flex;
     flex-direction: column;
@@ -1678,13 +1681,15 @@ body.hide-sidebar .sidebar { display: none; }
   .suggest-panel { max-height: 45vh; }
 
   /* Filter panel drawer behaves the same way. */
-  #view-schedule.filter-open .schedule-main { margin-right: 0; }
+  #view-schedule.filter-open .schedule-main { margin-right: 0; padding-top: 46vh; }
   #view-schedule.filter-open .filter-panel {
-    position: static;
+    position: fixed;
+    left: 0; right: 0; top: 0;
+    z-index: 60;
     width: auto;
-    max-height: 42vh;
-    margin: 0 0 10px;
-    border-radius: 12px;
+    max-height: 44vh;
+    margin: 0;
+    border-radius: 0 0 14px 14px;
     box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.45);
     display: flex;
     flex-direction: column;
