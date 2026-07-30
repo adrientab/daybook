@@ -381,9 +381,9 @@ a:focus-visible, .btn:focus-visible {
 /* Each feature: image on one side, copy on the other. */
 .feature {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 1.3fr 0.85fr;
   align-items: center;
-  gap: 48px;
+  gap: 44px;
   margin-bottom: 72px;
 }
 .feature--reverse .shot { order: 2; }        /* image moves to the right */
