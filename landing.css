@@ -108,6 +108,12 @@ a { color: inherit; }
   border-color: var(--deep);
   color: #fff;
 }
+/* Larger call-to-action button (used for the tour's Try the demo). */
+.btn-lg {
+  padding: 15px 34px;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
 .btn-primary:hover { background: var(--slate); border-color: var(--slate); }
 
 /* ---- Hero ---- */
