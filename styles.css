@@ -1367,7 +1367,12 @@ body.hide-sidebar .sidebar { display: none; }
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  transition: top 0.15s ease;
 }
+/* When the Filter popup is also open, drop the Suggestions panel below it so
+   both are fully visible instead of overlapping. (The filter popup is a fixed
+   height near the top-right; this clears it.) */
+#view-schedule.filter-open .suggest-anchor { top: 320px; }
 .suggest-toggle { white-space: nowrap; } /* sits in the .sa-buttons row */
 .sa-buttons { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; } /* lands on the arrows row */
 
@@ -1388,7 +1393,14 @@ body.hide-sidebar .sidebar { display: none; }
   border-radius: 10px;
   padding: 12px;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.35);
+  /* Never taller than half the screen; if there are many categories the list
+     scrolls inside while the header and hint stay put. */
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
 }
+.filter-panel .filter-list { overflow-y: auto; min-height: 0; }
+.filter-panel .filter-head, .filter-panel .filter-hint { flex: 0 0 auto; }
 .filter-head {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 8px; font-size: 0.8rem; color: var(--muted);
@@ -1671,9 +1683,9 @@ body.hide-sidebar .sidebar { display: none; }
   /* Compact the mobile drawer: less padding up top, and no dead space between
      the list and the Close button. (The list itself stays full-size.) */
   #view-schedule.suggest-open .suggest-panel,
-  #view-schedule.filter-open .filter-panel { padding: 8px 12px 8px; }
+  #view-schedule.filter-open .filter-panel { padding: 14px 12px 8px; }
   #view-schedule.suggest-open .suggest-tabs { margin-bottom: 8px; }
-  #view-schedule.suggest-open .suggest-foot { margin-top: 4px; }
+  #view-schedule.suggest-open .suggest-foot { display: none; }
   #view-schedule.suggest-open .suggest-close-bottom,
   #view-schedule.filter-open .suggest-close-bottom { margin-top: 6px; }
   #view-schedule.filter-open .filter-hint { margin-bottom: 6px; }
