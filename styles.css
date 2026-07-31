@@ -1621,55 +1621,29 @@ body.hide-sidebar .sidebar { display: none; }
   /* To-Do filter chips centered too. */
   .todo-filters { flex-wrap: wrap; justify-content: center; }
 
-  /* ---- Narrow screens ----
-     Row 1: "Schedule" title (centered).
-     Row 2: the month/year label (centered).
-     Row 3: Filter (left) · week-nav arrows (center) · Suggestions (right),
-     all level. cal-center uses display:contents so its label and arrows join
-     the toolbar's flex flow directly, letting each land on its own row. */
-  .schedule-main .cal-toolbar { flex-wrap: wrap; align-items: center; gap: 8px; }
-
-  .schedule-main .cal-left {
-    flex: 1 1 100%;
-    order: 0;
-    text-align: center;
+  /* ---- Narrow screens: toolbar layout ----
+     A grid so the three controls line up predictably:
+       Row 1: "Schedule" title  (spans full width, centered)
+       Row 2: month/year label  (spans full width, centered)
+       Row 3: Filter | arrows | Suggestions
+     The side columns are equal (1fr) so the arrows land dead-centre on the
+     SCREEN regardless of the buttons' widths; justify-self keeps each button
+     only as wide as its label, hugging the outer edge. */
+  .schedule-main .cal-toolbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    row-gap: 8px;
+    column-gap: 8px;
   }
+  .schedule-main .cal-left { grid-column: 1 / -1; grid-row: 1; text-align: center; }
   .schedule-main .cal-left .schedule-heading { display: block; width: 100%; text-align: center; }
-
-  /* Mobile toolbar rows:
-     1) Schedule title (centered)
-     2) month/year label (centered)
-     3) the week-nav arrows, centered on the SCREEN, with Filter pinned to the
-        left edge and Suggestions to the right edge of that same row. Pinning
-        the buttons absolutely keeps the arrows dead-centre regardless of the
-        buttons' widths. */
   .schedule-main .cal-center { display: contents; }
-  .schedule-main #weekLabel {
-    order: 1;
-    flex: 1 1 100%;
-    text-align: center;
-    margin: 0;
-  }
-  .schedule-main .cal-nav {
-    order: 2;
-    position: relative;       /* anchor for the flanking buttons */
-    flex: 1 1 100%;
-    display: flex;
-    justify-content: center;  /* arrows centered on the full-width row */
-  }
+  .schedule-main #weekLabel { grid-column: 1 / -1; grid-row: 2; text-align: center; margin: 0; }
   .schedule-main .cal-right { display: contents; }
-  .schedule-main #filterBtn {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-  .schedule-main #suggestBtn {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-  }
+  .schedule-main #filterBtn  { grid-column: 1; grid-row: 3; justify-self: start; }
+  .schedule-main .cal-nav    { grid-column: 2; grid-row: 3; justify-content: center; }
+  .schedule-main #suggestBtn { grid-column: 3; grid-row: 3; justify-self: end; }
   #filterBtn, #suggestBtn { white-space: nowrap; padding: 6px 10px; display: inline-flex; align-items: center; }
   .suggest-anchor { position: static; width: 100%; margin: 0; }
 
