@@ -1360,7 +1360,7 @@ body.hide-sidebar .sidebar { display: none; }
 
 .suggest-anchor {
   position: absolute;
-  top: 70px;                /* = the calendar's top, same as the filter popup */
+  top: 76px;                /* = the calendar grid top, same as the filter popup */
   right: 0;
   width: 210px;
   z-index: 5;
@@ -1378,6 +1378,12 @@ body.hide-sidebar .sidebar { display: none; }
    subtract that extra from the normal max-height. */
 #view-schedule.filter-open .suggest-anchor { top: 300px; }
 #view-schedule.filter-open .suggest-panel { max-height: calc(100vh - 360px); }
+/* And when BOTH are open, cap the Filter popup so a long category list scrolls
+   inside rather than growing down over the Suggestions panel below it. Filter
+   starts at 76px, Suggestions at 300px, so keep the filter under ~210px tall
+   (leaving a small gap); the list scrolls past that. Filter on its own can
+   still use the full 50vh. */
+#view-schedule.filter-open.suggest-open .filter-panel { max-height: 210px; }
 .suggest-toggle { white-space: nowrap; } /* sits in the .sa-buttons row */
 .sa-buttons { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; } /* lands on the arrows row */
 
@@ -1388,7 +1394,7 @@ body.hide-sidebar .sidebar { display: none; }
    not a full-height sidebar. (Suggestions stays the right-hand drag panel.) */
 .filter-panel {
   position: absolute;
-  top: 70px;                /* = suggest-anchor 58px + its 12px, i.e. the calendar's top */
+  top: 76px;                /* = the calendar grid top */
   right: 0;
   width: 210px;             /* match the Suggestions panel */
   z-index: 8;
