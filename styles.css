@@ -1360,7 +1360,7 @@ body.hide-sidebar .sidebar { display: none; }
 
 .suggest-anchor {
   position: absolute;
-  top: 58px;                /* below the toolbar row, clearing the buttons */
+  top: 70px;                /* = the calendar's top, same as the filter popup */
   right: 0;
   width: 210px;
   z-index: 5;
@@ -1372,7 +1372,7 @@ body.hide-sidebar .sidebar { display: none; }
 /* When the Filter popup is also open, drop the Suggestions panel below it so
    both are fully visible instead of overlapping. (The filter popup is a fixed
    height near the top-right; this clears it.) */
-#view-schedule.filter-open .suggest-anchor { top: 320px; }
+#view-schedule.filter-open .suggest-anchor { top: 292px; }
 .suggest-toggle { white-space: nowrap; } /* sits in the .sa-buttons row */
 .sa-buttons { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; } /* lands on the arrows row */
 
@@ -1437,7 +1437,7 @@ body.hide-sidebar .sidebar { display: none; }
 
 .suggest-panel {
   width: 100%;
-  margin-top: 12px;                    /* = the toolbar's bottom margin, so the panel top lines up with the calendar top */
+  margin-top: 0;                       /* anchor is already at the calendar top */
   display: flex;
   flex-direction: column;
   background: #e9eefb;                 /* light blue */
@@ -1669,7 +1669,7 @@ body.hide-sidebar .sidebar { display: none; }
     left: 0; right: 0; top: 0;
     z-index: 60;
     width: auto;
-    max-height: 44vh;
+    height: 46vh;
     margin: 0;
     border-radius: 0 0 14px 14px;
     box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.45);
@@ -1697,7 +1697,7 @@ body.hide-sidebar .sidebar { display: none; }
     left: 0; right: 0; top: 0;
     z-index: 60;
     width: auto;
-    max-height: 44vh;
+    height: 46vh;
     margin: 0;
     border-radius: 0 0 14px 14px;
     box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.45);
