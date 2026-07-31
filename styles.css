@@ -1372,7 +1372,12 @@ body.hide-sidebar .sidebar { display: none; }
 /* When the Filter popup is also open, drop the Suggestions panel below it so
    both are fully visible instead of overlapping. (The filter popup is a fixed
    height near the top-right; this clears it.) */
-#view-schedule.filter-open .suggest-anchor { top: 292px; }
+/* When Filter is also open, drop Suggestions below it (with a small gap) and
+   shrink its max-height so its bottom still lines up with the calendar bottom
+   instead of running past it. 300px start vs the usual 70px = 230px lower, so
+   subtract that extra from the normal max-height. */
+#view-schedule.filter-open .suggest-anchor { top: 300px; }
+#view-schedule.filter-open .suggest-panel { max-height: calc(100vh - 360px); }
 .suggest-toggle { white-space: nowrap; } /* sits in the .sa-buttons row */
 .sa-buttons { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; } /* lands on the arrows row */
 
