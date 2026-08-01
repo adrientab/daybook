@@ -1290,15 +1290,29 @@ body.hide-sidebar .sidebar { display: none; }
   gap: 8px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
+  border-left: 5px solid var(--accent);
   border-radius: 6px;
   padding: 6px 8px;
   cursor: pointer;
   font-size: 0.85rem;
 }
 
-/* A "do on" item is a soft plan, so its edge is dashed; a deadline stays solid. */
-.todo-card--do { border-left-style: dashed; }
+/* A "do on" item is a soft plan, so its edge is a dashed stripe; a deadline
+   keeps the solid bar. A real dashed border gives tiny, cramped dashes we can't
+   space out, so paint the left stripe with a gradient instead: 7px of colour,
+   5px gap, repeating — clearly separated dashes sized to match the 5px bar. */
+.todo-card--do {
+  border-left-width: 0;              /* drop the solid bar; the stripe replaces it */
+  padding-left: 13px;                /* 8px original + 5px for the stripe */
+  background-image: linear-gradient(
+    to bottom,
+    var(--accent) 0, var(--accent) 7px,
+    transparent 7px, transparent 12px
+  );
+  background-size: 5px 12px;         /* 5px-wide stripe down the left edge */
+  background-repeat: repeat-y;
+  background-position: left top;
+}
 
 /* What a "do on" item is working toward — the deadline's name, then its date
    on its own line. The arrow hangs in the indent so both lines start at the
