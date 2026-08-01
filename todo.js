@@ -78,6 +78,9 @@ function renderTodos() {
 function buildTodoCard(t) {
   const card = document.createElement("div");
   card.className = "todo-card todo-card--" + todoKind(t) + (t.done ? " done" : "");
+  // Expose the category colour as a variable so the deadline's solid bar and the
+  // task's dashed stripe both pick it up.
+  card.style.setProperty("--cat-color", categoryColor(todoCategoryOf(t)));
   card.style.borderLeftColor = categoryColor(todoCategoryOf(t));
 
   const cb = document.createElement("input");

@@ -1297,19 +1297,19 @@ body.hide-sidebar .sidebar { display: none; }
   font-size: 0.85rem;
 }
 
-/* A "do on" item is a soft plan, so its edge is a dashed stripe; a deadline
-   keeps the solid bar. A real dashed border gives tiny, cramped dashes we can't
-   space out, so paint the left stripe with a gradient instead: 7px of colour,
-   5px gap, repeating — clearly separated dashes sized to match the 5px bar. */
+/* A "do on" item is a soft plan, so its edge is a dashed stripe in the category
+   colour; a deadline keeps the solid bar. A real dashed border gives tiny,
+   cramped dashes we can't space out, so paint the left stripe with a gradient
+   instead — thinner and clearly separated: 5px dash, 6px gap. */
 .todo-card--do {
   border-left-width: 0;              /* drop the solid bar; the stripe replaces it */
-  padding-left: 13px;                /* 8px original + 5px for the stripe */
+  padding-left: 11px;                /* room for the thinner stripe */
   background-image: linear-gradient(
     to bottom,
-    var(--accent) 0, var(--accent) 7px,
-    transparent 7px, transparent 12px
+    var(--cat-color, var(--accent)) 0, var(--cat-color, var(--accent)) 5px,
+    transparent 5px, transparent 11px
   );
-  background-size: 5px 12px;         /* 5px-wide stripe down the left edge */
+  background-size: 3px 11px;         /* 3px-wide (thinner) stripe down the left edge */
   background-repeat: repeat-y;
   background-position: left top;
 }
