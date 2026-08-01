@@ -753,9 +753,6 @@ body.hide-sidebar .sidebar { display: none; }
   padding: 6px 2px;
   border-radius: 6px;
   cursor: pointer;
-  white-space: nowrap;      /* keep "✓ Morning" on one line as columns narrow */
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .journal-day-btn:hover { background: #f0f1f3; color: var(--text); }
 .journal-day-btn.has-entry {
@@ -1581,10 +1578,6 @@ body.hide-sidebar .sidebar { display: none; }
    ============================================================ */
 @media (max-width: 720px) {
 
-  /* The morning/evening check-in chip: keep it compact so "✓ Morning" fits on
-     one line in the narrower day columns. */
-  .journal-day-btn { font-size: 0.68rem; padding: 5px 1px; }
-
   /* ---- Layout shell ---- */
   .app { flex-direction: column; }
   .main { padding: 12px 12px 78px; }   /* bottom padding clears the tab bar */
@@ -1728,11 +1721,14 @@ body.hide-sidebar .sidebar { display: none; }
   /* ---- Calendar ----
      On mobile the schedule shows a 4-day window (set in JS) that fits the
      viewport, so no sideways scrolling is needed — the page just scrolls down. */
-  .calendar { overflow-x: hidden; }
+  .calendar { overflow-x: auto; }      /* scroll sideways if columns hit their min width */
   .cal-scroll { max-height: none; overflow: visible; }
   .cal-header, .cal-topbar, .cal-grid, .cal-footer {
     min-width: 0;
-    grid-template-columns: 40px repeat(var(--day-count, 4), 1fr);
+    /* Day columns won't shrink below 84px, so "✓ Morning" always fits on one
+       line; if the screen is too narrow for 4 at that width, the calendar
+       scrolls sideways instead of squeezing the columns. */
+    grid-template-columns: 40px repeat(var(--day-count, 4), minmax(84px, 1fr));
   }
   .cal-hour-label { font-size: 0.62rem; }
   /* Corner resize grips are mouse-only (see calendar.js), so hide them on touch. */
