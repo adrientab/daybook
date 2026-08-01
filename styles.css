@@ -753,6 +753,9 @@ body.hide-sidebar .sidebar { display: none; }
   padding: 6px 2px;
   border-radius: 6px;
   cursor: pointer;
+  white-space: nowrap;      /* keep "✓ Morning" on one line as columns narrow */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .journal-day-btn:hover { background: #f0f1f3; color: var(--text); }
 .journal-day-btn.has-entry {
@@ -1577,6 +1580,10 @@ body.hide-sidebar .sidebar { display: none; }
      - modals -> near full width
    ============================================================ */
 @media (max-width: 720px) {
+
+  /* The morning/evening check-in chip: keep it compact so "✓ Morning" fits on
+     one line in the narrower day columns. */
+  .journal-day-btn { font-size: 0.68rem; padding: 5px 1px; }
 
   /* ---- Layout shell ---- */
   .app { flex-direction: column; }
