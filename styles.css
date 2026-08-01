@@ -97,6 +97,14 @@ body {
   color: var(--sidebar-text);
   padding: 16px 12px;
   transition: width 0.18s ease;
+  /* Stick to the top and stay viewport-tall so the sidebar (and the
+     bottom-pinned Exit demo button) don't grow with a long page like Settings
+     or Journal — the button then stays in one consistent spot. */
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  overflow-y: auto;
 }
 .sidebar.collapsed { width: 64px; }
 
