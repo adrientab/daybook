@@ -255,7 +255,7 @@ h2 { margin-top: 0; }
 /* Header row of weekday names. 8 columns: time gutter + 7 days. */
 .cal-header {
   display: grid;
-  grid-template-columns: 60px repeat(var(--day-count, 7), minmax(116px, 1fr));
+  grid-template-columns: 60px repeat(var(--day-count, 7), minmax(100px, 1fr));
   border-bottom: 1px solid var(--border);
 }
 .cal-corner { border-right: 1px solid var(--border); }
@@ -282,7 +282,7 @@ h2 { margin-top: 0; }
 .cal-scroll { max-height: 68vh; overflow-y: auto; scrollbar-gutter: stable; }
 .cal-grid {
   display: grid;
-  grid-template-columns: 60px repeat(var(--day-count, 7), minmax(116px, 1fr));
+  grid-template-columns: 60px repeat(var(--day-count, 7), minmax(100px, 1fr));
 }
 
 /* Time gutter (left column of hour labels) */
@@ -737,7 +737,7 @@ body.hide-sidebar .sidebar { display: none; }
    ============================================================ */
 .cal-topbar, .cal-footer {
   display: grid;
-  grid-template-columns: 60px repeat(var(--day-count, 7), minmax(116px, 1fr));
+  grid-template-columns: 60px repeat(var(--day-count, 7), minmax(100px, 1fr));
   background: var(--surface);
 }
 .cal-topbar { border-bottom: 1px solid var(--border); }
