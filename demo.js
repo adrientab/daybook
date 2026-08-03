@@ -133,6 +133,19 @@ function buildDemoData() {
     });
   });
 
+  // Study decks: turn the compact [term, def] pairs into full card objects.
+  out["study-decks"] = JSON.stringify((L.studyDecks || []).map(function (deck, di) {
+    return {
+      id: "demo-deck-" + di,
+      name: deck.name,
+      description: deck.description || "",
+      category: deck.category || "",
+      cards: (deck.cards || []).map(function (pair, ci) {
+        return { id: "demo-card-" + di + "-" + ci, term: pair[0], def: pair[1] };
+      })
+    };
+  }));
+
   return out;
 }
 
