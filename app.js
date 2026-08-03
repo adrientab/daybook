@@ -203,11 +203,11 @@ function startOfWeek(d) {
    Stored as a list of { id, name, color }. Events save the id, so names
    and colours can be edited freely without breaking existing events. */
 const DEFAULT_CATEGORIES = [
-  { id: "class",    name: "Class",    color: "#3b82f6" },
-  { id: "work",     name: "Work",     color: "#8b5cf6" },
-  { id: "exercise", name: "Exercise", color: "#22c55e" },
-  { id: "social",   name: "Social",   color: "#f59e0b" },
-  { id: "rest",     name: "Rest",     color: "#6b7280" }
+  { id: "class",    name: "Class",    color: "#3b82f6", subs: [] },
+  { id: "work",     name: "Work",     color: "#8b5cf6", subs: [] },
+  { id: "exercise", name: "Exercise", color: "#22c55e", subs: [] },
+  { id: "social",   name: "Social",   color: "#f59e0b", subs: [] },
+  { id: "rest",     name: "Rest",     color: "#6b7280", subs: [] }
 ];
 
 function getCategories() {
@@ -216,7 +216,10 @@ function getCategories() {
     Store.set("categories", JSON.stringify(DEFAULT_CATEGORIES));
     return DEFAULT_CATEGORIES.slice();
   }
-  return JSON.parse(raw);
+  const list = JSON.parse(raw);
+  // Backfill subs on any category saved before subcategories existed.
+  list.forEach(function (c) { if (!Array.isArray(c.subs)) c.subs = []; });
+  return list;
 }
 function saveCategories(list) {
   Store.set("categories", JSON.stringify(list));
@@ -224,6 +227,16 @@ function saveCategories(list) {
 function categoryColor(id) {
   const c = getCategories().find(function (x) { return x.id === id; });
   return c ? c.color : "#9ca3af"; // grey fallback if a category was deleted
+}
+/* The subcategories of a category id (or [] if none / unknown). */
+function getSubcategories(catId) {
+  const c = getCategories().find(function (x) { return x.id === catId; });
+  return (c && Array.isArray(c.subs)) ? c.subs : [];
+}
+/* Look up a subcategory's display name by parent id + sub id. */
+function subcategoryName(catId, subId) {
+  const s = getSubcategories(catId).find(function (x) { return x.id === subId; });
+  return s ? s.name : "";
 }
 
 /* Colour-code by the chosen category: keep a small sliver on the select,

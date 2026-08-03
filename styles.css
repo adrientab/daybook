@@ -735,8 +735,6 @@ body.hide-sidebar .sidebar { display: none; }
 /* A category locked to its deadline: readable, clearly not editable. */
 #todoCategory:disabled { opacity: 0.55; cursor: not-allowed; }
 #todoCatNote { margin: 4px 0 0; }
-.field-row { display: flex; gap: 12px; }
-.field-row .field { flex: 1; }
 .modal-actions { display: flex; align-items: center; gap: 8px; margin-top: 20px; }
 .modal-actions .spacer { flex: 1; }
 
@@ -823,6 +821,22 @@ body.hide-sidebar .sidebar { display: none; }
 .optional { color: var(--muted); font-weight: normal; }
 
 .cat-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+
+/* Subcategories nest under each category in the manager. */
+.cat-block { margin-bottom: 16px; }
+.cat-subs { margin: 0 0 0 52px; display: flex; flex-direction: column; gap: 6px; }
+.cat-sub-row { display: flex; align-items: center; gap: 8px; }
+.cat-sub-bullet { width: 8px; height: 8px; border-radius: 999px; flex: 0 0 auto; }
+.cat-sub-name {
+  flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid var(--border);
+  border-radius: 6px; font: inherit; font-size: 0.9rem; background: var(--surface); color: var(--text);
+}
+.cat-sub-del {
+  flex: 0 0 auto; width: 26px; height: 26px; border: none; background: none;
+  color: var(--muted); font-size: 1.1rem; line-height: 1; cursor: pointer; border-radius: 6px;
+}
+.cat-sub-del:hover { color: #b91c1c; background: var(--bg); }
+.cat-sub-add { align-self: flex-start; margin-top: 2px; }
 .cat-row .cat-color {
   width: 42px; height: 34px; padding: 2px;
   border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer;
@@ -893,7 +907,6 @@ body.hide-sidebar .sidebar { display: none; }
   font-size: 0.74rem;
   color: var(--muted);
 }
-.goal-edit { flex: 0 0 auto; }
 
 .goal-target {
   font-size: 0.85rem;
@@ -936,6 +949,7 @@ body.hide-sidebar .sidebar { display: none; }
   overflow-wrap: anywhere;
 }
 .goal-edit {
+  flex: 0 0 auto;
   font-size: 0.75rem;
   padding: 4px 8px;
   margin-top: 0;
@@ -993,11 +1007,6 @@ body.hide-sidebar .sidebar { display: none; }
 .wd-dot.on { background: #22c55e; }
 
 /* JOURNAL — weekly review card */
-.weekly-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 16px; margin-bottom: 28px;
-}
-.weekly-card h4 { margin: 0 0 12px; }
 #weeklyGoals { margin-bottom: 14px; }
 .wk-goal {
   display: flex; justify-content: space-between; align-items: center; gap: 8px;
@@ -1006,7 +1015,6 @@ body.hide-sidebar .sidebar { display: none; }
 .wk-goal:last-child { border-bottom: none; }
 .wk-goal-target { color: var(--muted); font-size: 0.8rem; }
 .wk-hours-input { width: 56px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; font: inherit; }
-.save-status { color: #2e7d32; font-size: 0.85rem; align-self: center; margin-right: 8px; }
 
 /* JOURNAL — rants */
 .rants-head { margin-top: 8px; }
@@ -1037,10 +1045,6 @@ body.hide-sidebar .sidebar { display: none; }
 }
 .rant-item:hover { border-color: var(--sidebar-bg); background: #f7f9ff; }
 .rant-title { font-weight: 600; }
-.rant-meta { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 0.75rem; margin-bottom: 6px; }
-.rant-del { background: none; border: none; color: var(--muted); font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 0 4px; }
-.rant-del:hover { color: #b91c1c; }
-.rant-body { line-height: 1.5; }
 .rant-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
 .rant-tag { background: #eef2ff; color: #4338ca; border-radius: 999px; padding: 2px 8px; font-size: 0.72rem; }
 
@@ -1081,7 +1085,6 @@ body.hide-sidebar .sidebar { display: none; }
 }
 .settings-card h4 { margin: 0 0 6px; }
 .settings-card .hint { margin: 0 0 12px; }
-.settings-card.danger-zone { border-color: #fecaca; }
 
 /* ============================================================
    SETTINGS — grouped rows
@@ -1364,12 +1367,6 @@ body.hide-sidebar .sidebar { display: none; }
 
 /* Goal card: linked category line */
 
-/* Two buttons grouped on the right of a section header */
-.head-actions { display: flex; gap: 8px; }
-
-/* Small muted note shown inline within a field label */
-.hint-inline { font-weight: 400; color: var(--muted); font-size: 0.82em; }
-
 /* ============================================================
    Suggestions: the toggle floats at the top-RIGHT and never moves. The
    schedule is full width when closed and only gets pushed left when the
@@ -1407,8 +1404,7 @@ body.hide-sidebar .sidebar { display: none; }
    (leaving a small gap); the list scrolls past that. Filter on its own can
    still use the full 50vh. */
 #view-schedule.filter-open.suggest-open .filter-panel { max-height: 210px; }
-.suggest-toggle { white-space: nowrap; } /* sits in the .sa-buttons row */
-.sa-buttons { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; } /* lands on the arrows row */
+.suggest-toggle { white-space: nowrap; }
 
 /* Filter and Suggestions share the right-hand column, with the filter stacked
    on top. Same 12px offset and colours as the suggestions panel, so whichever
@@ -1462,7 +1458,6 @@ body.hide-sidebar .sidebar { display: none; }
 .cal-resize-left { left: 0; }
 .cal-resize-right { right: 0; }
 .cal-resize:hover { background: rgba(255, 255, 255, 0.4); border-radius: 3px; }
-.sa-spacer { font-size: 1.5rem; visibility: hidden; margin: 0; } /* matches the month/year height */
 #suggestBtn.active {
   background: var(--sidebar-bg);
   border-color: var(--sidebar-bg);
@@ -1662,7 +1657,6 @@ body.hide-sidebar .sidebar { display: none; }
   }
   #view-schedule:not(.suggest-open) .cal-right { min-width: 0; }
   .cal-left h2, .section-head h2 { font-size: 1.25rem; }
-  .head-actions { flex-wrap: wrap; justify-content: center; }
   /* (To-Do header centering handled at 1100px, matching the board switch.) */
   /* To-Do filter chips centered too. */
   .todo-filters { flex-wrap: wrap; justify-content: center; }
@@ -1776,9 +1770,6 @@ body.hide-sidebar .sidebar { display: none; }
     max-height: 88vh;
     overflow-y: auto;
   }
-  /* Side-by-side date+time is too cramped; stack them. */
-  .field-row { flex-direction: column; gap: 0; }
-
   /* ---- Settings rows stack on narrow screens ---- */
   .set-row { flex-wrap: wrap; }
   .set-control { width: 100%; padding-top: 8px; }

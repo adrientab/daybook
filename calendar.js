@@ -1300,7 +1300,14 @@ const catOverlay = document.getElementById("catModalOverlay");
 let catDraft = []; // working copy, only saved on "Done"
 
 function openCategories() {
-  catDraft = getCategories().map(function (c) { return Object.assign({}, c); });
+  catDraft = getCategories().map(function (c) {
+    return {
+      id: c.id, name: c.name, color: c.color,
+      subs: (Array.isArray(c.subs) ? c.subs : []).map(function (s) {
+        return { id: s.id, name: s.name };
+      })
+    };
+  });
   renderCatList();
   catOverlay.classList.add("open");
 }
@@ -1308,19 +1315,68 @@ function renderCatList() {
   const list = document.getElementById("catList");
   list.innerHTML = "";
   catDraft.forEach(function (c, i) {
-    const row = document.createElement("div");
-    row.className = "cat-row";
-    row.innerHTML =
-      '<input type="color" class="cat-color" data-i="' + i + '" value="' + c.color + '">' +
-      '<input type="text" class="cat-name" data-i="' + i + '" value="' + escapeHtml(c.name) + '">' +
-      '<button type="button" class="btn cat-del" data-i="' + i + '">Remove</button>';
-    list.appendChild(row);
+    if (!Array.isArray(c.subs)) c.subs = [];
+    const block = document.createElement("div");
+    block.className = "cat-block";
+
+    let subsHtml = '<div class="cat-subs">';
+    c.subs.forEach(function (s, si) {
+      subsHtml +=
+        '<div class="cat-sub-row">' +
+          '<span class="cat-sub-bullet" style="background:' + c.color + '"></span>' +
+          '<input type="text" class="cat-sub-name" data-i="' + i + '" data-si="' + si + '" value="' + escapeHtml(s.name) + '" placeholder="Subcategory">' +
+          '<button type="button" class="cat-sub-del" data-i="' + i + '" data-si="' + si + '" title="Remove" aria-label="Remove subcategory">&times;</button>' +
+        "</div>";
+    });
+    subsHtml += '<button type="button" class="btn btn-sm cat-sub-add" data-i="' + i + '">+ Add subcategory</button>';
+    subsHtml += "</div>";
+
+    block.innerHTML =
+      '<div class="cat-row">' +
+        '<input type="color" class="cat-color" data-i="' + i + '" value="' + c.color + '">' +
+        '<input type="text" class="cat-name" data-i="' + i + '" value="' + escapeHtml(c.name) + '">' +
+        '<button type="button" class="btn cat-del" data-i="' + i + '">Remove</button>' +
+      "</div>" +
+      subsHtml;
+    list.appendChild(block);
   });
+
+  // Remove a whole category.
   list.querySelectorAll(".cat-del").forEach(function (b) {
     b.addEventListener("click", function () {
-      readCatInputs();                       // keep edits in other rows
+      readCatInputs();
       catDraft.splice(Number(b.dataset.i), 1);
       renderCatList();
+    });
+  });
+  // Add a subcategory to a category.
+  list.querySelectorAll(".cat-sub-add").forEach(function (b) {
+    b.addEventListener("click", function () {
+      readCatInputs();
+      const cat = catDraft[Number(b.dataset.i)];
+      if (!Array.isArray(cat.subs)) cat.subs = [];
+      cat.subs.push({ id: uid("sub"), name: "" });
+      renderCatList();
+      // Focus the new subcategory input.
+      const inputs = document.querySelectorAll('.cat-sub-name[data-i="' + b.dataset.i + '"]');
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    });
+  });
+  // Remove a subcategory.
+  list.querySelectorAll(".cat-sub-del").forEach(function (b) {
+    b.addEventListener("click", function () {
+      readCatInputs();
+      catDraft[Number(b.dataset.i)].subs.splice(Number(b.dataset.si), 1);
+      renderCatList();
+    });
+  });
+  // Live-update the subcategory bullet colour if the category colour changes.
+  list.querySelectorAll(".cat-color").forEach(function (inp) {
+    inp.addEventListener("input", function () {
+      const block = inp.closest(".cat-block");
+      block.querySelectorAll(".cat-sub-bullet").forEach(function (dot) {
+        dot.style.background = inp.value;
+      });
     });
   });
 }
@@ -1332,15 +1388,25 @@ function readCatInputs() {
   list.querySelectorAll(".cat-name").forEach(function (inp) {
     catDraft[Number(inp.dataset.i)].name = inp.value.trim() || "Untitled";
   });
+  list.querySelectorAll(".cat-sub-name").forEach(function (inp) {
+    const cat = catDraft[Number(inp.dataset.i)];
+    if (cat && cat.subs && cat.subs[Number(inp.dataset.si)]) {
+      cat.subs[Number(inp.dataset.si)].name = inp.value.trim();
+    }
+  });
 }
 function addCategoryRow() {
   readCatInputs();
-  catDraft.push({ id: uid("cat"), name: "New category", color: "#64748b" });
+  catDraft.push({ id: uid("cat"), name: "New category", color: "#64748b", subs: [] });
   renderCatList();
 }
 function closeCategories() {
   readCatInputs();
-  if (catDraft.length === 0) catDraft.push({ id: uid("cat"), name: "General", color: "#3b82f6" });
+  if (catDraft.length === 0) catDraft.push({ id: uid("cat"), name: "General", color: "#3b82f6", subs: [] });
+  // Drop any blank subcategories so empty rows aren't persisted.
+  catDraft.forEach(function (c) {
+    if (Array.isArray(c.subs)) c.subs = c.subs.filter(function (s) { return (s.name || "").trim() !== ""; });
+  });
   saveCategories(catDraft);
   catOverlay.classList.remove("open");
   renderCalendar(); // event colours may have changed

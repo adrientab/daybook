@@ -185,5 +185,60 @@ const DEMO_LIFE = {
     { day: "Tue", sleepScore: 88, readiness: 85, hrv: 55, restingHr: 52, steps: 9100 },
     { day: "Wed", sleepScore: 54, readiness: 49, hrv: 33, restingHr: 63, steps: 5200 },
     { day: "Thu", sleepScore: 80, readiness: 77, hrv: 49, restingHr: 55, steps: 12600 }
+  ],
+
+  /* ---- Study decks (term / definition pairs) ---- */
+  studyDecks: [
+    {
+      name: "US State Capitals",
+      category: "Geography",
+      description: "The capital city of each state.",
+      cards: [
+        ["Alabama", "Montgomery"], ["Alaska", "Juneau"], ["Arizona", "Phoenix"],
+        ["Arkansas", "Little Rock"], ["California", "Sacramento"], ["Colorado", "Denver"],
+        ["Connecticut", "Hartford"], ["Delaware", "Dover"], ["Florida", "Tallahassee"],
+        ["Georgia", "Atlanta"], ["Hawaii", "Honolulu"], ["Idaho", "Boise"],
+        ["Illinois", "Springfield"], ["Indiana", "Indianapolis"], ["Iowa", "Des Moines"],
+        ["Kansas", "Topeka"], ["Kentucky", "Frankfort"], ["Louisiana", "Baton Rouge"],
+        ["Maine", "Augusta"], ["Maryland", "Annapolis"], ["Massachusetts", "Boston"],
+        ["Michigan", "Lansing"], ["Minnesota", "Saint Paul"], ["Mississippi", "Jackson"],
+        ["Missouri", "Jefferson City"], ["Montana", "Helena"], ["Nebraska", "Lincoln"],
+        ["Nevada", "Carson City"], ["New Hampshire", "Concord"], ["New Jersey", "Trenton"],
+        ["New Mexico", "Santa Fe"], ["New York", "Albany"], ["North Carolina", "Raleigh"],
+        ["North Dakota", "Bismarck"], ["Ohio", "Columbus"], ["Oklahoma", "Oklahoma City"],
+        ["Oregon", "Salem"], ["Pennsylvania", "Harrisburg"], ["Rhode Island", "Providence"],
+        ["South Carolina", "Columbia"], ["South Dakota", "Pierre"], ["Tennessee", "Nashville"],
+        ["Texas", "Austin"], ["Utah", "Salt Lake City"], ["Vermont", "Montpelier"],
+        ["Virginia", "Richmond"], ["Washington", "Olympia"], ["West Virginia", "Charleston"],
+        ["Wisconsin", "Madison"], ["Wyoming", "Cheyenne"]
+      ]
+    },
+    {
+      name: "Intro to Chemistry",
+      category: "Chemistry",
+      description: "Core terms from the first few weeks.",
+      cards: [
+        ["Atom", "The smallest unit of an element that retains its chemical properties."],
+        ["Proton", "A positively charged particle in the nucleus of an atom."],
+        ["Neutron", "A neutral (no charge) particle in the nucleus of an atom."],
+        ["Electron", "A negatively charged particle that orbits the nucleus."],
+        ["Element", "A pure substance made of only one kind of atom."],
+        ["Compound", "A substance made of two or more elements chemically bonded."],
+        ["Molecule", "Two or more atoms held together by covalent bonds."],
+        ["Ion", "An atom or molecule with a net electric charge from losing or gaining electrons."],
+        ["Isotope", "Atoms of the same element with different numbers of neutrons."],
+        ["Atomic number", "The number of protons in an atom's nucleus."],
+        ["Mass number", "The total number of protons and neutrons in a nucleus."],
+        ["Covalent bond", "A bond formed by sharing electrons between atoms."],
+        ["Ionic bond", "A bond formed by the attraction between oppositely charged ions."],
+        ["Mole", "The amount of a substance containing 6.022 x 10^23 particles."],
+        ["Avogadro's number", "6.022 x 10^23, the number of particles in one mole."],
+        ["Periodic table", "The arrangement of elements by increasing atomic number."],
+        ["Catalyst", "A substance that speeds up a reaction without being consumed."],
+        ["pH", "A scale from 0 to 14 measuring how acidic or basic a solution is."],
+        ["Acid", "A substance that donates protons (H+) or lowers pH below 7."],
+        ["Base", "A substance that accepts protons or raises pH above 7."]
+      ]
+    }
   ]
 };
