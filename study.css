@@ -31,6 +31,12 @@
 }
 .study-deck-main { flex: 1; min-width: 0; }
 .study-deck-name { font-weight: 600; font-size: 1.02rem; }
+.study-deck-cat {
+  display: inline-block; vertical-align: middle;
+  font-size: 0.7rem; font-weight: 500;
+  color: var(--sidebar-bg); background: rgba(91, 110, 154, 0.12);
+  border-radius: 999px; padding: 2px 9px; margin-left: 8px;
+}
 .study-deck-meta {
   color: var(--muted); font-size: 0.85rem; margin-top: 2px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -73,7 +79,8 @@
   overflow-y: auto;
   padding: 24px 20px 40px;
 }
-.study-editor-body, .exam-stage, .flash-stage { max-width: 720px; margin: 0 auto; }
+.study-editor-body { max-width: 1000px; margin: 0 auto; }
+.exam-stage, .flash-stage { max-width: 720px; margin: 0 auto; }
 
 /* Settings popover (shared by flashcards + exam) */
 .study-bar-right { position: relative; }
@@ -103,15 +110,22 @@
 /* ---------- editor ---------- */
 .field-optional { color: var(--muted); font-weight: 400; }
 .edit-cards-head {
+  display: flex; align-items: center; justify-content: space-between;
   font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--muted); margin: 20px 0 10px;
 }
+.edit-io { display: flex; gap: 6px; }
 .edit-cards { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 .edit-card-row { display: flex; align-items: center; gap: 8px; }
 .edit-card-num { width: 20px; text-align: right; color: var(--muted); font-size: 0.8rem; flex: 0 0 auto; }
 .edit-card-term, .edit-card-def {
   flex: 1; min-width: 0; padding: 9px 10px; border: 1px solid var(--border);
   border-radius: 8px; font: inherit; background: var(--surface); color: var(--text);
+}
+/* A term/definition that duplicates another one is flagged red. */
+.edit-card-term.dup, .edit-card-def.dup {
+  border-color: #ef5350;
+  background: rgba(239, 83, 80, 0.08);
 }
 .edit-card-del {
   flex: 0 0 auto; width: 30px; height: 30px; border: none; background: none;
@@ -120,8 +134,11 @@
 .edit-card-del:hover { color: #b91c1c; background: var(--bg); }
 .study-editor-foot {
   margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);
-  display: flex; justify-content: flex-end;
+  display: flex; align-items: center; gap: 12px;
 }
+.study-editor-foot-spacer { flex: 1; }
+.edit-delete { color: #c62828; border-color: #ef9a9a; }
+.edit-delete:hover { background: rgba(239, 83, 80, 0.08); border-color: #ef5350; }
 
 /* ---------- flashcards ---------- */
 .flash-progress {
@@ -136,6 +153,8 @@
   background: var(--sidebar-bg); transition: width 0.3s ease;
 }
 .flash-progress-label { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+.flash-back-btn { flex: 0 0 auto; white-space: nowrap; }
+.flash-back-btn:disabled { opacity: 0.4; cursor: default; }
 
 .flash-body { display: flex; }
 .flash-stage {
@@ -168,10 +187,9 @@
   cursor: pointer; transition: transform 0.1s ease, border-color 0.15s ease;
 }
 .flash-rate-btn:hover { transform: translateY(-1px); }
-.flash-rate-btn.again { border-color: #ef9a9a; color: #c62828; }
-.flash-rate-btn.hard  { border-color: #ffcc80; color: #e65100; }
-.flash-rate-btn.good  { border-color: #a5d6a7; color: #2e7d32; }
-.flash-rate-btn.easy  { border-color: #90caf9; color: #1565c0; }
+.flash-rate-btn.hard    { border-color: #ffcc80; color: #e65100; }
+.flash-rate-btn.neutral { border-color: var(--border); color: var(--muted); }
+.flash-rate-btn.easy    { border-color: #90caf9; color: #1565c0; }
 
 .flash-done { text-align: center; }
 .flash-done h2 { margin: 0 0 8px; }
