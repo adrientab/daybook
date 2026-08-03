@@ -18,6 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="study.css">
 </head>
 <body>
   <div class="auth-gate" id="authGate" hidden>
@@ -128,6 +129,10 @@
       <button class="nav-item" data-view="patterns">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 3 4-6"/></svg>
         <span class="nav-label">Patterns</span>
+      </button>
+      <button class="nav-item" data-view="study">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="nav-label">Study</span>
       </button>
       <button class="nav-item" data-view="settings">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
@@ -437,6 +442,16 @@
         </div>
       </section>
 
+      <!-- ---- STUDY (deck list) ---- -->
+      <section class="view" id="view-study">
+        <div class="section-head study-head">
+          <h2>Study</h2>
+          <button class="btn btn-primary" id="studyNewBtn">+ New deck</button>
+        </div>
+        <p class="study-intro">Create study sets, then drill them with flashcards or test yourself with an exam.</p>
+        <div class="study-list" id="studyList"></div>
+      </section>
+
     </main>
   </div>
 
@@ -742,6 +757,83 @@
     </div>
   </div>
 
+  <!-- ===== STUDY: EDITOR (full-screen overlay) ===== -->
+  <div class="study-overlay" id="studyEditor" hidden>
+    <header class="study-bar">
+      <button class="study-exit" id="studyEditorExit" aria-label="Exit">&larr; Exit</button>
+      <h2 id="studyEditorTitle">New deck</h2>
+      <span class="study-bar-spacer"></span>
+    </header>
+    <div class="study-body study-editor-body">
+      <label class="field">
+        <span>Deck name</span>
+        <input type="text" id="editDeckName" placeholder="e.g. US State Capitals">
+      </label>
+      <label class="field">
+        <span>Description <span class="field-optional">(optional)</span></span>
+        <input type="text" id="editDeckDesc" placeholder="A short note about this deck">
+      </label>
+
+      <div class="edit-cards-head">
+        <span>Terms</span>
+      </div>
+      <div class="edit-cards" id="editCards"></div>
+      <button class="btn" id="editAddCard">+ Add term</button>
+
+      <div class="study-editor-foot">
+        <button class="btn btn-primary" id="editSave">Save deck</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STUDY: FLASHCARDS (full-screen overlay) ===== -->
+  <div class="study-overlay" id="studyFlash" hidden>
+    <header class="study-bar">
+      <button class="study-exit" id="studyFlashExit" aria-label="Exit">&larr; Exit</button>
+      <h2 id="flashDeckName">Flashcards</h2>
+      <div class="study-bar-right">
+        <button class="btn btn-sm" id="flashSettingsBtn">Settings</button>
+        <div class="study-settings-pop" id="flashSettingsPop" hidden>
+          <div class="study-settings-title">Show first</div>
+          <label class="study-radio"><input type="radio" name="flashMode" value="term"> Term</label>
+          <label class="study-radio"><input type="radio" name="flashMode" value="def"> Definition</label>
+          <label class="study-radio"><input type="radio" name="flashMode" value="random"> Random</label>
+        </div>
+      </div>
+    </header>
+    <div class="flash-progress">
+      <div class="flash-progress-track"><span id="flashProgressBar"></span></div>
+      <span id="flashProgressLabel" class="flash-progress-label"></span>
+    </div>
+    <div class="study-body flash-body">
+      <div id="flashStage" class="flash-stage"></div>
+    </div>
+  </div>
+
+  <!-- ===== STUDY: EXAM (full-screen overlay) ===== -->
+  <div class="study-overlay" id="studyExam" hidden>
+    <header class="study-bar">
+      <button class="study-exit" id="studyExamExit" aria-label="Exit">&larr; Exit</button>
+      <h2 id="examDeckName">Exam</h2>
+      <div class="study-bar-right">
+        <button class="btn btn-sm" id="examSettingsBtn">Settings</button>
+        <div class="study-settings-pop" id="examSettingsPop" hidden>
+          <div class="study-settings-title">Answer with</div>
+          <label class="study-radio"><input type="radio" name="examMode" value="term"> Term</label>
+          <label class="study-radio"><input type="radio" name="examMode" value="def"> Definition</label>
+          <label class="study-radio"><input type="radio" name="examMode" value="random"> Random</label>
+          <div class="study-settings-title">Number of questions</div>
+          <input type="number" id="examCount" min="1" placeholder="All" class="study-count-input">
+          <button class="btn btn-sm btn-primary" id="examApply">Apply &amp; restart</button>
+        </div>
+      </div>
+    </header>
+    <div class="study-body exam-body">
+      <div id="examStage" class="exam-stage"></div>
+    </div>
+    <footer class="study-foot" id="examFoot"></footer>
+  </div>
+
   <!-- Load order matters: app.js defines shared helpers used by the others -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
@@ -755,6 +847,7 @@
   <script src="suggest.js"></script>
   <script src="wearables.js"></script>
   <script src="patterns.js"></script>
+  <script src="study.js"></script>
   <script src="demo-data.js"></script>
   <script src="demo.js"></script>
   <script src="auth.js"></script>

@@ -1,0 +1,225 @@
+/* ============================================================
+   study.css — styling for the Study feature (deck list + the three
+   full-screen overlays: editor, flashcards, exam). Uses the app's
+   design tokens so it matches light/dark themes automatically.
+   ============================================================ */
+
+/* ---------- deck list ---------- */
+.study-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.study-intro { color: var(--muted); margin: 4px 0 20px; }
+
+.study-list { display: flex; flex-direction: column; gap: 10px; }
+
+.study-deck-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.study-deck-row:hover {
+  border-color: var(--sidebar-bg);
+  box-shadow: 0 4px 16px -8px rgba(20, 27, 40, 0.25);
+}
+.study-deck-main { flex: 1; min-width: 0; }
+.study-deck-name { font-weight: 600; font-size: 1.02rem; }
+.study-deck-meta {
+  color: var(--muted); font-size: 0.85rem; margin-top: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Actions stay hidden until you hover the row (on wide screens). */
+.study-deck-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.15s ease; }
+.study-deck-row:hover .study-deck-actions { opacity: 1; }
+.study-deck-actions .btn { white-space: nowrap; }
+
+.study-empty { color: var(--muted); padding: 24px 0; }
+
+/* ---------- full-screen overlays (editor / flashcards / exam) ---------- */
+.study-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+.study-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.study-bar h2 { margin: 0; font-size: 1.1rem; flex: 1; text-align: center; }
+.study-bar-spacer, .study-bar-right { min-width: 96px; display: flex; justify-content: flex-end; }
+.study-exit {
+  background: none; border: 1px solid var(--border); color: var(--text);
+  border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 0.9rem;
+  cursor: pointer; white-space: nowrap;
+}
+.study-exit:hover { border-color: var(--sidebar-bg); }
+
+.study-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px 40px;
+}
+.study-editor-body, .exam-stage, .flash-stage { max-width: 720px; margin: 0 auto; }
+
+/* Settings popover (shared by flashcards + exam) */
+.study-bar-right { position: relative; }
+.study-settings-pop {
+  position: absolute;
+  top: 44px; right: 0;
+  width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  z-index: 5;
+  text-align: left;
+}
+.study-settings-title {
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); margin: 6px 0 6px;
+}
+.study-settings-title:first-child { margin-top: 0; }
+.study-radio { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; }
+.study-count-input {
+  width: 100%; padding: 6px 8px; border: 1px solid var(--border);
+  border-radius: 6px; font: inherit; margin-bottom: 8px; background: var(--bg); color: var(--text);
+}
+
+/* ---------- editor ---------- */
+.field-optional { color: var(--muted); font-weight: 400; }
+.edit-cards-head {
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); margin: 20px 0 10px;
+}
+.edit-cards { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.edit-card-row { display: flex; align-items: center; gap: 8px; }
+.edit-card-num { width: 20px; text-align: right; color: var(--muted); font-size: 0.8rem; flex: 0 0 auto; }
+.edit-card-term, .edit-card-def {
+  flex: 1; min-width: 0; padding: 9px 10px; border: 1px solid var(--border);
+  border-radius: 8px; font: inherit; background: var(--surface); color: var(--text);
+}
+.edit-card-del {
+  flex: 0 0 auto; width: 30px; height: 30px; border: none; background: none;
+  color: var(--muted); font-size: 1.3rem; line-height: 1; cursor: pointer; border-radius: 6px;
+}
+.edit-card-del:hover { color: #b91c1c; background: var(--bg); }
+.study-editor-foot {
+  margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end;
+}
+
+/* ---------- flashcards ---------- */
+.flash-progress {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 20px; max-width: 760px; margin: 0 auto; width: 100%;
+}
+.flash-progress-track {
+  flex: 1; height: 6px; border-radius: 999px; background: var(--border); overflow: hidden;
+}
+.flash-progress-track span {
+  display: block; height: 100%; width: 0; border-radius: 999px;
+  background: var(--sidebar-bg); transition: width 0.3s ease;
+}
+.flash-progress-label { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+
+.flash-body { display: flex; }
+.flash-stage {
+  width: 100%; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 24px; min-height: 60vh;
+}
+.flash-card {
+  width: 100%; max-width: 560px; min-height: 280px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  box-shadow: 0 16px 44px -22px rgba(20, 27, 40, 0.5);
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px; cursor: pointer; user-select: none;
+  transition: transform 0.1s ease;
+}
+.flash-card:active { transform: scale(0.995); }
+.flash-face { width: 100%; text-align: center; }
+.flash-side-label {
+  display: block; font-size: 0.7rem; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted); margin-bottom: 10px;
+}
+.flash-text { font-size: 1.5rem; line-height: 1.3; overflow-wrap: anywhere; }
+.flash-back { font-size: 1.25rem; color: var(--text); }
+.flash-divider { height: 1px; background: var(--border); margin: 20px 0; }
+.flash-hint { margin-top: 18px; color: var(--muted); font-size: 0.85rem; }
+
+.flash-rate { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.flash-rate-btn {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: 999px; padding: 10px 22px; font: inherit; font-weight: 500;
+  cursor: pointer; transition: transform 0.1s ease, border-color 0.15s ease;
+}
+.flash-rate-btn:hover { transform: translateY(-1px); }
+.flash-rate-btn.again { border-color: #ef9a9a; color: #c62828; }
+.flash-rate-btn.hard  { border-color: #ffcc80; color: #e65100; }
+.flash-rate-btn.good  { border-color: #a5d6a7; color: #2e7d32; }
+.flash-rate-btn.easy  { border-color: #90caf9; color: #1565c0; }
+
+.flash-done { text-align: center; }
+.flash-done h2 { margin: 0 0 8px; }
+.flash-done p { color: var(--muted); margin: 0 0 20px; }
+
+/* ---------- exam ---------- */
+.exam-body { display: block; }
+.exam-list { display: flex; flex-direction: column; gap: 14px; }
+.exam-q {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 18px;
+}
+.exam-q-num { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; }
+.exam-q-label {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); margin-bottom: 4px;
+}
+.exam-q-prompt { font-size: 1.1rem; margin-bottom: 12px; overflow-wrap: anywhere; }
+.exam-q-input {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+  border-radius: 8px; font: inherit; background: var(--bg); color: var(--text);
+}
+
+.exam-score { text-align: center; margin-bottom: 20px; }
+.exam-score h2 { margin: 0; }
+
+/* Review state: green border for correct, red for wrong. */
+.exam-reviewed.is-correct { border-color: #66bb6a; box-shadow: inset 3px 0 0 #66bb6a; }
+.exam-reviewed.is-wrong   { border-color: #ef5350; box-shadow: inset 3px 0 0 #ef5350; }
+.exam-answer-line { font-size: 0.92rem; margin-top: 6px; }
+.exam-answer-label { color: var(--muted); }
+.exam-reviewed.is-wrong .exam-your-answer { color: #c62828; text-decoration: line-through; }
+.exam-reviewed.is-correct .exam-your-answer { color: #2e7d32; }
+.exam-correct-answer { color: #2e7d32; font-weight: 600; }
+
+.study-foot {
+  border-top: 1px solid var(--border); background: var(--surface);
+  padding: 14px 20px; display: flex; gap: 10px; justify-content: center;
+}
+
+/* ---------- mobile ---------- */
+@media (max-width: 720px) {
+  /* Deck actions can't rely on hover on touch, so always show them. */
+  .study-deck-actions { opacity: 1; }
+  .study-deck-row { flex-direction: column; align-items: stretch; }
+  .study-deck-actions { justify-content: flex-start; flex-wrap: wrap; }
+  .flash-text { font-size: 1.25rem; }
+  .flash-card { min-height: 220px; padding: 24px; }
+  .study-bar h2 { font-size: 1rem; }
+  .study-bar-spacer, .study-bar-right { min-width: 60px; }
+}
