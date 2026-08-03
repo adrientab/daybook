@@ -277,6 +277,7 @@ function switchView(target) {
   if (target === "todo" && typeof renderTodos === "function") renderTodos();
   if (target === "wearables" && typeof renderWearables === "function") renderWearables();
   if (target === "patterns" && typeof renderPatterns === "function") renderPatterns();
+  if (target === "study" && typeof renderStudy === "function") renderStudy();
 }
 
 // Read the view name out of the URL hash: "#todo" or "#/todo" -> "todo".
