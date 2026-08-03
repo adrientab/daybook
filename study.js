@@ -84,7 +84,9 @@ function renderStudy() {
     row.className = "study-deck-row";
     row.innerHTML =
       '<div class="study-deck-main">' +
-        '<div class="study-deck-name">' + escapeHtml(d.name || "Untitled deck") + "</div>" +
+        '<div class="study-deck-name">' + escapeHtml(d.name || "Untitled deck") +
+          (d.category ? ' <span class="study-deck-cat">' + escapeHtml(d.category) + "</span>" : "") +
+        "</div>" +
         '<div class="study-deck-meta">' + count + " term" + (count === 1 ? "" : "s") +
           (d.description ? " &middot; " + escapeHtml(d.description) : "") +
         "</div>" +
@@ -128,9 +130,10 @@ function openEditor(deckId) {
   const existing = deckId ? getDeck(deckId) : null;
   editorState = existing
     ? { id: existing.id, name: existing.name || "", description: existing.description || "",
+        category: existing.category || "",
         cards: (existing.cards || []).map(function (c) { return { id: c.id, term: c.term, def: c.def }; }),
         dirty: false, isNew: false }
-    : { id: uid("deck"), name: "", description: "", cards: [], dirty: false, isNew: true };
+    : { id: uid("deck"), name: "", description: "", category: "", cards: [], dirty: false, isNew: true };
 
   // Always start with at least a couple of blank rows for a new deck.
   if (editorState.isNew && editorState.cards.length === 0) {
@@ -141,8 +144,24 @@ function openEditor(deckId) {
   document.getElementById("studyEditorTitle").textContent = existing ? "Edit deck" : "New deck";
   document.getElementById("editDeckName").value = editorState.name;
   document.getElementById("editDeckDesc").value = editorState.description;
+  document.getElementById("editDeckCat").value = editorState.category;
+  populateCategoryList();
   renderEditorCards();
   showOverlay("studyEditor");
+}
+
+/* Fill the category autocomplete with the distinct categories already in use. */
+function populateCategoryList() {
+  const list = document.getElementById("deckCatList");
+  if (!list) return;
+  const cats = {};
+  loadDecks().forEach(function (d) {
+    const c = (d.category || "").trim();
+    if (c) cats[c] = true;
+  });
+  list.innerHTML = Object.keys(cats).sort().map(function (c) {
+    return '<option value="' + escapeHtml(c) + '"></option>';
+  }).join("");
 }
 
 function renderEditorCards() {
@@ -165,12 +184,14 @@ function renderEditorCards() {
     inp.addEventListener("input", function () {
       editorState.cards[Number(inp.dataset.i)].term = inp.value;
       editorState.dirty = true;
+      markDuplicates();
     });
   });
   wrap.querySelectorAll(".edit-card-def").forEach(function (inp) {
     inp.addEventListener("input", function () {
       editorState.cards[Number(inp.dataset.i)].def = inp.value;
       editorState.dirty = true;
+      markDuplicates();
     });
   });
   wrap.querySelectorAll(".edit-card-del").forEach(function (b) {
@@ -180,6 +201,30 @@ function renderEditorCards() {
       renderEditorCards();
     });
   });
+  markDuplicates();
+}
+
+/* Highlight any term or definition that exactly matches another row's (case-
+   and whitespace-insensitive). Blank cells are never flagged. */
+function markDuplicates() {
+  const wrap = document.getElementById("editCards");
+  const terms = wrap.querySelectorAll(".edit-card-term");
+  const defs = wrap.querySelectorAll(".edit-card-def");
+  function norm(s) { return (s || "").trim().toLowerCase().replace(/\s+/g, " "); }
+
+  function flag(inputs) {
+    const counts = {};
+    inputs.forEach(function (inp) {
+      const v = norm(inp.value);
+      if (v) counts[v] = (counts[v] || 0) + 1;
+    });
+    inputs.forEach(function (inp) {
+      const v = norm(inp.value);
+      inp.classList.toggle("dup", !!v && counts[v] > 1);
+    });
+  }
+  flag(Array.from(terms));
+  flag(Array.from(defs));
 }
 
 function initEditor() {
@@ -188,6 +233,9 @@ function initEditor() {
   });
   document.getElementById("editDeckDesc").addEventListener("input", function () {
     editorState.description = this.value; editorState.dirty = true;
+  });
+  document.getElementById("editDeckCat").addEventListener("input", function () {
+    editorState.category = this.value; editorState.dirty = true;
   });
   document.getElementById("editAddCard").addEventListener("click", function () {
     editorState.cards.push({ id: uid("card"), term: "", def: "" });
@@ -199,6 +247,101 @@ function initEditor() {
   });
   document.getElementById("editSave").addEventListener("click", saveEditor);
   document.getElementById("studyEditorExit").addEventListener("click", tryExitEditor);
+  document.getElementById("editDelete").addEventListener("click", deleteFromEditor);
+  document.getElementById("editExport").addEventListener("click", exportDeck);
+  document.getElementById("editImport").addEventListener("click", function () {
+    document.getElementById("editImportFile").click();
+  });
+  document.getElementById("editImportFile").addEventListener("change", importDeckFile);
+}
+
+/* Delete the deck being edited (only if it already exists / has content). */
+function deleteFromEditor() {
+  const label = editorState.name.trim() || "this deck";
+  if (!confirm('Delete "' + label + '"? This cannot be undone.')) return;
+  if (!editorState.isNew) deleteDeck(editorState.id);
+  editorState.dirty = false;
+  hideOverlay("studyEditor");
+  renderStudy();
+}
+
+/* Export the current (in-progress) deck as a .txt file: one "term<TAB>def"
+   per line, with the name/description as leading comment lines. Simple, and
+   re-importable by this same tool. */
+function exportDeck() {
+  const lines = [];
+  lines.push("# name: " + (editorState.name || "Untitled deck"));
+  if (editorState.description) lines.push("# description: " + editorState.description);
+  if (editorState.category) lines.push("# category: " + editorState.category);
+  editorState.cards.forEach(function (c) {
+    const term = (c.term || "").replace(/\t/g, " ");
+    const def = (c.def || "").replace(/\t/g, " ");
+    if (term || def) lines.push(term + "\t" + def);
+  });
+  const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = (editorState.name.trim() || "deck").replace(/[^\w\-]+/g, "_") + ".txt";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* Import terms from a file and ADD them to the current list (never overwrite).
+   Accepts: our own tab-separated .txt export, plain CSV/TSV (term,def per
+   line), or a JSON array of {term, def}. Blank lines and "# ..." lines skip. */
+function importDeckFile(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function () {
+    const text = String(reader.result || "");
+    let added = 0;
+    try {
+      const parsed = parseImport(text);
+      parsed.forEach(function (row) {
+        editorState.cards.push({ id: uid("card"), term: row.term, def: row.def });
+        added++;
+      });
+      editorState.dirty = true;
+      renderEditorCards();
+      alert("Imported " + added + " term" + (added === 1 ? "" : "s") + ".");
+    } catch (err) {
+      alert("Couldn't read that file. Expected term/definition pairs (CSV, TSV, or the exported .txt).");
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";   // let the same file be re-picked later
+}
+
+/* Turn imported text into [{term, def}]. Tries JSON first, then line-based. */
+function parseImport(text) {
+  const trimmed = text.trim();
+  if (trimmed.startsWith("[")) {
+    const arr = JSON.parse(trimmed);
+    return arr.map(function (o) {
+      return { term: String(o.term || o[0] || "").trim(), def: String(o.def || o.definition || o[1] || "").trim() };
+    }).filter(function (r) { return r.term || r.def; });
+  }
+  const out = [];
+  trimmed.split(/\r?\n/).forEach(function (line) {
+    if (!line.trim() || line.trim().startsWith("#")) return;   // skip blanks + comments
+    // Split on tab if present, else the first comma.
+    let term, def;
+    if (line.indexOf("\t") !== -1) {
+      const parts = line.split("\t");
+      term = parts[0]; def = parts.slice(1).join(" ");
+    } else {
+      const ci = line.indexOf(",");
+      if (ci === -1) { term = line; def = ""; }
+      else { term = line.slice(0, ci); def = line.slice(ci + 1); }
+    }
+    term = term.trim(); def = def.trim();
+    if (term || def) out.push({ term: term, def: def });
+  });
+  return out;
 }
 
 function saveEditor() {
@@ -210,6 +353,7 @@ function saveEditor() {
     id: editorState.id,
     name: editorState.name.trim() || "Untitled deck",
     description: editorState.description.trim(),
+    category: editorState.category.trim(),
     cards: cards
   };
   upsertDeck(deck);
@@ -266,7 +410,8 @@ function openFlashcards(deckId) {
     settings: s,
     total: deck.cards.length,
     doneCount: 0,
-    seen: {}          // card id -> true once rated Good/Easy at least once
+    seen: {},         // card id -> true once rated Neutral/Easy at least once
+    history: []       // snapshots for the Back button
   };
   document.getElementById("flashDeckName").textContent = deck.name || "Flashcards";
   showOverlay("studyFlash");
@@ -300,67 +445,91 @@ function renderFlash() {
   const backLabel = q.side === "term" ? "Definition" : "Term";
 
   stage.innerHTML =
-    '<div class="flash-card" id="flashCard">' +
+    '<div class="flash-card' + (flashState.revealed ? " revealed" : "") + '" id="flashCard">' +
       '<div class="flash-face">' +
         '<span class="flash-side-label">' + frontLabel + "</span>" +
         '<div class="flash-text">' + escapeHtml(front) + "</div>" +
         (flashState.revealed
           ? '<div class="flash-divider"></div>' +
             '<span class="flash-side-label">' + backLabel + "</span>" +
-            '<div class="flash-text flash-back">' + escapeHtml(back) + "</div>"
+            '<div class="flash-text flash-back">' + escapeHtml(back) + "</div>" +
+            '<div class="flash-hint">Click to hide again</div>'
           : '<div class="flash-hint">Click to reveal</div>') +
       "</div>" +
     "</div>" +
     (flashState.revealed
       ? '<div class="flash-rate">' +
-          '<button class="flash-rate-btn again" data-rate="again">Again</button>' +
           '<button class="flash-rate-btn hard" data-rate="hard">Hard</button>' +
-          '<button class="flash-rate-btn good" data-rate="good">Good</button>' +
+          '<button class="flash-rate-btn neutral" data-rate="neutral">Neutral</button>' +
           '<button class="flash-rate-btn easy" data-rate="easy">Easy</button>' +
         "</div>"
       : "");
 
-  if (!flashState.revealed) {
-    document.getElementById("flashCard").addEventListener("click", function () {
-      flashState.revealed = true;
-      renderFlash();
-    });
-  } else {
+  // Clicking the card toggles reveal: reveal when hidden, and when already
+  // revealed, clicking hides the definition again (acts like Anki's "Again").
+  document.getElementById("flashCard").addEventListener("click", function () {
+    flashState.revealed = !flashState.revealed;
+    renderFlash();
+  });
+  if (flashState.revealed) {
     stage.querySelectorAll(".flash-rate-btn").forEach(function (b) {
-      b.addEventListener("click", function () { rateFlash(b.dataset.rate); });
+      b.addEventListener("click", function (e) {
+        e.stopPropagation();
+        rateFlash(b.dataset.rate);
+      });
     });
   }
   updateFlashProgress();
 }
 
-/* Reinsert the current card further down the queue based on the rating. */
+/* Reinsert the current card further down the queue based on the rating.
+   Hard   -> comes back soon (resurfaces within a few cards)
+   Neutral-> back of the line for another pass
+   Easy   -> dropped for the rest of the session */
 function rateFlash(rating) {
   const q = flashState.queue[flashState.idx];
   const s = flashState.settings;
 
-  // How many cards ahead to reinsert (roughly Anki-like ordering).
+  // Snapshot the pre-rating state so Back can return to this exact card.
+  flashState.history.push({
+    queue: flashState.queue.map(function (x) { return { card: x.card, side: x.side }; }),
+    idx: flashState.idx,
+    doneCount: flashState.doneCount,
+    seen: Object.assign({}, flashState.seen)
+  });
+
   const remaining = flashState.queue.length - flashState.idx - 1;
   let offset;
-  if (rating === "again") offset = Math.min(2, remaining + 1);
-  else if (rating === "hard") offset = Math.min(5, remaining + 1);
-  else if (rating === "good") offset = remaining + 1;         // back of the line
+  if (rating === "hard") offset = Math.min(4, remaining + 1);
+  else if (rating === "neutral") offset = remaining + 1;      // back of the line
   else offset = Infinity;                                     // easy -> drop it
 
-  // Count a card as "mastered for this session" the first time it's Good/Easy.
-  if ((rating === "good" || rating === "easy") && !flashState.seen[q.card.id]) {
+  // Count a card as "mastered for this session" the first time it's Neutral/Easy.
+  if ((rating === "neutral" || rating === "easy") && !flashState.seen[q.card.id]) {
     flashState.seen[q.card.id] = true;
     flashState.doneCount++;
   }
-  // Again/Hard on an already-mastered card doesn't un-count it.
 
   flashState.idx++;
 
   if (offset !== Infinity) {
     const insertAt = Math.min(flashState.idx + offset, flashState.queue.length);
-    // Re-pick which side to show if the mode is random, so repeats vary.
     flashState.queue.splice(insertAt, 0, { card: q.card, side: sideFor(s.mode) });
   }
 
+  flashState.revealed = false;
+  renderFlash();
+}
+
+/* Go back to the previous card, restoring the queue exactly as it was before
+   the last rating (so a card that got reinserted isn't left duplicated). */
+function flashBack() {
+  if (!flashState.history.length) return;
+  const prev = flashState.history.pop();
+  flashState.queue = prev.queue;
+  flashState.idx = prev.idx;
+  flashState.doneCount = prev.doneCount;
+  flashState.seen = prev.seen;
   flashState.revealed = false;
   renderFlash();
 }
@@ -371,12 +540,15 @@ function updateFlashProgress() {
   const pct = flashState.total ? Math.round((flashState.doneCount / flashState.total) * 100) : 0;
   if (bar) bar.style.width = pct + "%";
   if (label) label.textContent = flashState.doneCount + " / " + flashState.total + " mastered";
+  const back = document.getElementById("flashBackBtn");
+  if (back) back.disabled = flashState.history.length === 0;
 }
 
 function initFlash() {
   document.getElementById("studyFlashExit").addEventListener("click", function () {
     hideOverlay("studyFlash");
   });
+  document.getElementById("flashBackBtn").addEventListener("click", flashBack);
   // Settings popover
   document.getElementById("flashSettingsBtn").addEventListener("click", function () {
     document.getElementById("flashSettingsPop").hidden = !document.getElementById("flashSettingsPop").hidden;
@@ -397,16 +569,19 @@ function initFlash() {
       }
     });
   });
-  // Keyboard: space/enter reveals, 1-4 rate.
+  // Keyboard: space/enter toggles reveal, 1-3 rate, left-arrow goes back.
   document.addEventListener("keydown", function (e) {
     if (document.getElementById("studyFlash").hidden) return;
     if (!flashState) return;
-    if (!flashState.revealed && (e.key === " " || e.key === "Enter")) {
+    if (e.key === "ArrowLeft") { e.preventDefault(); flashBack(); return; }
+    const q = flashState.queue[flashState.idx];
+    if (!q) return;
+    if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
-      const q = flashState.queue[flashState.idx];
-      if (q) { flashState.revealed = true; renderFlash(); }
+      flashState.revealed = !flashState.revealed;
+      renderFlash();
     } else if (flashState.revealed) {
-      const map = { "1": "again", "2": "hard", "3": "good", "4": "easy" };
+      const map = { "1": "hard", "2": "neutral", "3": "easy" };
       if (map[e.key]) { e.preventDefault(); rateFlash(map[e.key]); }
     }
   });

@@ -773,16 +773,30 @@
         <span>Description <span class="field-optional">(optional)</span></span>
         <input type="text" id="editDeckDesc" placeholder="A short note about this deck">
       </label>
+      <label class="field">
+        <span>Category <span class="field-optional">(optional)</span></span>
+        <input type="text" id="editDeckCat" list="deckCatList" placeholder="e.g. Biology, Spanish, History">
+        <datalist id="deckCatList"></datalist>
+      </label>
 
       <div class="edit-cards-head">
         <span>Terms</span>
+        <div class="edit-io">
+          <button class="btn btn-sm" id="editImport">Import</button>
+          <button class="btn btn-sm" id="editExport">Export</button>
+        </div>
       </div>
       <div class="edit-cards" id="editCards"></div>
       <button class="btn" id="editAddCard">+ Add term</button>
 
       <div class="study-editor-foot">
+        <button class="btn edit-delete" id="editDelete">Delete deck</button>
+        <span class="study-editor-foot-spacer"></span>
         <button class="btn btn-primary" id="editSave">Save deck</button>
       </div>
+
+      <!-- hidden file input for import -->
+      <input type="file" id="editImportFile" accept=".csv,.tsv,.txt,.json" hidden>
     </div>
   </div>
 
@@ -802,6 +816,7 @@
       </div>
     </header>
     <div class="flash-progress">
+      <button class="btn btn-sm flash-back-btn" id="flashBackBtn" disabled>&larr; Back</button>
       <div class="flash-progress-track"><span id="flashProgressBar"></span></div>
       <span id="flashProgressLabel" class="flash-progress-label"></span>
     </div>
