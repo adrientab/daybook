@@ -42,9 +42,18 @@
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 /* Actions stay hidden until you hover the row (on wide screens). */
-.study-deck-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.15s ease; }
+.study-deck-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.15s ease; align-self: stretch; }
 .study-deck-row:hover .study-deck-actions { opacity: 1; }
-.study-deck-actions .btn { white-space: nowrap; }
+/* Bigger, taller action buttons that fill most of the row height so they read
+   as substantial rather than tiny chips. */
+.study-deck-actions .btn {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  margin-top: 0;
+}
 
 .study-empty { color: var(--muted); padding: 24px 0; }
 
@@ -79,7 +88,7 @@
   overflow-y: auto;
   padding: 24px 20px 40px;
 }
-.study-editor-body { width: 92%; max-width: 2200px; margin: 0 auto; }
+.study-editor-body { width: 88%; max-width: 2200px; margin: 0 auto; }
 .exam-stage, .flash-stage { max-width: 720px; margin: 0 auto; }
 
 /* Settings popover (shared by flashcards + exam) */
