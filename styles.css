@@ -209,7 +209,8 @@ h2 { margin-top: 0; }
 .cal-left h2 {
   margin: 0;
   font-size: 1.5rem;
-  line-height: 1;
+  line-height: 1.2;
+  font-weight: 700;
   height: 100%;
   display: flex;
   align-items: flex-start;   /* title top-aligned in the header */
@@ -885,7 +886,7 @@ body.hide-sidebar .sidebar { display: none; }
   margin-bottom: 12px;
 }
 #addGoalBtn { margin-left: auto; } /* stays right now the Goals title is gone */
-.section-head h2 { margin: 0; font-size: 1.5rem; }
+.section-head h2 { margin: 0; font-size: 1.5rem; line-height: 1.2; font-weight: 700; }
 
 /* ============================================================
    GOALS
@@ -1387,7 +1388,10 @@ body.hide-sidebar .sidebar { display: none; }
    TO-DO CARD — time/estimate meta line
    ============================================================ */
 .todo-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.todo-meta { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+/* Let the meta (time · estimate) wrap onto a new line rather than overflowing a
+   narrow card. Wrapping happens at the spaces around the "·", so "11:00 PM" and
+   "~3h" stay intact; overflow-wrap is only a fallback for an over-long token. */
+.todo-meta { font-size: 0.72rem; color: var(--muted); white-space: normal; overflow-wrap: anywhere; }
 .todo-card.done .todo-meta { color: var(--border); }
 
 /* Goal card: linked category line */
