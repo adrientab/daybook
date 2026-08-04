@@ -546,6 +546,31 @@ input.inline-input[type="time"] { width: 6.1em; }
   font-weight: 600;
 }
 
+/* Subcategory chips: a secondary row that appears under the category chips. */
+.subchip-wrap { margin-top: 10px; }
+.subchip-label {
+  display: block; font-size: 0.72rem; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--muted); margin-bottom: 6px;
+}
+.subchip-row { gap: 6px; }
+.subchip {
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.subchip:hover { border-color: var(--muted); }
+.subchip.selected {
+  border-color: var(--sidebar-bg);
+  background: color-mix(in srgb, var(--sidebar-bg) 14%, var(--surface));
+  font-weight: 600;
+}
+
 /* "+ How did it feel?" reveal */
 .reveal-btn {
   display: inline-flex;
@@ -1438,6 +1463,18 @@ body.hide-sidebar .sidebar { display: none; }
 .filter-list { display: flex; flex-direction: column; gap: 6px; }
 .filter-hint { margin: 0 0 8px; font-size: 0.72rem; color: var(--muted); }
 .filter-row { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+/* Expand triangle for categories that have subcategories. */
+.filter-tri {
+  flex: 0 0 auto; width: 16px; height: 16px; padding: 0;
+  border: none; background: none; color: var(--muted); cursor: pointer;
+  font-size: 0.7rem; line-height: 1; transition: transform 0.12s ease;
+}
+.filter-tri.open { transform: rotate(90deg); }
+.filter-tri--empty { visibility: hidden; cursor: default; }
+/* Indented subcategory rows. */
+.filter-subrow { margin-left: 22px; font-size: 0.85rem; }
+.filter-subdot { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; opacity: 0.75; }
+.filter-subrow .filter-name { color: var(--muted); }
 .filter-solo { display: flex; align-items: center; gap: 8px; flex: 1; cursor: pointer; border-radius: 6px; padding: 2px 4px; }
 .filter-solo:hover { background: var(--bg); }
 .filter-solo:hover .filter-name { text-decoration: underline; }

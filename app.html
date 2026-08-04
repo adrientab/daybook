@@ -478,6 +478,11 @@
 
       <!-- Category as colour chips instead of a dropdown -->
       <div class="chip-row" id="evtCategory" role="radiogroup" aria-label="Category"></div>
+      <!-- Subcategory chips: only shown when the chosen category has subs -->
+      <div class="subchip-wrap" id="evtSubWrap" hidden>
+        <span class="subchip-label">Subcategory</span>
+        <div class="chip-row subchip-row" id="evtSubcategory" role="radiogroup" aria-label="Subcategory"></div>
+      </div>
 
       <!-- Feel: tucked behind a toggle so it isn't in the way when planning ahead,
            but one tap away when logging something you already did. -->
@@ -773,11 +778,16 @@
         <span>Description <span class="field-optional">(optional)</span></span>
         <input type="text" id="editDeckDesc" placeholder="A short note about this deck">
       </label>
-      <label class="field">
-        <span>Category <span class="field-optional">(optional)</span></span>
-        <input type="text" id="editDeckCat" list="deckCatList" placeholder="e.g. Biology, Spanish, History">
-        <datalist id="deckCatList"></datalist>
-      </label>
+      <div class="edit-cat-row">
+        <label class="field edit-cat-field">
+          <span>Category <span class="field-optional">(optional)</span></span>
+          <select id="editDeckCat" class="inline-select"></select>
+        </label>
+        <label class="field edit-cat-field" id="editDeckSubField" hidden>
+          <span>Subcategory <span class="field-optional">(optional)</span></span>
+          <select id="editDeckSub" class="inline-select"></select>
+        </label>
+      </div>
 
       <div class="edit-cards-head">
         <span>Terms</span>

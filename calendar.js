@@ -18,6 +18,8 @@ let addEventBtnEl = null; // moved into the calendar's corner each render
    hidden. In-memory only (not saved), so every reload starts with all
    categories shown. */
 let hiddenCategories = new Set();
+let hiddenSubcategories = new Set();   // subcategory ids that are hidden
+let expandedFilterCats = new Set();    // which category rows are expanded in the filter
 
 /* Set briefly after an event resize so the click that follows the drag
    doesn't also open the event modal. */
@@ -161,7 +163,7 @@ function renderCalendar() {
 
     // Events, laid out side-by-side when they overlap (respecting the filter).
     const dayEvents = events.filter(function (ev) {
-      return ev.date === ds && !hiddenCategories.has(ev.category);
+      return ev.date === ds && !isFilteredOut(ev.category, ev.subcategory);
     });
     layoutDayEvents(dayEvents).forEach(function (it) {
       col.appendChild(buildEventBlock(it.ev, it.left, it.width));
@@ -681,7 +683,7 @@ const overlay = document.getElementById("modalOverlay");
    picked id is held in a data attribute so the rest of the code can read it
    the same way it read the old <select>.value. Other modals still use the
    shared paintCategorySelect dropdown. */
-function populateCategorySelect(selectedId) {
+function populateCategorySelect(selectedId, selectedSub) {
   const wrap = document.getElementById("evtCategory");
   const cats = getCategories();
   let chosen = cats.some(function (c) { return c.id === selectedId; })
@@ -706,14 +708,61 @@ function populateCategorySelect(selectedId) {
         b.classList.toggle("selected", on);
         b.setAttribute("aria-checked", on ? "true" : "false");
       });
+      // Changing the category resets the subcategory to "none".
+      renderSubcategoryChips(c.id, "");
     };
     wrap.appendChild(chip);
+  });
+
+  renderSubcategoryChips(chosen, selectedSub || "");
+}
+
+/* Show the subcategory chips for a category (hidden if it has none). "" = none. */
+function renderSubcategoryChips(catId, selectedSub) {
+  const wrap = document.getElementById("evtSubWrap");
+  const row = document.getElementById("evtSubcategory");
+  const subs = getSubcategories(catId);
+
+  if (!subs.length) {
+    wrap.hidden = true;
+    row.dataset.value = "";
+    row.innerHTML = "";
+    return;
+  }
+  wrap.hidden = false;
+  const chosen = subs.some(function (s) { return s.id === selectedSub; }) ? selectedSub : "";
+  row.dataset.value = chosen;
+  row.innerHTML = "";
+
+  // A "None" chip first, so subcategory stays optional.
+  const options = [{ id: "", name: "None" }].concat(subs);
+  options.forEach(function (s) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "subchip" + (s.id === chosen ? " selected" : "");
+    chip.dataset.id = s.id;
+    chip.setAttribute("role", "radio");
+    chip.setAttribute("aria-checked", s.id === chosen ? "true" : "false");
+    chip.textContent = s.name;
+    chip.onclick = function () {
+      row.dataset.value = s.id;
+      row.querySelectorAll(".subchip").forEach(function (b) {
+        const on = b === chip;
+        b.classList.toggle("selected", on);
+        b.setAttribute("aria-checked", on ? "true" : "false");
+      });
+    };
+    row.appendChild(chip);
   });
 }
 
 /* Reads the chosen category id — replaces the old select.value. */
 function readEventCategory() {
   return document.getElementById("evtCategory").dataset.value || "";
+}
+/* Reads the chosen subcategory id ("" if none). */
+function readEventSubcategory() {
+  return document.getElementById("evtSubcategory").dataset.value || "";
 }
 
 function openModal(data) {
@@ -724,7 +773,7 @@ function openModal(data) {
   if (typeof autoGrow === "function") autoGrow(document.getElementById("evtNotes"));
   document.getElementById("evtStart").value = data.start || "09:00";
   document.getElementById("evtEnd").value = data.end || "10:00";
-  populateCategorySelect(data.category);
+  populateCategorySelect(data.category, data.subcategory);
 
   // Repeat is only offered when creating a brand-new event; editing always
   // affects just this one occurrence. Reset the collapsed/expanded state each
@@ -927,6 +976,7 @@ function handleSave() {
     start: document.getElementById("evtStart").value,
     end: document.getElementById("evtEnd").value,
     category: readEventCategory(),
+    subcategory: readEventSubcategory(),
     feel: readScale("scaleFeel")
   };
 
@@ -1071,11 +1121,12 @@ document.getElementById("evtTitle").addEventListener("input", function () {
     return (a.start || "") < (b.start || "") ? 1 : -1;
   });
   const cat = matches[0].category;
+  const sub = matches[0].subcategory || "";
 
   // Only auto-apply if the user hasn't hand-picked a different chip for this
   // same title (so we don't fight their choice), then remember we set it.
   if (autoCatTitle === title) return;
-  populateCategorySelect(cat);
+  populateCategorySelect(cat, sub);
   autoCatTitle = title;
   updateEventPreview();
 });
@@ -1421,13 +1472,40 @@ catOverlay.addEventListener("click", function (e) { if (e.target === catOverlay)
    Category filter (schedule) — a small popup of checkboxes; all on
    by default, and never persisted (reload = everything shown again).
    ============================================================ */
+/* An event/item is hidden if its whole category is hidden, or (when it has a
+   subcategory) that specific subcategory is hidden. */
+function isFilteredOut(catId, subId) {
+  if (hiddenCategories.has(catId)) return true;
+  if (subId && hiddenSubcategories.has(subId)) return true;
+  return false;
+}
+
 function renderFilterList() {
   const box = document.getElementById("filterList");
   if (!box) return;
   box.innerHTML = "";
   getCategories().forEach(function (cat) {
+    const subs = Array.isArray(cat.subs) ? cat.subs : [];
+    const hasSubs = subs.length > 0;
+    const expanded = expandedFilterCats.has(cat.id);
+
     const row = document.createElement("div");
     row.className = "filter-row";
+
+    // Expand triangle (only if there are subcategories). Toggles children;
+    // kept separate from the name so it doesn't clash with "solo".
+    const tri = document.createElement("button");
+    tri.type = "button";
+    tri.className = "filter-tri" + (hasSubs ? "" : " filter-tri--empty") + (expanded ? " open" : "");
+    tri.setAttribute("aria-label", expanded ? "Collapse" : "Expand");
+    tri.textContent = hasSubs ? "\u25B8" : "";      // ▸
+    if (hasSubs) {
+      tri.addEventListener("click", function () {
+        if (expandedFilterCats.has(cat.id)) expandedFilterCats.delete(cat.id);
+        else expandedFilterCats.add(cat.id);
+        renderFilterList();
+      });
+    }
 
     const cb = document.createElement("input");
     cb.type = "checkbox";
@@ -1455,26 +1533,93 @@ function renderFilterList() {
 
     solo.appendChild(sw);
     solo.appendChild(name);
+    row.appendChild(tri);
     row.appendChild(cb);
     row.appendChild(solo);
     box.appendChild(row);
+
+    // Subcategory child rows, when expanded.
+    if (hasSubs && expanded) {
+      subs.forEach(function (sub) {
+        const srow = document.createElement("div");
+        srow.className = "filter-row filter-subrow";
+
+        const scb = document.createElement("input");
+        scb.type = "checkbox";
+        scb.checked = !hiddenSubcategories.has(sub.id) && !hiddenCategories.has(cat.id);
+        scb.disabled = hiddenCategories.has(cat.id);   // whole category off = children moot
+        scb.title = "Show/hide this subcategory";
+        scb.addEventListener("change", function () {
+          if (scb.checked) hiddenSubcategories.delete(sub.id);
+          else hiddenSubcategories.add(sub.id);
+          renderCalendar();
+        });
+
+        const ssolo = document.createElement("span");
+        ssolo.className = "filter-solo";
+        ssolo.title = "Show only this subcategory";
+        ssolo.addEventListener("click", function () { soloSubcategory(cat.id, sub.id); });
+
+        const sdot = document.createElement("span");
+        sdot.className = "filter-subdot";
+        sdot.style.background = cat.color;
+
+        const sname = document.createElement("span");
+        sname.className = "filter-name";
+        sname.textContent = sub.name;
+
+        ssolo.appendChild(sdot);
+        ssolo.appendChild(sname);
+        srow.appendChild(scb);
+        srow.appendChild(ssolo);
+        box.appendChild(srow);
+      });
+    }
   });
 }
 
-/* Show only this category. If it's already the only one shown, restore all —
-   so the same click toggles cleanly between "just this" and "everything". */
+/* Show only this category. If it's already the only one shown, restore all. */
 function soloCategory(catId) {
   const cats = getCategories();
   const shown = cats.filter(function (c) { return !hiddenCategories.has(c.id); });
-  const isSolo = shown.length === 1 && shown[0].id === catId;
+  const isSolo = shown.length === 1 && shown[0].id === catId && hiddenSubcategories.size === 0;
 
   if (isSolo) {
     hiddenCategories.clear();
+    hiddenSubcategories.clear();
   } else {
     hiddenCategories = new Set(
       cats.filter(function (c) { return c.id !== catId; }).map(function (c) { return c.id; })
     );
+    hiddenSubcategories.clear();   // showing a whole category shows all its subs
   }
+  renderFilterList();
+  renderCalendar();
+}
+
+/* Show only this subcategory: hide every other category, and hide the sibling
+   subcategories within this one. Toggles back to all if already soloed. */
+function soloSubcategory(catId, subId) {
+  const cats = getCategories();
+  const parent = cats.find(function (c) { return c.id === catId; });
+  const siblings = (parent && parent.subs) ? parent.subs : [];
+
+  const onlyThisCat = cats.every(function (c) { return c.id === catId ? !hiddenCategories.has(c.id) : hiddenCategories.has(c.id); });
+  const siblingsHidden = siblings.every(function (s) { return s.id === subId ? !hiddenSubcategories.has(s.id) : hiddenSubcategories.has(s.id); });
+  const isSolo = onlyThisCat && siblingsHidden && siblings.length > 1;
+
+  if (isSolo) {
+    hiddenCategories.clear();
+    hiddenSubcategories.clear();
+  } else {
+    hiddenCategories = new Set(
+      cats.filter(function (c) { return c.id !== catId; }).map(function (c) { return c.id; })
+    );
+    hiddenSubcategories = new Set(
+      siblings.filter(function (s) { return s.id !== subId; }).map(function (s) { return s.id; })
+    );
+  }
+  if (!expandedFilterCats.has(catId)) expandedFilterCats.add(catId);
   renderFilterList();
   renderCalendar();
 }
@@ -1509,6 +1654,7 @@ const filterCloseBottom = document.getElementById("filterCloseBottom");
 if (filterCloseBottom) filterCloseBottom.addEventListener("click", closeFilterPanel);
 document.getElementById("filterAll").addEventListener("click", function () {
   hiddenCategories.clear();
+  hiddenSubcategories.clear();
   renderFilterList();
   renderCalendar();
 });
