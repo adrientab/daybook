@@ -18,11 +18,24 @@ const DEMO_LIFE = {
 
   /* ---- Categories: the colour-coded kinds of activity ---- */
   categories: [
-    { id: "class",    name: "Class",    color: "#3b82f6" },
-    { id: "work",     name: "Work",     color: "#8b5cf6" },
-    { id: "exercise", name: "Exercise", color: "#22c55e" },
-    { id: "social",   name: "Social",   color: "#f59e0b" },
-    { id: "rest",     name: "Rest",     color: "#6b7280" }
+    { id: "class",    name: "Class",    color: "#3b82f6", subs: [
+      { id: "sub-ochem",  name: "Organic Chemistry" },
+      { id: "sub-linalg", name: "Linear Algebra" },
+      { id: "sub-psych",  name: "Intro to Psychology" }
+    ] },
+    { id: "work",     name: "Work",     color: "#8b5cf6", subs: [
+      { id: "sub-lab",      name: "Research lab" },
+      { id: "sub-jobhunt",  name: "Job hunt" }
+    ] },
+    { id: "exercise", name: "Exercise", color: "#22c55e", subs: [
+      { id: "sub-rugby", name: "Rugby" },
+      { id: "sub-gym",   name: "Gym" }
+    ] },
+    { id: "social",   name: "Social",   color: "#f59e0b", subs: [
+      { id: "sub-friends", name: "Friends" },
+      { id: "sub-family",  name: "Family" }
+    ] },
+    { id: "rest",     name: "Rest",     color: "#6b7280", subs: [] }
   ],
 
   /* ---- Schedule ----
@@ -36,26 +49,26 @@ const DEMO_LIFE = {
     { day: "Sun", start: "18:00", end: "19:00", title: "Call mom",           category: "social",   feel: 9 },
 
     /* Monday */
-    { day: "Mon", start: "09:30", end: "10:45", title: "Organic Chemistry",   category: "class",    feel: 5 },
-    { day: "Mon", start: "11:00", end: "12:15", title: "Linear Algebra",      category: "class",    feel: 7 },
+    { day: "Mon", start: "09:30", end: "10:45", title: "Organic Chemistry",   category: "class", subcategory: "sub-ochem",    feel: 5 },
+    { day: "Mon", start: "11:00", end: "12:15", title: "Linear Algebra",      category: "class", subcategory: "sub-linalg",    feel: 7 },
     { day: "Mon", start: "13:00", end: "15:00", title: "Library block",       category: "class",    feel: 6 },
-    { day: "Mon", start: "18:00", end: "19:30", title: "Rugby club practice", category: "exercise", feel: 9 },
+    { day: "Mon", start: "18:00", end: "19:30", title: "Rugby club practice", category: "exercise", subcategory: "sub-rugby", feel: 9 },
 
     /* Tuesday */
-    { day: "Tue", start: "10:00", end: "11:30", title: "Intro to Psychology", category: "class",    feel: 6 },
-    { day: "Tue", start: "13:00", end: "17:00", title: "Research lab shift",  category: "work",     feel: 7 },
-    { day: "Tue", start: "19:00", end: "21:00", title: "Dinner with Maya",    category: "social",   feel: 9 },
+    { day: "Tue", start: "10:00", end: "11:30", title: "Intro to Psychology", category: "class", subcategory: "sub-psych",    feel: 6 },
+    { day: "Tue", start: "13:00", end: "17:00", title: "Research lab shift",  category: "work", subcategory: "sub-lab",     feel: 7 },
+    { day: "Tue", start: "19:00", end: "21:00", title: "Dinner with Maya",    category: "social", subcategory: "sub-friends",   feel: 9 },
 
     /* Wednesday */
-    { day: "Wed", start: "09:30", end: "10:45", title: "Organic Chemistry",   category: "class",    feel: 4 },
-    { day: "Wed", start: "11:00", end: "12:15", title: "Linear Algebra",      category: "class",    feel: 7 },
+    { day: "Wed", start: "09:30", end: "10:45", title: "Organic Chemistry",   category: "class", subcategory: "sub-ochem",    feel: 4 },
+    { day: "Wed", start: "11:00", end: "12:15", title: "Linear Algebra",      category: "class", subcategory: "sub-linalg",    feel: 7 },
     { day: "Wed", start: "15:00", end: "17:00", title: "Draft the essay",     category: "class",    feel: 5 },
     { day: "Wed", start: "20:00", end: "20:40", title: "Piano practice",      category: "rest",     feel: 8 },
 
     /* Thursday — essay is due tonight */
-    { day: "Thu", start: "10:00", end: "11:30", title: "Intro to Psychology", category: "class",    feel: 6 },
-    { day: "Thu", start: "12:00", end: "13:00", title: "Gym",                 category: "exercise", feel: 8 },
-    { day: "Thu", start: "14:00", end: "17:00", title: "Rugby club practice", category: "exercise", feel: 8 },
+    { day: "Thu", start: "10:00", end: "11:30", title: "Intro to Psychology", category: "class", subcategory: "sub-psych",    feel: 6 },
+    { day: "Thu", start: "12:00", end: "13:00", title: "Gym",                 category: "exercise", subcategory: "sub-gym", feel: 8 },
+    { day: "Thu", start: "14:00", end: "17:00", title: "Rugby club practice", category: "exercise", subcategory: "sub-rugby", feel: 8 },
     { day: "Thu", start: "19:30", end: "22:30", title: "Finish the essay",    category: "class",    feel: 4 }
 
     /* Friday & Saturday intentionally left open for the visitor to fill. */
