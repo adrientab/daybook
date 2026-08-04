@@ -44,6 +44,7 @@ function buildDemoData() {
       start: e.start,
       end: e.end,
       category: e.category,
+      subcategory: e.subcategory || "",
       feel: (e.feel == null ? null : e.feel),
       notes: e.notes || ""
     };
