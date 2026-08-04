@@ -459,10 +459,11 @@ function openFlashcards(deckId) {
     queue: queue,
     idx: 0,
     revealed: false,
+    everRevealed: false,   // has the current card been flipped at least once?
     settings: s,
     total: deck.cards.length,
     doneCount: 0,
-    seen: {},         // card id -> true once rated Neutral/Easy at least once
+    seen: {},         // card id -> true once rated Easy
     history: []       // snapshots for the Back button
   };
   document.getElementById("flashDeckName").textContent = deck.name || "Flashcards";
@@ -496,6 +497,11 @@ function renderFlash() {
   const frontLabel = q.side === "term" ? "Term" : "Definition";
   const backLabel = q.side === "term" ? "Definition" : "Term";
 
+  // Rating buttons show once the card has been revealed at least once — and
+  // stay even if you flip it back to the front to re-test yourself.
+  const showRating = flashState.everRevealed;
+  const canBack = flashState.history.length > 0;
+
   stage.innerHTML =
     '<div class="flash-card' + (flashState.revealed ? " revealed" : "") + '" id="flashCard">' +
       '<div class="flash-face">' +
@@ -509,21 +515,32 @@ function renderFlash() {
           : '<div class="flash-hint">Click to reveal</div>') +
       "</div>" +
     "</div>" +
-    (flashState.revealed
-      ? '<div class="flash-rate">' +
-          '<button class="flash-rate-btn hard" data-rate="hard">Hard</button>' +
-          '<button class="flash-rate-btn neutral" data-rate="neutral">Neutral</button>' +
-          '<button class="flash-rate-btn easy" data-rate="easy">Easy</button>' +
-        "</div>"
-      : "");
+    // Controls row below the card: back-arrow pinned left, ratings centered on
+    // the card. Always present (so the card never shifts); buttons appear
+    // inside it once revealed.
+    '<div class="flash-controls">' +
+      '<button class="flash-back-arrow" id="flashBackArrow" title="Previous card"' +
+        (canBack ? "" : " disabled") + " aria-label=\"Previous card\">&larr;</button>" +
+      '<div class="flash-rate' + (showRating ? "" : " flash-rate--hidden") + '">' +
+        '<button class="flash-rate-btn hard" data-rate="hard">Hard</button>' +
+        '<button class="flash-rate-btn neutral" data-rate="neutral">Neutral</button>' +
+        '<button class="flash-rate-btn easy" data-rate="easy">Easy</button>' +
+      "</div>" +
+    "</div>";
 
-  // Clicking the card toggles reveal: reveal when hidden, and when already
-  // revealed, clicking hides the definition again (acts like Anki's "Again").
+  // Clicking the card toggles reveal. The first reveal latches everRevealed so
+  // the rating buttons stay available even after flipping back.
   document.getElementById("flashCard").addEventListener("click", function () {
     flashState.revealed = !flashState.revealed;
+    if (flashState.revealed) flashState.everRevealed = true;
     renderFlash();
   });
-  if (flashState.revealed) {
+  // Back arrow.
+  document.getElementById("flashBackArrow").addEventListener("click", function (e) {
+    e.stopPropagation();
+    flashBack();
+  });
+  if (showRating) {
     stage.querySelectorAll(".flash-rate-btn").forEach(function (b) {
       b.addEventListener("click", function (e) {
         e.stopPropagation();
@@ -550,26 +567,38 @@ function rateFlash(rating) {
     seen: Object.assign({}, flashState.seen)
   });
 
-  const remaining = flashState.queue.length - flashState.idx - 1;
+  // Reinsertion distance is a fraction of the whole deck (in cards). Nothing
+  // ever leaves the queue, so this runs as an endless mode — cards you know
+  // best simply come back least often:
+  //   Hard    -> reappears 10–20% of the deck later
+  //   Neutral -> reappears 25–50% of the deck later
+  //   Easy    -> reappears a full deck-length later (100%)
+  // Only Easy counts a card as mastered.
+  const total = flashState.total || 1;
+  function randSpan(lo, hi) {
+    const a = Math.round(total * lo);
+    const b = Math.round(total * hi);
+    const span = Math.max(1, a + Math.floor(Math.random() * (b - a + 1)));
+    return span;
+  }
   let offset;
-  if (rating === "hard") offset = Math.min(4, remaining + 1);
-  else if (rating === "neutral") offset = remaining + 1;      // back of the line
-  else offset = Infinity;                                     // easy -> drop it
+  if (rating === "hard") offset = randSpan(0.10, 0.20);
+  else if (rating === "neutral") offset = randSpan(0.25, 0.50);
+  else offset = Math.max(1, total);                          // easy -> a full deck later
 
-  // Count a card as "mastered for this session" the first time it's Neutral/Easy.
-  if ((rating === "neutral" || rating === "easy") && !flashState.seen[q.card.id]) {
+  // Only Easy marks a card as mastered (the first time).
+  if (rating === "easy" && !flashState.seen[q.card.id]) {
     flashState.seen[q.card.id] = true;
     flashState.doneCount++;
   }
 
   flashState.idx++;
 
-  if (offset !== Infinity) {
-    const insertAt = Math.min(flashState.idx + offset, flashState.queue.length);
-    flashState.queue.splice(insertAt, 0, { card: q.card, side: sideFor(s.mode) });
-  }
+  const insertAt = Math.min(flashState.idx + offset, flashState.queue.length);
+  flashState.queue.splice(insertAt, 0, { card: q.card, side: sideFor(s.mode) });
 
   flashState.revealed = false;
+  flashState.everRevealed = false;   // the next card starts fresh
   renderFlash();
 }
 
@@ -583,6 +612,7 @@ function flashBack() {
   flashState.doneCount = prev.doneCount;
   flashState.seen = prev.seen;
   flashState.revealed = false;
+  flashState.everRevealed = true;    // you already saw this card, so keep ratings available
   renderFlash();
 }
 
@@ -592,15 +622,12 @@ function updateFlashProgress() {
   const pct = flashState.total ? Math.round((flashState.doneCount / flashState.total) * 100) : 0;
   if (bar) bar.style.width = pct + "%";
   if (label) label.textContent = flashState.doneCount + " / " + flashState.total + " mastered";
-  const back = document.getElementById("flashBackBtn");
-  if (back) back.disabled = flashState.history.length === 0;
 }
 
 function initFlash() {
   document.getElementById("studyFlashExit").addEventListener("click", function () {
     hideOverlay("studyFlash");
   });
-  document.getElementById("flashBackBtn").addEventListener("click", flashBack);
   // Settings popover
   document.getElementById("flashSettingsBtn").addEventListener("click", function () {
     document.getElementById("flashSettingsPop").hidden = !document.getElementById("flashSettingsPop").hidden;
