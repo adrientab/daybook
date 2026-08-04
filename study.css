@@ -166,8 +166,6 @@
   background: var(--sidebar-bg); transition: width 0.3s ease;
 }
 .flash-progress-label { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
-.flash-back-btn { flex: 0 0 auto; white-space: nowrap; }
-.flash-back-btn:disabled { opacity: 0.4; cursor: default; }
 
 .flash-body { display: flex; }
 .flash-stage {
@@ -194,6 +192,39 @@
 .flash-hint { margin-top: 18px; color: var(--muted); font-size: 0.85rem; }
 
 .flash-rate { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+/* Controls row sits below the card. The rating buttons are centered on the
+   card; the back arrow is pinned to the left without pushing them off-centre.
+   The rating group keeps its space even when hidden, so the card never shifts. */
+.flash-controls {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+}
+.flash-rate--hidden { visibility: hidden; }
+.flash-back-arrow {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px; height: 38px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+.flash-back-arrow:hover:not(:disabled) { border-color: var(--sidebar-bg); }
+.flash-back-arrow:disabled { opacity: 0.35; cursor: default; }
 .flash-rate-btn {
   border: 1px solid var(--border); background: var(--surface); color: var(--text);
   border-radius: 999px; padding: 10px 22px; font: inherit; font-weight: 500;
