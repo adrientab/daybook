@@ -1405,7 +1405,7 @@ body.hide-sidebar .sidebar { display: none; }
 
 .suggest-anchor {
   position: absolute;
-  top: 78px;                /* = the calendar grid top, same as the filter popup */
+  top: 79px;                /* = the calendar grid top, same as the filter popup */
   right: 0;
   width: 210px;
   z-index: 5;
@@ -1439,7 +1439,7 @@ body.hide-sidebar .sidebar { display: none; }
    not a full-height sidebar. (Suggestions stays the right-hand drag panel.) */
 .filter-panel {
   position: absolute;
-  top: 78px;                /* = the calendar grid top */
+  top: 79px;                /* = the calendar grid top */
   right: 0;
   width: 210px;             /* match the Suggestions panel */
   z-index: 8;
