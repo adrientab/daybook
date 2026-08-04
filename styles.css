@@ -882,10 +882,13 @@ body.hide-sidebar .sidebar { display: none; }
    SECTION HEADERS (shared by Goals + Journal)
    ============================================================ */
 .section-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
   margin-bottom: 12px;
-  min-height: 40px;   /* = a button's height, so title-only headers match ones with a button */
 }
+/* Any control beside the title (e.g. + New goal / + New deck) is centred to the
+   title line, while the title itself stays top-aligned so it lands at the same
+   vertical position as the titles on the calendar-style pages. */
+.section-head > .btn { align-self: center; }
 #addGoalBtn { margin-left: auto; } /* stays right now the Goals title is gone */
 .section-head h2 { margin: 0; font-size: 1.5rem; line-height: 1.2; font-weight: 700; }
 
