@@ -109,6 +109,10 @@
 
 /* ---------- editor ---------- */
 .field-optional { color: var(--muted); font-weight: 400; }
+/* Category + subcategory dropdowns sit side by side in the editor. */
+.edit-cat-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.edit-cat-field { flex: 1; min-width: 180px; margin-bottom: 14px; }
+.edit-cat-field .inline-select { width: 100%; }
 .edit-cards-head {
   display: flex; align-items: center; justify-content: space-between;
   font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;

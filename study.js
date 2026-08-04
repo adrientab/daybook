@@ -39,6 +39,22 @@ function deleteDeck(id) {
   saveDecks(loadDecks().filter(function (d) { return d.id !== id; }));
 }
 
+/* A deck's category shown as text. Decks store a category id from the shared
+   system; resolve it to the category name (plus subcategory). For older/demo
+   decks whose category is a plain string (not an id), show it as-is. */
+function deckCategoryLabel(d) {
+  if (!d.category) return "";
+  const cats = (typeof getCategories === "function") ? getCategories() : [];
+  const cat = cats.find(function (c) { return c.id === d.category; });
+  if (!cat) return d.category;   // free-text / legacy value
+  let label = cat.name;
+  if (d.subcategory && typeof subcategoryName === "function") {
+    const sn = subcategoryName(d.category, d.subcategory);
+    if (sn) label += " \u203a " + sn;   // "Category › Subcategory"
+  }
+  return label;
+}
+
 /* Small helpers */
 function shuffle(arr) {
   const a = arr.slice();
@@ -80,12 +96,13 @@ function renderStudy() {
 
   decks.forEach(function (d) {
     const count = (d.cards || []).length;
+    const catName = deckCategoryLabel(d);
     const row = document.createElement("div");
     row.className = "study-deck-row";
     row.innerHTML =
       '<div class="study-deck-main">' +
         '<div class="study-deck-name">' + escapeHtml(d.name || "Untitled deck") +
-          (d.category ? ' <span class="study-deck-cat">' + escapeHtml(d.category) + "</span>" : "") +
+          (catName ? ' <span class="study-deck-cat">' + escapeHtml(catName) + "</span>" : "") +
         "</div>" +
         '<div class="study-deck-meta">' + count + " term" + (count === 1 ? "" : "s") +
           (d.description ? " &middot; " + escapeHtml(d.description) : "") +
@@ -130,10 +147,10 @@ function openEditor(deckId) {
   const existing = deckId ? getDeck(deckId) : null;
   editorState = existing
     ? { id: existing.id, name: existing.name || "", description: existing.description || "",
-        category: existing.category || "",
+        category: existing.category || "", subcategory: existing.subcategory || "",
         cards: (existing.cards || []).map(function (c) { return { id: c.id, term: c.term, def: c.def }; }),
         dirty: false, isNew: false }
-    : { id: uid("deck"), name: "", description: "", category: "", cards: [], dirty: false, isNew: true };
+    : { id: uid("deck"), name: "", description: "", category: "", subcategory: "", cards: [], dirty: false, isNew: true };
 
   // Always start with at least a couple of blank rows for a new deck.
   if (editorState.isNew && editorState.cards.length === 0) {
@@ -144,24 +161,46 @@ function openEditor(deckId) {
   document.getElementById("studyEditorTitle").textContent = existing ? "Edit deck" : "New deck";
   document.getElementById("editDeckName").value = editorState.name;
   document.getElementById("editDeckDesc").value = editorState.description;
-  document.getElementById("editDeckCat").value = editorState.category;
-  populateCategoryList();
+  populateDeckCategory();
   renderEditorCards();
   showOverlay("studyEditor");
 }
 
-/* Fill the category autocomplete with the distinct categories already in use. */
-function populateCategoryList() {
-  const list = document.getElementById("deckCatList");
-  if (!list) return;
-  const cats = {};
-  loadDecks().forEach(function (d) {
-    const c = (d.category || "").trim();
-    if (c) cats[c] = true;
-  });
-  list.innerHTML = Object.keys(cats).sort().map(function (c) {
-    return '<option value="' + escapeHtml(c) + '"></option>';
-  }).join("");
+/* Fill the category dropdown from the app's shared categories, then the
+   subcategory dropdown from the chosen category (hidden if it has none).
+   Decks reuse the same category system as events. */
+function populateDeckCategory() {
+  const catSel = document.getElementById("editDeckCat");
+  const cats = getCategories();
+  catSel.innerHTML = '<option value="">None</option>' +
+    cats.map(function (c) {
+      return '<option value="' + c.id + '">' + escapeHtml(c.name) + "</option>";
+    }).join("");
+  // If the saved category no longer exists, fall back to None.
+  catSel.value = cats.some(function (c) { return c.id === editorState.category; })
+    ? editorState.category : "";
+  editorState.category = catSel.value;
+  populateDeckSub();
+}
+
+function populateDeckSub() {
+  const field = document.getElementById("editDeckSubField");
+  const subSel = document.getElementById("editDeckSub");
+  const subs = getSubcategories(editorState.category);
+  if (!editorState.category || !subs.length) {
+    field.hidden = true;
+    subSel.innerHTML = "";
+    editorState.subcategory = "";
+    return;
+  }
+  field.hidden = false;
+  subSel.innerHTML = '<option value="">None</option>' +
+    subs.map(function (s) {
+      return '<option value="' + s.id + '">' + escapeHtml(s.name) + "</option>";
+    }).join("");
+  subSel.value = subs.some(function (s) { return s.id === editorState.subcategory; })
+    ? editorState.subcategory : "";
+  editorState.subcategory = subSel.value;
 }
 
 function renderEditorCards() {
@@ -234,8 +273,14 @@ function initEditor() {
   document.getElementById("editDeckDesc").addEventListener("input", function () {
     editorState.description = this.value; editorState.dirty = true;
   });
-  document.getElementById("editDeckCat").addEventListener("input", function () {
-    editorState.category = this.value; editorState.dirty = true;
+  document.getElementById("editDeckCat").addEventListener("change", function () {
+    editorState.category = this.value;
+    editorState.subcategory = "";          // reset sub when the category changes
+    editorState.dirty = true;
+    populateDeckSub();
+  });
+  document.getElementById("editDeckSub").addEventListener("change", function () {
+    editorState.subcategory = this.value; editorState.dirty = true;
   });
   document.getElementById("editAddCard").addEventListener("click", function () {
     editorState.cards.push({ id: uid("card"), term: "", def: "" });
@@ -272,7 +317,9 @@ function exportDeck() {
   const lines = [];
   lines.push("# name: " + (editorState.name || "Untitled deck"));
   if (editorState.description) lines.push("# description: " + editorState.description);
-  if (editorState.category) lines.push("# category: " + editorState.category);
+  if (editorState.category) {
+    lines.push("# category: " + deckCategoryLabel({ category: editorState.category, subcategory: editorState.subcategory }));
+  }
   editorState.cards.forEach(function (c) {
     const term = (c.term || "").replace(/\t/g, " ");
     const def = (c.def || "").replace(/\t/g, " ");
@@ -353,7 +400,8 @@ function saveEditor() {
     id: editorState.id,
     name: editorState.name.trim() || "Untitled deck",
     description: editorState.description.trim(),
-    category: editorState.category.trim(),
+    category: editorState.category || "",
+    subcategory: editorState.subcategory || "",
     cards: cards
   };
   upsertDeck(deck);
