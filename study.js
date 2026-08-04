@@ -128,8 +128,12 @@ function renderStudy() {
       openExam(d.id);
     });
     // Clicking the row itself (anywhere but the action buttons, which stop
-    // propagation) opens the editor.
-    row.addEventListener("click", function () { openEditor(d.id); });
+    // propagation) opens Flashcards. Empty decks fall back to the editor so
+    // there's somewhere useful to land.
+    row.addEventListener("click", function () {
+      if (count) openFlashcards(d.id);
+      else openEditor(d.id);
+    });
     row.style.cursor = "pointer";
     list.appendChild(row);
   });
