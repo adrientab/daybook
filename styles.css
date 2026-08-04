@@ -884,6 +884,7 @@ body.hide-sidebar .sidebar { display: none; }
 .section-head {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   margin-bottom: 12px;
+  min-height: 40px;   /* = a button's height, so title-only headers match ones with a button */
 }
 #addGoalBtn { margin-left: auto; } /* stays right now the Goals title is gone */
 .section-head h2 { margin: 0; font-size: 1.5rem; line-height: 1.2; font-weight: 700; }
