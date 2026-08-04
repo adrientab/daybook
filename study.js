@@ -127,6 +127,10 @@ function renderStudy() {
       if (!count) { alert("This deck has no cards yet. Add some in Edit first."); return; }
       openExam(d.id);
     });
+    // Clicking the row itself (anywhere but the action buttons, which stop
+    // propagation) opens the editor.
+    row.addEventListener("click", function () { openEditor(d.id); });
+    row.style.cursor = "pointer";
     list.appendChild(row);
   });
 }
