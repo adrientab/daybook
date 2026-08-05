@@ -1652,9 +1652,12 @@ body.hide-sidebar .sidebar { display: none; }
     position: fixed;
     left: 0;
     right: 0;
+    top: auto;            /* clear the desktop 'top: 0' so 'bottom' wins */
     bottom: 0;
     width: auto;
     height: auto;
+    align-self: auto;
+    overflow: visible;
     display: flex;
     gap: 2px;
     padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
