@@ -1661,19 +1661,20 @@ body.hide-sidebar .sidebar { display: none; }
     display: flex;
     gap: 2px;
     padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
-    transition: transform 0.22s ease, border-radius 0.22s ease, padding 0.2s ease;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                border-radius 0.4s ease,
+                padding 0.4s ease,
+                bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 50;
     box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
   }
 
-  /* Collapsed: the whole tab bar slides down out of view, leaving only a thin
-     solid strip peeking at the bottom (Safari-style). Tapping the strip, mouse
-     hovering it, or scrolling up brings the full bar back (handled in JS by
-     removing .nav-collapsed).
-
-     Collapsed here means "shrink to a small pill floating just above the bottom
-     edge" — clearly visible and tappable, not hidden. Tapping it (or scrolling
-     up) expands back to the full bar. */
+  /* Collapsed: the bar contracts into a small "Menu" pill floating just above
+     the bottom edge — clearly visible and tappable, not hidden. Tapping it,
+     hovering it (mouse), or scrolling up (touch) expands it back. The slower
+     transition on transform/padding/border-radius/bottom makes it read as the
+     bar shrinking into the pill and growing back out. */
   .sidebar.nav-collapsed {
     left: 50%;
     right: auto;
@@ -1686,15 +1687,14 @@ body.hide-sidebar .sidebar { display: none; }
     box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.45);
     overflow: hidden;
   }
-  /* Collapse the tabs down to a single compact "menu" pill. Hide the individual
-     tabs and show a grip + label instead, drawn via ::before. */
+  /* Collapse the tabs down to a single compact "menu" pill. */
   .sidebar.nav-collapsed .nav-item { display: none; }
   .sidebar.nav-collapsed::before {
     content: "\2630  Menu";                 /* ☰ Menu */
     display: block;
-    padding: 9px 22px;
+    padding: 11px 26px;
     color: #fff;
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     font-weight: 600;
     letter-spacing: 0.02em;
     white-space: nowrap;
