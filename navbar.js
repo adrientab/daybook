@@ -1,7 +1,14 @@
 /* ============================================================
    navbar.js — auto-hiding bottom tab bar on narrow screens.
-   TEMPORARY: includes an on-screen debug readout (top-left) so we can see
-   what's happening. Remove the DEBUG block once it's working.
+
+   Only active in the narrow (bottom-bar) layout — wide mode with the left
+   sidebar is untouched. Safari-style:
+     - scroll down  -> collapse to a small "Menu" pill floating near the bottom
+     - scroll up    -> reveal the full bar
+     - tap / hover the pill -> reveal the full bar
+
+   Scroll is listened for on window AND in the capture phase on document, so it
+   works whether the page scrolls or an inner container (e.g. the calendar) does.
    ============================================================ */
 
 (function () {
@@ -9,15 +16,7 @@
 
   function init() {
     var sidebar = document.getElementById("sidebar");
-
-    // --- DEBUG readout ---
-    var dbg = document.createElement("div");
-    dbg.style.cssText = "position:fixed;top:4px;left:4px;z-index:9999;background:rgba(0,0,0,.8);color:#fff;font:11px monospace;padding:4px 6px;border-radius:4px;pointer-events:none;max-width:60vw;";
-    document.body.appendChild(dbg);
-    function log(msg) { dbg.textContent = msg; }
-
-    if (!sidebar) { log("navbar: #sidebar NOT FOUND"); return; }
-    log("navbar: ready narrow=" + isNarrow());
+    if (!sidebar) return;
 
     var lastY = null;
     var THRESHOLD = 6;
@@ -30,10 +29,8 @@
       return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
     }
 
-    function handle(y, src) {
-      var narrow = isNarrow();
-      log("scroll " + src + " y=" + Math.round(y) + " narrow=" + narrow + " collapsed=" + sidebar.classList.contains("nav-collapsed"));
-      if (!narrow) { expand(); lastY = y; return; }
+    function handle(y) {
+      if (!isNarrow()) { expand(); lastY = y; return; }
       if (lastY == null) { lastY = y; return; }
       var dy = y - lastY;
       if (Math.abs(dy) < THRESHOLD) return;
@@ -42,13 +39,18 @@
       lastY = y;
     }
 
-    window.addEventListener("scroll", function () { handle(scrollTop(), "win"); }, { passive: true });
-    document.addEventListener("scroll", function (e) { handle(scrollTop(e.target), "doc"); }, { passive: true, capture: true });
+    window.addEventListener("scroll", function () { handle(scrollTop()); }, { passive: true });
+    document.addEventListener("scroll", function (e) { handle(scrollTop(e.target)); }, { passive: true, capture: true });
 
+    // Tap the collapsed pill -> reveal the full bar.
     sidebar.addEventListener("click", function () {
       if (sidebar.classList.contains("nav-collapsed")) expand();
     });
-    sidebar.addEventListener("mouseenter", function () { if (isNarrow()) expand(); });
+    // Hover the pill (mouse, narrow desktop windows) -> reveal.
+    sidebar.addEventListener("mouseenter", function () {
+      if (isNarrow()) expand();
+    });
+
     window.addEventListener("resize", function () { if (!isNarrow()) expand(); });
   }
 
