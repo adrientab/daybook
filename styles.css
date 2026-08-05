@@ -1658,10 +1658,31 @@ body.hide-sidebar .sidebar { display: none; }
     display: flex;
     gap: 2px;
     padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
-    transition: none;
+    transition: transform 0.22s ease;
     z-index: 50;
     box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
   }
+
+  /* Collapsed: the whole tab bar slides down out of view, leaving only a thin
+     solid strip peeking at the bottom (Safari-style). Tapping the strip, mouse
+     hovering it, or scrolling up brings the full bar back (handled in JS by
+     removing .nav-collapsed). A pseudo-element draws the strip so it stays put
+     while the bar itself is translated away. */
+  .sidebar.nav-collapsed {
+    transform: translateY(calc(100% - 6px));   /* leave a 6px strip visible */
+  }
+  .sidebar.nav-collapsed::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 6px;
+    background: var(--sidebar-bg);
+    border-radius: 3px 3px 0 0;
+  }
+  /* While collapsed, the peeking strip is the tap/hover target; make the tabs
+     underneath non-interactive so a tap on the strip doesn't hit a tab. */
+  .sidebar.nav-collapsed .nav-item { pointer-events: none; }
+
   .sidebar-head { display: none; }     /* brand + collapse arrow: no room, no purpose */
   .nav-item {
     flex: 1 1 0;
