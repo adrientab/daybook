@@ -1650,54 +1650,71 @@ body.hide-sidebar .sidebar { display: none; }
   .sidebar {
     flex-direction: row;
     position: fixed;
-    left: 0;
-    right: 0;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
     top: auto;            /* clear the desktop 'top: 0' so 'bottom' wins */
     bottom: 0;
-    width: auto;
+    width: 100%;
     height: auto;
     align-self: auto;
-    overflow: visible;
+    overflow: hidden;
     display: flex;
     gap: 2px;
     padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                border-radius 0.4s ease,
-                padding 0.4s ease,
-                bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.4s cubic-bezier(0.34, 1.2, 0.64, 1),
+                bottom 0.34s cubic-bezier(0.4, 0, 0.2, 1),
+                border-radius 0.34s ease,
+                padding 0.3s ease,
+                min-height 0.34s ease;
     z-index: 50;
     box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
   }
 
-  /* Collapsed: the bar contracts into a small "Menu" pill floating just above
-     the bottom edge — clearly visible and tappable, not hidden. Tapping it,
-     hovering it (mouse), or scrolling up (touch) expands it back. The slower
-     transition on transform/padding/border-radius/bottom makes it read as the
-     bar shrinking into the pill and growing back out. */
+  /* Collapsed: the bar shrinks to a small ☰ pill floating just above the bottom
+     edge. Expanding = the pill GROWS back into the full bar, then the tabs fade
+     in. The trick that makes it smooth: the bar keeps left/right anchored and we
+     animate a fixed width + centered position (fixed values tween; 'auto' would
+     not). The ☰ glyph and the tabs cross-fade so the pill visibly becomes the
+     menu rather than one sliding in over the other. */
   .sidebar.nav-collapsed {
     left: 50%;
     right: auto;
+    width: 62px;
     transform: translateX(-50%);
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px));  /* lifted off the bottom */
-    width: auto;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
     gap: 0;
     padding: 0;
     border-radius: 999px;
     box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.45);
     overflow: hidden;
+    justify-content: center;
+    align-items: center;
+    min-height: 42px;
   }
-  /* Collapse the tabs down to a single compact "menu" pill. */
-  .sidebar.nav-collapsed .nav-item { display: none; }
+  /* Tabs fade out quickly while collapsed; fade back in (slightly delayed) as
+     the bar finishes growing, so the menu "appears" once it's full-size. */
+  .sidebar .nav-item {
+    transition: opacity 0.18s ease;
+  }
+  .sidebar.nav-collapsed .nav-item {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .sidebar:not(.nav-collapsed) .nav-item {
+    transition: opacity 0.2s ease 0.18s;   /* fade in after the grow */
+  }
+  /* The ☰ glyph shown only while collapsed. */
   .sidebar.nav-collapsed::before {
-    content: "\2630  Menu";                 /* ☰ Menu */
-    display: block;
-    padding: 11px 26px;
+    content: "\2630";                       /* ☰ */
+    position: absolute;
+    left: 0; right: 0; top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
     color: #fff;
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
+    font-size: 1.15rem;
+    line-height: 1;
+    pointer-events: none;
   }
 
   .sidebar-head { display: none; }     /* brand + collapse arrow: no room, no purpose */
