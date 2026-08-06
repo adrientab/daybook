@@ -199,8 +199,26 @@ function populateStudyCatFilter(decks) {
 function initStudy() {
   const newBtn = document.getElementById("studyNewBtn");
   if (newBtn) newBtn.addEventListener("click", function () { openEditor(null); });
+
   const search = document.getElementById("studySearch");
+  const searchWrap = document.getElementById("studySearchWrap");
+  const searchBtn = document.getElementById("studySearchBtn");
   if (search) search.addEventListener("input", renderStudy);
+  // Expanding search: the icon opens it; it collapses when left empty on blur.
+  if (searchBtn && searchWrap && search) {
+    searchBtn.addEventListener("click", function () {
+      if (searchWrap.classList.contains("open") && !search.value) {
+        searchWrap.classList.remove("open");
+      } else {
+        searchWrap.classList.add("open");
+        search.focus();
+      }
+    });
+    search.addEventListener("blur", function () {
+      if (!search.value.trim()) searchWrap.classList.remove("open");
+    });
+  }
+
   const catFilter = document.getElementById("studyCatFilter");
   if (catFilter) catFilter.addEventListener("change", renderStudy);
 }
