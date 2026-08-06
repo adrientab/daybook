@@ -19,7 +19,8 @@
     if (!sidebar) return;
 
     var lastY = null;
-    var THRESHOLD = 10;         // ignore small scroll jitters
+    var downAccum = 0;              // accumulated downward scroll since last reversal
+    var COLLAPSE_DISTANCE = 120;    // must scroll down this many px before collapsing
     var atBottomGuard = false;  // set briefly when we're at the very bottom
 
     var touchActive = false;
@@ -45,19 +46,21 @@
 
     function handle(y) {
       if (!isNarrow()) { expand(); lastY = y; return; }
-      if (lastY == null) { lastY = y; return; }
+      if (lastY == null) { lastY = y; downAccum = 0; return; }
       var dy = y - lastY;
-      if (Math.abs(dy) < THRESHOLD) return;
-
-      if (dy > 0 && y > 30) {
-        collapse();
-      } else if (dy < 0 && touchActive) {
-        // iOS Safari "rubber-band" at the very bottom bounces the page up a few
-        // px, which looks like a scroll-up we didn't make. Ignore upward motion
-        // that happens right at the bottom edge so the bar doesn't pop open.
-        if (!(y >= maxScroll() - 4)) expand();
-      }
       lastY = y;
+      if (Math.abs(dy) < 2) return;   // ignore sub-pixel jitter
+
+      if (dy > 0) {
+        // Accumulate downward distance; only collapse once the user has scrolled
+        // down a meaningful amount, so a small nudge doesn't tuck the bar away.
+        downAccum += dy;
+        if (downAccum >= COLLAPSE_DISTANCE && y > 30) collapse();
+      } else {
+        // Any upward motion resets the accumulator and (on touch) reveals.
+        downAccum = 0;
+        if (touchActive && !(y >= maxScroll() - 4)) expand();
+      }
     }
 
     window.addEventListener("scroll", function () { handle(scrollTop()); }, { passive: true });
@@ -65,24 +68,26 @@
 
     // Tap-to-expand. Use pointerdown in CAPTURE phase so, when collapsed, we
     // expand and fully swallow the event before it can reach a tab underneath
-    // (which otherwise navigated to whatever tab sat under your finger).
+    // Tap-to-expand. When collapsed, expand and fully swallow the tap so it
+    // can't fall through to a tab underneath. We handle it on pointerdown in the
+    // capture phase, and also guard the following click. If iOS consumes the
+    // first tap to restore its toolbar, the bar simply stays collapsed and the
+    // next tap expands it — state and visuals stay in sync because resize no
+    // longer re-collapses.
+    function swallow(e) { e.preventDefault(); e.stopPropagation(); }
+
     sidebar.addEventListener("pointerdown", function (e) {
       if (collapsed()) {
-        e.preventDefault();
-        e.stopPropagation();
+        swallow(e);
+        sidebar.dataset.justExpanded = "1";
         expand();
       }
     }, true);
-    // Belt-and-suspenders: also swallow the click that follows a collapsed tap.
     sidebar.addEventListener("click", function (e) {
       if (sidebar.dataset.justExpanded === "1") {
-        e.preventDefault();
-        e.stopPropagation();
+        swallow(e);
         sidebar.dataset.justExpanded = "";
       }
-    }, true);
-    sidebar.addEventListener("pointerdown", function () {
-      if (collapsed()) sidebar.dataset.justExpanded = "1";
     }, true);
 
     // Hover to expand; leaving collapses again (desktop).
@@ -110,9 +115,13 @@
     }
     syncBottom();
 
+    // Resize fires constantly on iOS as Safari's toolbar slides in/out. Do NOT
+    // collapse here — that was fighting the user's tap (tap expands, toolbar
+    // reveal fires resize, resize re-collapsed it -> state/visual desync). Just
+    // re-sync the pill's position, and restore the full bar in wide mode.
     window.addEventListener("resize", function () {
       if (!isNarrow()) expand();
-      else collapse();
+      syncBottom();
     });
   }
 

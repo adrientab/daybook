@@ -1662,11 +1662,11 @@ body.hide-sidebar .sidebar { display: none; }
     display: flex;
     gap: 2px;
     padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
-    transition: width 0.4s cubic-bezier(0.34, 1.2, 0.64, 1),
-                bottom 0.34s cubic-bezier(0.4, 0, 0.2, 1),
-                border-radius 0.34s ease,
-                padding 0.3s ease,
-                min-height 0.34s ease;
+    transition: width 0.28s cubic-bezier(0.34, 1.15, 0.64, 1),
+                bottom 0.24s cubic-bezier(0.4, 0, 0.2, 1),
+                border-radius 0.24s ease,
+                padding 0.22s ease,
+                min-height 0.24s ease;
     z-index: 50;
     box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
   }
@@ -1690,7 +1690,7 @@ body.hide-sidebar .sidebar { display: none; }
     overflow: hidden;
     justify-content: center;
     align-items: center;
-    min-height: 42px;
+    min-height: 34px;
   }
   /* Tabs fade out quickly while collapsed; fade back in (slightly delayed) as
      the bar finishes growing, so the menu "appears" once it's full-size. */
@@ -1702,7 +1702,7 @@ body.hide-sidebar .sidebar { display: none; }
     pointer-events: none;
   }
   .sidebar:not(.nav-collapsed) .nav-item {
-    transition: opacity 0.2s ease 0.18s;   /* fade in after the grow */
+    transition: opacity 0.16s ease 0.14s;   /* fade in after the grow */
   }
   /* The ☰ glyph shown only while collapsed. */
   .sidebar.nav-collapsed::before {
