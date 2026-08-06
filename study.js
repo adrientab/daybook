@@ -83,13 +83,38 @@ function answersMatch(a, b) {
 function renderStudy() {
   const list = document.getElementById("studyList");
   if (!list) return;
-  const decks = loadDecks();
+  const allDecks = loadDecks();
+
+  populateStudyCatFilter(allDecks);
+
+  const query = (document.getElementById("studySearch") || {}).value || "";
+  const q = query.trim().toLowerCase();
+  const catFilter = (document.getElementById("studyCatFilter") || {}).value || "";
+
+  // Filter by name search and by chosen category.
+  const decks = allDecks.filter(function (d) {
+    if (q && (d.name || "").toLowerCase().indexOf(q) === -1) return false;
+    if (catFilter) {
+      // catFilter is a category id, or "__none__" for uncategorised decks.
+      if (catFilter === "__none__") { if (d.category) return false; }
+      else if (d.category !== catFilter) return false;
+    }
+    return true;
+  });
+
   list.innerHTML = "";
 
-  if (!decks.length) {
+  if (!allDecks.length) {
     const empty = document.createElement("p");
     empty.className = "study-empty";
     empty.textContent = "No decks yet. Create your first study set to get started.";
+    list.appendChild(empty);
+    return;
+  }
+  if (!decks.length) {
+    const empty = document.createElement("p");
+    empty.className = "study-empty";
+    empty.textContent = "No decks match your search or filter.";
     list.appendChild(empty);
     return;
   }
@@ -127,9 +152,6 @@ function renderStudy() {
       if (!count) { alert("This deck has no cards yet. Add some in Edit first."); return; }
       openExam(d.id);
     });
-    // Clicking the row itself (anywhere but the action buttons, which stop
-    // propagation) opens Flashcards. Empty decks fall back to the editor so
-    // there's somewhere useful to land.
     row.addEventListener("click", function () {
       if (count) openFlashcards(d.id);
       else openEditor(d.id);
@@ -139,10 +161,48 @@ function renderStudy() {
   });
 }
 
+/* Fill the category filter dropdown with the categories actually in use by the
+   decks (plus "All" and, if any deck is uncategorised, "Uncategorised").
+   Preserves the current selection across re-renders. */
+function populateStudyCatFilter(decks) {
+  const sel = document.getElementById("studyCatFilter");
+  if (!sel) return;
+  const prev = sel.value;
+
+  const cats = (typeof getCategories === "function") ? getCategories() : [];
+  const usedIds = {};
+  let hasUncategorised = false;
+  decks.forEach(function (d) {
+    if (d.category) usedIds[d.category] = true; else hasUncategorised = true;
+  });
+
+  let html = '<option value="">All categories</option>';
+  cats.forEach(function (c) {
+    if (usedIds[c.id]) html += '<option value="' + c.id + '">' + escapeHtml(c.name) + "</option>";
+  });
+  // Decks whose category is a legacy free-text string (not a known id).
+  Object.keys(usedIds).forEach(function (id) {
+    if (!cats.some(function (c) { return c.id === id; })) {
+      html += '<option value="' + escapeHtml(id) + '">' + escapeHtml(id) + "</option>";
+    }
+  });
+  if (hasUncategorised) html += '<option value="__none__">Uncategorised</option>';
+  sel.innerHTML = html;
+
+  // Restore selection if still valid.
+  if (prev && sel.querySelector('option[value="' + (window.CSS && CSS.escape ? CSS.escape(prev) : prev) + '"]')) {
+    sel.value = prev;
+  }
+}
+
 /* Wire the "New deck" button once. */
 function initStudy() {
   const newBtn = document.getElementById("studyNewBtn");
   if (newBtn) newBtn.addEventListener("click", function () { openEditor(null); });
+  const search = document.getElementById("studySearch");
+  if (search) search.addEventListener("input", renderStudy);
+  const catFilter = document.getElementById("studyCatFilter");
+  if (catFilter) catFilter.addEventListener("change", renderStudy);
 }
 
 /* ============================================================
@@ -445,7 +505,7 @@ const FLASH_SETTINGS_KEY = "study-flash-settings";
 
 function flashSettings() {
   const raw = Store.get(FLASH_SETTINGS_KEY);
-  const def = { mode: "term" };   // show term first by default
+  const def = { mode: "term", count: 0 };   // show term first; 0 = all cards
   if (!raw) return def;
   try { return Object.assign(def, JSON.parse(raw)); } catch (e) { return def; }
 }
@@ -455,7 +515,14 @@ function openFlashcards(deckId) {
   const deck = getDeck(deckId);
   if (!deck || !deck.cards.length) return;
   const s = flashSettings();
-  const queue = shuffle(deck.cards).map(function (card) {
+
+  // Optionally limit to a random subset of the deck (like exam mode).
+  let cards = shuffle(deck.cards);
+  if (s.count && s.count > 0 && s.count < cards.length) {
+    cards = cards.slice(0, s.count);
+  }
+
+  const queue = cards.map(function (card) {
     return { card: card, side: sideFor(s.mode) };
   });
   flashState = {
@@ -465,12 +532,15 @@ function openFlashcards(deckId) {
     revealed: false,
     everRevealed: false,   // has the current card been flipped at least once?
     settings: s,
-    total: deck.cards.length,
+    total: cards.length,   // the studied subset, so "mastered" counts against it
     doneCount: 0,
     seen: {},         // card id -> true once rated Easy
     history: []       // snapshots for the Back button
   };
   document.getElementById("flashDeckName").textContent = deck.name || "Flashcards";
+  // Reflect the saved count into the control.
+  const countInput = document.getElementById("flashCount");
+  if (countInput) countInput.value = s.count || "";
   showOverlay("studyFlash");
   renderFlash();
 }
@@ -651,6 +721,17 @@ function initFlash() {
         renderFlash();
       }
     });
+  });
+  // Card-count limit (like exam mode). Saved on change; Apply restarts the run.
+  document.getElementById("flashCount").addEventListener("change", function () {
+    const s = flashSettings();
+    const v = parseInt(this.value, 10);
+    s.count = (isNaN(v) || v <= 0) ? 0 : v;
+    saveFlashSettings(s);
+  });
+  document.getElementById("flashApply").addEventListener("click", function () {
+    document.getElementById("flashSettingsPop").hidden = true;
+    if (flashState) openFlashcards(flashState.deckId);
   });
   // Keyboard: space/enter toggles reveal, 1-3 rate, left-arrow goes back.
   document.addEventListener("keydown", function (e) {

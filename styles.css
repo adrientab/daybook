@@ -1690,7 +1690,7 @@ body.hide-sidebar .sidebar { display: none; }
     overflow: hidden;
     justify-content: center;
     align-items: center;
-    min-height: 34px;
+    min-height: 26px;
   }
   /* Tabs fade out quickly while collapsed; fade back in (slightly delayed) as
      the bar finishes growing, so the menu "appears" once it's full-size. */
@@ -1700,6 +1700,11 @@ body.hide-sidebar .sidebar { display: none; }
   .sidebar.nav-collapsed .nav-item {
     opacity: 0;
     pointer-events: none;
+    height: 0;
+    min-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
   }
   .sidebar:not(.nav-collapsed) .nav-item {
     transition: opacity 0.16s ease 0.14s;   /* fade in after the grow */
@@ -1712,7 +1717,7 @@ body.hide-sidebar .sidebar { display: none; }
     transform: translateY(-50%);
     text-align: center;
     color: #fff;
-    font-size: 1.15rem;
+    font-size: 1rem;
     line-height: 1;
     pointer-events: none;
   }

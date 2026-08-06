@@ -449,6 +449,10 @@
           <button class="btn btn-primary" id="studyNewBtn">+ New deck</button>
         </div>
         <p class="study-intro">Create study sets, then drill them with flashcards or test yourself with an exam.</p>
+        <div class="study-controls">
+          <input type="search" id="studySearch" class="study-search" placeholder="Search decks by name&hellip;">
+          <select id="studyCatFilter" class="inline-select study-cat-filter"></select>
+        </div>
         <div class="study-list" id="studyList"></div>
       </section>
 
@@ -822,6 +826,9 @@
           <label class="study-radio"><input type="radio" name="flashMode" value="term"> Term</label>
           <label class="study-radio"><input type="radio" name="flashMode" value="def"> Definition</label>
           <label class="study-radio"><input type="radio" name="flashMode" value="random"> Random</label>
+          <div class="study-settings-title">Number of cards</div>
+          <input type="number" id="flashCount" min="1" placeholder="All" class="study-count-input">
+          <button class="btn btn-sm btn-primary" id="flashApply">Apply &amp; restart</button>
         </div>
       </div>
     </header>

@@ -9,7 +9,16 @@
   align-items: flex-start;
 }
 .study-head > .btn { align-self: center; }
-.study-intro { color: var(--muted); margin: 4px 0 20px; }
+.study-intro { color: var(--muted); margin: 4px 0 16px; }
+
+/* Search + category filter row above the deck list. */
+.study-controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.study-search {
+  flex: 1; min-width: 180px;
+  padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font: inherit; background: var(--surface); color: var(--text);
+}
+.study-cat-filter { flex: 0 0 auto; min-width: 160px; }
 
 .study-list { display: flex; flex-direction: column; gap: 10px; }
 
