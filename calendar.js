@@ -1285,14 +1285,16 @@ document.getElementById("modalGrip").addEventListener("pointerdown", function (e
     let x = me.clientX - offX;
     let y = me.clientY - offY;
 
-    // Dock the moment the box's own edge reaches a screen edge. Right edge ->
-    // right dock (beside the calendar); left edge -> left dock (mirror, hides
-    // the page sidebar). Pull back toward the middle to undock.
-    if (x + rect.width >= window.innerWidth - 2) {
+    // Dock when the CURSOR enters an edge zone (a fraction of the screen width),
+    // rather than waiting for the box's far edge to touch the screen edge — the
+    // latter is nearly unreachable for a wide modal, which is why dragging right
+    // used to never dock. Right zone -> right dock; left zone -> left dock.
+    const edge = Math.min(140, window.innerWidth * 0.12);
+    if (me.clientX >= window.innerWidth - edge) {
       if (dockedSide !== "right") dockModal("right");
       return;
     }
-    if (x <= 2) {
+    if (me.clientX <= edge) {
       if (dockedSide !== "left") dockModal("left");
       return;
     }
@@ -1301,6 +1303,7 @@ document.getElementById("modalGrip").addEventListener("pointerdown", function (e
     // Keep it on screen.
     x = Math.max(6, Math.min(window.innerWidth - rect.width - 6, x));
     y = Math.max(6, Math.min(window.innerHeight - 44, y));
+    eventModal.style.position = "fixed";
     eventModal.style.left = x + "px";
     eventModal.style.top = y + "px";
   }
