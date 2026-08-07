@@ -12,21 +12,27 @@
 
 /* Search + category filter, on one row at the left. */
 .study-controls { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
-/* Custom chevron so we can control its distance from the box edge (the native
-   <select> arrow is painted at a fixed spot and can't be moved with padding).
-   The chevron image and the box colour are set together so the base
-   .inline-select `background` shorthand can't wipe the image out. Height matches
-   the search circle's diameter (42px). */
+/* The filter is a <select> wrapped in a relative container; the chevron is a
+   real pseudo-element (pure CSS, no data-URI or background that a shorthand
+   could wipe), so it always shows. Its right offset sets the gap from the edge. */
+.study-cat-wrap { position: relative; display: inline-flex; flex: 0 1 auto; }
 .study-cat-filter {
-  flex: 0 1 auto; min-width: 130px;
+  width: 100%; min-width: 200px;
   height: 42px;
   box-sizing: border-box;
   appearance: none; -webkit-appearance: none; -moz-appearance: none;
-  padding: 0 34px 0 12px;
-  background-color: var(--bg);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;   /* <- distance of chevron from the edge */
+  padding: 0 40px 0 14px;
+  background-image: none;
+}
+/* Down chevron: two short strokes drawn with a rotated square's borders. */
+.study-cat-chevron {
+  position: absolute; right: 16px; top: 50%;
+  width: 9px; height: 9px;
+  margin-top: -6px;                 /* nudge up so the rotated tip centers */
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  pointer-events: none;             /* clicks pass through to the select */
 }
 
 /* Search: a small icon that expands on hover (or focus) into an input. */
