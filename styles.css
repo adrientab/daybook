@@ -1713,10 +1713,7 @@ body.hide-sidebar .sidebar { display: none; }
   .sidebar:not(.nav-collapsed) .nav-item {
     transition: opacity 0.16s ease 0.14s;   /* fade in after the grow */
   }
-  /* The pill reads as a neutral "grabber" rather than a coloured menu. */
-  .sidebar.nav-collapsed {
-    background: rgba(120, 130, 150, 0.9);
-  }
+  /* The pill uses the same colour as the menu bar (sidebar background). */
   /* A small grab-handle line, centered on the pill, hints it can be pulled up. */
   .sidebar.nav-collapsed::before {
     content: "";
