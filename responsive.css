@@ -72,10 +72,12 @@
     height: 30px;
     cursor: pointer;
   }
-  /* Tabs fade out quickly while collapsed; fade back in (slightly delayed) as
-     the bar finishes growing, so the menu "appears" once it's full-size. */
+  /* Tab fade is symmetric so collapsing takes the same time as expanding:
+     - expanding: bar grows first, then tabs fade IN (0.14s delay + 0.16s).
+     - collapsing: tabs fade OUT first (0.16s), then the bar finishes shrinking.
+     Both directions total the same ~0.30s. */
   .sidebar .nav-item {
-    transition: opacity 0.18s ease;
+    transition: opacity 0.16s ease;
   }
   .sidebar.nav-collapsed .nav-item {
     opacity: 0;

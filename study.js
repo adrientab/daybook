@@ -143,8 +143,8 @@ function renderStudy() {
     row.className = "study-deck-row";
     row.innerHTML =
       '<div class="study-deck-main">' +
-        '<div class="study-deck-name">' + escapeHtml(d.name || "Untitled deck") +
-          (catName ? ' <span class="study-deck-cat"' + catStyle + ">" + escapeHtml(catName) + "</span>" : "") +
+        '<div class="study-deck-name"><span class="study-deck-title">' + escapeHtml(d.name || "Untitled deck") + "</span>" +
+          (catName ? '<span class="study-deck-cat"' + catStyle + ">" + escapeHtml(catName) + "</span>" : "") +
         "</div>" +
         '<div class="study-deck-meta">' + count + " term" + (count === 1 ? "" : "s") +
           (d.description ? " &middot; " + escapeHtml(d.description) : "") +
@@ -728,6 +728,12 @@ function initFlash() {
   document.getElementById("studyFlashExit").addEventListener("click", function () {
     hideOverlay("studyFlash");
   });
+  // Switch to exam mode on the same deck.
+  document.getElementById("flashToExamBtn").addEventListener("click", function () {
+    const deckId = flashState && flashState.deckId;
+    hideOverlay("studyFlash");
+    if (deckId) openExam(deckId);
+  });
   // Settings popover
   document.getElementById("flashSettingsBtn").addEventListener("click", function () {
     document.getElementById("flashSettingsPop").hidden = !document.getElementById("flashSettingsPop").hidden;
@@ -927,6 +933,12 @@ function renderExamReview() {
 function initExam() {
   document.getElementById("studyExamExit").addEventListener("click", function () {
     hideOverlay("studyExam");
+  });
+  // Switch to flashcard mode on the same deck.
+  document.getElementById("examToFlashBtn").addEventListener("click", function () {
+    const deckId = examState && examState.deckId;
+    hideOverlay("studyExam");
+    if (deckId) openFlashcards(deckId);
   });
   document.getElementById("examSettingsBtn").addEventListener("click", function () {
     const pop = document.getElementById("examSettingsPop");

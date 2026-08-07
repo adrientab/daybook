@@ -48,12 +48,14 @@
   opacity: 1; pointer-events: auto; padding: 0 12px 0 2px;
 }
 
-.study-list { display: flex; flex-direction: column; gap: 10px; }
+.study-list { display: flex; flex-direction: column; gap: 10px; min-width: 0; max-width: 100%; }
+#view-study { min-width: 0; max-width: 100%; overflow-x: hidden; }
 
 .study-deck-row {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -65,12 +67,19 @@
   box-shadow: 0 4px 16px -8px rgba(20, 27, 40, 0.25);
 }
 .study-deck-main { flex: 1; min-width: 0; }
-.study-deck-name { font-weight: 600; font-size: 1.02rem; }
+/* Title + category tag share a line; the tag wraps under only when the title
+   itself is long enough to fill the row. Baited to the title's baseline. */
+.study-deck-name {
+  font-weight: 600; font-size: 1.02rem;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 8px;
+  min-width: 0;
+}
 .study-deck-cat {
   display: inline-block; vertical-align: middle;
   font-size: 0.7rem; font-weight: 500;
   color: var(--sidebar-bg); background: rgba(91, 110, 154, 0.12);
-  border-radius: 999px; padding: 2px 9px; margin-left: 8px;
+  border-radius: 999px; padding: 2px 9px;
+  white-space: nowrap; flex: 0 0 auto;
 }
 .study-deck-meta {
   color: var(--muted); font-size: 0.85rem; margin-top: 2px;
