@@ -630,6 +630,11 @@ function clampMin(m) { return Math.max(0, Math.min(24 * 60 - 15, m)); }
 function enableDropCreate(col, ds) {
   let preview = null;
 
+  function dragDuration() {
+    const d = window.__dragDurationMin;
+    return (typeof d === "number" && d > 0) ? d : 60;   // fall back to one hour
+  }
+
   function showPreview(y) {
     const startMin = clampMin(snap15(y, "round"));
     if (!preview) {
@@ -637,7 +642,7 @@ function enableDropCreate(col, ds) {
       preview.className = "cal-event drop-preview";
       col.appendChild(preview);
     }
-    const endMin = Math.min(24 * 60, startMin + 60);
+    const endMin = Math.min(24 * 60, startMin + dragDuration());
     preview.style.top = (startMin / 60 * HOUR_HEIGHT) + "px";
     preview.style.height = ((endMin - startMin) / 60 * HOUR_HEIGHT) + "px";
     preview.textContent = minutesToTime(startMin) + " \u2013 " + minutesToTime(endMin);
