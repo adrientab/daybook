@@ -114,11 +114,10 @@
   flex-direction: column;
   cursor: pointer;
 }
-.todo-col.today { border-color: var(--accent); }
-/* Today gets a thick blue bar under its day header, matching the calendar's
-   "today" cue. The header's own 1px divider is replaced by the accent bar. */
+.todo-col.today { border-color: var(--sidebar-bg); }
+/* Today gets a thick bar under its day header, in the menu/sidebar shade. */
 .todo-col.today .todo-col-head {
-  border-bottom: 3px solid var(--accent);
+  border-bottom: 5px solid var(--sidebar-bg);
   color: var(--text);
 }
 .todo-col-head {
