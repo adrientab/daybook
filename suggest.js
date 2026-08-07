@@ -68,6 +68,14 @@ function makeDraggable(el, payload) {
   el.addEventListener("dragstart", function (e) {
     e.dataTransfer.setData("text/plain", JSON.stringify(payload));
     e.dataTransfer.effectAllowed = "copy";
+    // Expose this drag's default duration (from the task estimate) so the
+    // calendar's drop PREVIEW can size itself to match the event that a drop
+    // will create — dataTransfer.getData isn't readable during dragover, so we
+    // stash it on a shared global instead.
+    window.__dragDurationMin = (payload.estHours != null && payload.estHours !== "" &&
+      !isNaN(parseFloat(payload.estHours)))
+      ? Math.max(15, Math.round(parseFloat(payload.estHours) * 60))
+      : 60;
     // The drop preview grows downward from the cursor, so draw the drag ghost
     // fully above it: putting the cursor point below the image's bottom edge
     // lifts the ghost clear of the shaded area. The 14px gap covers the
@@ -78,7 +86,10 @@ function makeDraggable(el, payload) {
     }
     el.classList.add("dragging");
   });
-  el.addEventListener("dragend", function () { el.classList.remove("dragging"); });
+  el.addEventListener("dragend", function () {
+    el.classList.remove("dragging");
+    window.__dragDurationMin = null;
+  });
 }
 
 function catDot(catId) {
