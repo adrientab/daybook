@@ -11,9 +11,8 @@
 .study-head > .btn { align-self: center; }
 
 /* Search + category filter, on one row at the left. */
-.study-controls { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: nowrap; }
-.study-cat-filter { flex: 0 0 auto; min-width: 150px; }
-.study-cat-filter { flex: 0 0 auto; min-width: 150px; }
+.study-controls { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+.study-cat-filter { flex: 0 1 auto; min-width: 130px; padding-right: 34px; }
 
 /* Search: a small icon that expands on hover (or focus) into an input. */
 .study-search-wrap {
@@ -21,11 +20,11 @@
   border: 1px solid var(--border); border-radius: 999px;
   background: var(--surface); overflow: hidden;
   transition: width 0.22s ease, background 0.15s ease;
-  width: 38px; height: 38px;
+  width: 42px; height: 40px;
   flex: 0 0 auto;
 }
 .study-search-btn {
-  flex: 0 0 auto; width: 38px; height: 38px;
+  flex: 0 0 auto; width: 42px; height: 40px;
   display: flex; align-items: center; justify-content: center;
   border: none; background: none; color: var(--muted); cursor: pointer;
 }
@@ -56,6 +55,7 @@
   align-items: center;
   gap: 12px;
   min-width: 0;
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -85,8 +85,18 @@
   color: var(--muted); font-size: 0.85rem; margin-top: 2px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-/* Actions stay hidden until you hover the row (on wide screens). */
-.study-deck-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.15s ease; align-self: stretch; }
+/* On wide screens the actions overlay the right side of the row on hover,
+   positioned absolutely so they DON'T reserve horizontal space. That keeps the
+   deck row's min-width small (the page can shrink far) and lets the title +
+   category tag use the full width, so the tag stays on the title's line. */
+.study-deck-actions {
+  display: flex; gap: 6px;
+  opacity: 0; transition: opacity 0.15s ease;
+  position: absolute; right: 14px; top: 8px; bottom: 8px;
+  align-items: stretch;
+  background: linear-gradient(to right, transparent, var(--surface) 18%);
+  padding-left: 40px;
+}
 .study-deck-row:hover .study-deck-actions { opacity: 1; }
 /* Bigger, taller action buttons that fill most of the row height so they read
    as substantial rather than tiny chips. */
@@ -320,10 +330,17 @@
 
 /* ---------- mobile ---------- */
 @media (max-width: 720px) {
-  /* Deck actions can't rely on hover on touch, so always show them. */
-  .study-deck-actions { opacity: 1; }
+  /* Deck actions can't rely on hover on touch, so always show them, back in
+     normal flow below the deck info (undo the desktop absolute overlay). */
+  .study-deck-actions {
+    opacity: 1;
+    position: static;
+    background: none;
+    padding-left: 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
   .study-deck-row { flex-direction: column; align-items: stretch; }
-  .study-deck-actions { justify-content: flex-start; flex-wrap: wrap; }
   .flash-text { font-size: 1.25rem; }
   .flash-card { min-height: 220px; padding: 24px; }
   .study-bar h2 { font-size: 1rem; }
