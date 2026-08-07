@@ -1,0 +1,214 @@
+/* ============================================================
+   CALENDAR — the week grid
+   Part of Daybook's styles — split from the original styles.css.
+   Load ORDER matters (cascade): see the <link> order in app.html.
+   ============================================================ */
+
+/* ============================================================
+   CALENDAR
+   ============================================================ */
+.cal-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.cal-nav { display: flex; gap: 6px; }
+.cal-title { font-size: 1.15rem; margin: 0; white-space: nowrap; }
+/* Page title (size handled by .cal-left h2) */
+.schedule-heading { margin: 0; }
+.cal-left { flex: 1; align-self: stretch; }      /* title spans the full header height */
+.cal-left h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 700;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;   /* title top-aligned in the header */
+}
+.cal-center { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+/* To-Do only: stack the "+ To-do" button under the title at the far left. Same
+   1.5rem title + 4px gap as .cal-center, so the button lands on the same row as
+   the week arrows. Scoped to this view — Journal and Goals share .cal-left h2. */
+#view-todo .cal-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+#view-todo .cal-left h2 { height: auto; }
+.cal-center .cal-title { font-size: 1.5rem; color: var(--muted); } /* month/year, quieter than the title */
+.cal-right { flex: 1; display: flex; justify-content: flex-end; gap: 6px; }
+/* Guard: while the panel is closed the toggle floats over the toolbar's left
+   corner, so reserve space there on narrow windows to keep the centered
+   group from sliding underneath it. (Not needed when open — the toggle is
+   over the panel then, not the toolbar.) */
+#view-schedule:not(.suggest-open) .cal-right { min-width: 170px; }
+
+.calendar {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-x: auto;              /* scroll sideways if 7 columns hit their min width */
+  overflow-y: hidden;
+  background: var(--surface);
+  position: relative;
+}
+
+/* + Event tucked into the header's top-left corner cell */
+.cal-corner { display: flex; padding: 6px; }
+.cal-corner #addEventBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  font-size: 1.35rem;
+  line-height: 1;
+  font-weight: 400;
+  /* The "+" glyph sits slightly above the visual centre; nudge it down. */
+  padding-top: 1px;
+}
+
+/* Header row of weekday names. 8 columns: time gutter + 7 days. */
+.cal-header {
+  display: grid;
+  grid-template-columns: 60px repeat(var(--day-count, 7), minmax(90px, 1fr));
+  border-bottom: 1px solid var(--border);
+}
+.cal-corner { border-right: 1px solid var(--border); }
+.cal-day-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  border-right: 1px solid var(--border);
+  color: var(--muted);
+}
+.cal-day-name:last-child { border-right: none; }
+.cal-day-name .dow { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.cal-day-name .dom { font-size: 1.25rem; color: var(--text); font-weight: 600; }
+.cal-day-name.today .dom {
+  background: var(--accent);
+  color: #fff;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+}
+
+/* Scrollable body so all 24 hours fit without a giant page. */
+.cal-scroll { max-height: 68vh; overflow-y: auto; scrollbar-gutter: stable; }
+.cal-grid {
+  display: grid;
+  grid-template-columns: 60px repeat(var(--day-count, 7), minmax(90px, 1fr));
+}
+
+/* Time gutter (left column of hour labels) */
+.cal-gutter { border-right: 1px solid var(--border); }
+.cal-hour-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-align: right;
+  padding-right: 6px;
+  transform: translateY(-6px); /* nudge label up to sit on the hour line */
+}
+
+/* A single day column. Events are positioned absolutely inside it. */
+.cal-col {
+  position: relative;
+  border-right: 1px solid var(--border);
+  /* faint horizontal line at the top of every hour */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--border) 0, var(--border) 1px,
+    transparent 1px, transparent var(--hour-height)
+  );
+}
+.cal-col:last-child { border-right: none; }
+.cal-col.today { background-color: rgba(59, 130, 246, 0.04); }
+
+/* Solid bar marking the current time on today's column. pointer-events:none so
+   it never swallows a click or a drag-create on the grid underneath. */
+.cal-now {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ef4444;
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* An event block */
+.cal-event {
+  position: absolute;
+  left: 1px;
+  width: calc(100% - 2px);
+  border-radius: 6px;
+  padding: 3px 6px;
+  color: #fff;
+  font-size: 0.75rem;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+.cal-event:hover { filter: brightness(0.94); }
+.cal-event-title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  flex: 0 0 auto;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--clamp, 3);
+  line-clamp: var(--clamp, 3);
+}
+/* The time keeps its full line (flex 0 0 auto), so notes can never squeeze it. */
+.cal-event-time { opacity: 0.85; font-size: 0.68rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 0 0 auto; min-height: 0; }
+/* Notes sit under the time and are the first thing clipped when space runs out. */
+.cal-event-notes { opacity: 0.75; font-size: 0.65rem; overflow-wrap: anywhere; overflow: hidden; flex: 0 1 auto; min-height: 0; }
+.cal-event--short { padding-top: 1px; padding-bottom: 1px; justify-content: flex-start; }
+
+/* Hold the title to move the event; it lifts while dragging. */
+.cal-event-grab { cursor: grab; }
+.cal-event-moving {
+  opacity: 0.85;
+  z-index: 20;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.cal-event-moving.cal-event-grab, .cal-event-moving .cal-event-grab { cursor: grabbing; }
+
+/* Overlapping events share the column, so each is narrow. Let the title wrap
+   onto multiple lines (breaking long words if needed) and shrink the text a
+   little so more of it is readable; the block's overflow still clips any
+   excess, and the title takes priority over the time. */
+.cal-event--narrow {
+  font-size: 0.68rem;
+  padding-left: 4px;
+  padding-right: 4px;
+  justify-content: flex-start;
+}
+.cal-event--narrow .cal-event-title {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 0.68rem;
+  line-height: 1.15;
+}
+.cal-event--narrow .cal-event-time { font-size: 0.62rem; }
+
+/* Translucent block shown while dragging out a new event */
+.cal-event.provisional {
+  background: var(--sidebar-bg);
+  opacity: 0.55;
+  border: 1px dashed rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+  z-index: 10;
+}

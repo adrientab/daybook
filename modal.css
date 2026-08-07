@@ -1,0 +1,482 @@
+/* ============================================================
+   MODALS — event modal, docked panel, daily-journal modal, categories editor
+   Part of Daybook's styles — split from the original styles.css.
+   Load ORDER matters (cascade): see the <link> order in app.html.
+   ============================================================ */
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;            /* above the suggestions panel/button and drop preview */
+  background: rgba(0, 0, 0, 0.4);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 100%;
+  max-width: 380px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* ---- Redesigned event modal ---- */
+.modal-event {
+  position: relative;
+  max-width: 400px;
+  padding: 0 22px 20px;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.4);
+}
+
+/* Grip row: drag handle (the dots) + close button */
+.modal-grip {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  margin: 0 -22px 4px;
+  border-radius: 16px 16px 0 0;
+  cursor: grab;
+  background: var(--surface);
+  touch-action: none;
+}
+.modal-event.dragging .modal-grip { cursor: grabbing; }
+.modal-grip-dots {
+  width: 34px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border);
+}
+.modal-x {
+  position: absolute;
+  right: 12px;
+  top: 3px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.modal-x:hover { background: var(--bg); color: var(--text); }
+
+/* Title, borderless and prominent */
+.title-input {
+  width: 100%;
+  border: none;
+  background: none;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text);
+  padding: 2px 0 6px;
+  outline: none;
+}
+.title-input::placeholder { color: var(--border); }
+
+/* "[date] from [start] to [end]" reads as a sentence */
+.when-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: 6px 0 16px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+/* The docked side panel is narrow, so there let it wrap rather than overflow. */
+.modal-event.docked .when-line { flex-wrap: wrap; }
+.inline-input {
+  border: 1px solid transparent;
+  background: var(--bg);
+  border-radius: 7px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+  width: auto;               /* size to the value, no trailing dead space */
+}
+/* Just wide enough for MM/DD/YYYY — the picker icon is hidden, so no room is
+   reserved for it. Time fields likewise fit HH:MM AM. */
+input.inline-input[type="date"] { width: 7.4em; }
+input.inline-input[type="time"] { width: 6.1em; }
+/* Drop the native calendar/clock glyphs — they crowd the line and the whole
+   field is already clickable. */
+.inline-input::-webkit-calendar-picker-indicator { display: none; }
+.inline-input::-webkit-inner-spin-button { display: none; }
+.inline-input:hover { border-color: var(--border); }
+.inline-input:focus { border-color: var(--sidebar-bg); outline: none; background: var(--surface); }
+
+/* Category colour chips */
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.cat-chip .cat-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--chip);
+}
+.cat-chip:hover { border-color: var(--chip); }
+.cat-chip.selected {
+  border-color: var(--chip);
+  background: color-mix(in srgb, var(--chip) 14%, var(--surface));
+  font-weight: 600;
+}
+
+/* Subcategory chips: a secondary row that appears under the category chips. */
+.subchip-wrap { margin-top: 10px; }
+.subchip-label {
+  display: block; font-size: 0.72rem; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--muted); margin-bottom: 6px;
+}
+.subchip-row { gap: 6px; }
+.subchip {
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.subchip:hover { border-color: var(--muted); }
+.subchip.selected {
+  border-color: var(--sidebar-bg);
+  background: color-mix(in srgb, var(--sidebar-bg) 14%, var(--surface));
+  font-weight: 600;
+}
+
+/* "+ How did it feel?" reveal */
+.reveal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 2px;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.reveal-btn:hover { color: var(--text); }
+.reveal-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Notes: quiet single line near the bottom */
+.notes-input {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: none;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  padding: 12px 0 4px;
+  margin-top: 10px;
+  outline: none;
+  resize: none;               /* grows by script instead of a drag handle */
+  overflow: hidden;
+  line-height: 1.4;
+  font-family: inherit;
+}
+.notes-input::placeholder { color: var(--muted); }
+
+/* Notes sitting directly under the title: no top border/margin, tighter. */
+.notes-input.notes-top {
+  border-top: none;
+  margin-top: 0;
+  padding: 0 0 8px;
+  min-height: 1.6em;         /* a touch over one line — compact but not cramped */
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+/* Repeat: small inline sentence */
+/* Compact repeat control */
+.repeat-box { margin: 6px 0 4px; }
+.repeat-box .seg { margin-bottom: 10px; }
+.repeat-opt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.repeat-num {
+  width: 52px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+}
+.dow-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.dow-chip {
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.dow-chip:hover { border-color: var(--sidebar-bg); }
+.dow-chip.selected {
+  background: var(--sidebar-bg);
+  border-color: var(--sidebar-bg);
+  color: #fff;
+  font-weight: 600;
+}
+/* The event's own weekday is locked on in "On days" mode — it can't be turned
+   off, so show it as fixed rather than clickable. */
+.dow-chip.locked {
+  cursor: default;
+  opacity: 0.85;
+}
+
+/* ---- Docked to the side ----
+   The editor pins full-height to one edge; the schedule shifts the other way
+   so it stays visible beside the panel. A shaded backdrop dims the screen and
+   catches outside-clicks to close. Dragging to the RIGHT edge docks right
+   (like Suggestions); dragging to the LEFT edge docks left and hides the
+   page's own sidebar, so the panel takes that edge — a mirror image. */
+.modal-overlay.docked {
+  background: rgba(0, 0, 0, 0.4);
+  align-items: stretch;
+  padding: 0;
+}
+.modal-overlay.docked-right { justify-content: flex-end; }
+.modal-overlay.docked-left  { justify-content: flex-start; }
+
+.modal-event.docked {
+  max-width: 340px;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+  animation: none;
+}
+.modal-event.docked-right { box-shadow: -12px 0 40px -18px rgba(0, 0, 0, 0.4); }
+.modal-event.docked-left  { box-shadow: 12px 0 40px -18px rgba(0, 0, 0, 0.4); }
+
+/* Shift the calendar away from the panel by its width (340px); .main's own
+   20px padding becomes the gap, matching the sidebar-to-calendar gap. */
+#view-schedule.modal-docked-right .schedule-main { margin-right: 340px; }
+#view-schedule.modal-docked-left  .schedule-main { margin-left: 340px; }
+
+/* A left dock hides the app's own sidebar so the panel owns the left edge. */
+body.hide-sidebar .sidebar { display: none; }
+
+.modal h3 { margin-top: 0; }
+.field { display: block; margin-bottom: 14px; }
+.field > span { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+.field textarea { resize: vertical; line-height: 1.5; }
+
+/* Two-button segmented control (to-do type) */
+.seg { display: flex; margin-bottom: 14px; }
+.seg-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.seg-btn + .seg-btn { border-left: none; }
+.seg-btn:first-child { border-radius: 8px 0 0 8px; }
+.seg-btn:last-child { border-radius: 0 8px 8px 0; }
+.seg-btn:hover { background: var(--bg); }
+.seg-btn.active {
+  background: var(--sidebar-bg);
+  border-color: var(--sidebar-bg);
+  color: #fff;
+}
+
+/* "Part of" search + results */
+.typeahead { position: relative; }
+.typeahead-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  margin-top: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 170px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+.typeahead-item { padding: 8px 10px; font-size: 0.85rem; cursor: pointer; }
+.typeahead-item:hover { background: var(--bg); }
+.typeahead-empty { padding: 8px 10px; font-size: 0.8rem; color: var(--muted); }
+
+/* A category locked to its deadline: readable, clearly not editable. */
+#todoCategory:disabled { opacity: 0.55; cursor: not-allowed; }
+#todoCatNote { margin: 4px 0 0; }
+.modal-actions { display: flex; align-items: center; gap: 8px; margin-top: 20px; }
+.modal-actions .spacer { flex: 1; }
+
+/* ============================================================
+   CALENDAR FOOTER — one journal button per day
+   ============================================================ */
+.cal-topbar, .cal-footer {
+  display: grid;
+  grid-template-columns: 60px repeat(var(--day-count, 7), minmax(90px, 1fr));
+  background: var(--surface);
+}
+.cal-topbar { border-bottom: 1px solid var(--border); }
+.cal-footer { border-top: 1px solid var(--border); }
+.cal-topbar .cal-corner, .cal-footer .cal-corner { border-right: 1px solid var(--border); }
+.cal-bar-cell { padding: 6px; border-right: 1px solid var(--border); }
+.cal-bar-cell:last-child { border-right: none; }
+.journal-day-btn {
+  width: 100%;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  padding: 6px 2px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.journal-day-btn:hover { background: #f0f1f3; color: var(--text); }
+.journal-day-btn.has-entry {
+  border-style: solid;
+  border-color: #22c55e;
+  color: #15803d;
+  background: rgba(34, 197, 94, 0.08);
+}
+
+/* ============================================================
+   DAILY JOURNAL MODAL — mood sliders
+   ============================================================ */
+.modal-journal { max-width: 440px; max-height: 86vh; overflow-y: auto; }
+.scale-field { margin-bottom: 16px; }
+.scale-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+.scale-label output {
+  font-weight: 600;
+  font-size: 0.95rem;
+  min-width: 24px;
+  text-align: center;
+  color: var(--accent);
+}
+.scale-slider { width: 100%; }
+
+/* Stack journal buttons in each bar cell */
+.cal-bar-cell { display: flex; flex-direction: column; gap: 4px; }
+
+/* Subheading inside a modal (e.g. "How did each activity feel?") */
+.modal-subhead {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 18px 0 10px;
+}
+
+/* Per-activity rating rows */
+.cat-dot {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.act-time { color: var(--muted); font-size: 0.72rem; }
+
+/* Small directional hint under a slider */
+.slider-hint { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+/* ============================================================
+   CATEGORIES EDITOR + recurring-delete prompt
+   ============================================================ */
+.optional { color: var(--muted); font-weight: normal; }
+
+.cat-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+
+/* Subcategories nest under each category in the manager. */
+.cat-block { margin-bottom: 16px; }
+.cat-subs { margin: 0 0 0 52px; display: flex; flex-direction: column; gap: 6px; }
+.cat-sub-row { display: flex; align-items: center; gap: 8px; }
+.cat-sub-bullet { width: 8px; height: 8px; border-radius: 999px; flex: 0 0 auto; }
+.cat-sub-name {
+  flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid var(--border);
+  border-radius: 6px; font: inherit; font-size: 0.9rem; background: var(--surface); color: var(--text);
+}
+.cat-sub-del {
+  flex: 0 0 auto; width: 26px; height: 26px; border: none; background: none;
+  color: var(--muted); font-size: 1.1rem; line-height: 1; cursor: pointer; border-radius: 6px;
+}
+.cat-sub-del:hover { color: #b91c1c; background: var(--bg); }
+.cat-sub-add { align-self: flex-start; margin-top: 2px; }
+.cat-row .cat-color {
+  width: 42px; height: 34px; padding: 2px;
+  border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer;
+}
+.cat-row .cat-name {
+  flex: 1; padding: 8px 10px;
+  border: 1px solid var(--border); border-radius: 8px;
+  font-size: 0.95rem; font-family: inherit;
+}
+.cat-row .cat-del { font-size: 0.8rem; padding: 6px 10px; }
+#catList { margin-bottom: 12px; }
+
+/* Stacked action buttons (used by the recurring-delete prompt) */
+.modal-actions.stack { flex-direction: column; align-items: stretch; }

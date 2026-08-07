@@ -1,0 +1,233 @@
+/* ============================================================
+   SUGGESTIONS + WEARABLES + centered week nav
+   Part of Daybook's styles — split from the original styles.css.
+   Load ORDER matters (cascade): see the <link> order in app.html.
+   ============================================================ */
+
+/* ============================================================
+   Suggestions: the toggle floats at the top-RIGHT and never moves. The
+   schedule is full width when closed and only gets pushed left when the
+   panel opens (which drops in beneath the toggle).
+   ============================================================ */
+#view-schedule.active { display: block; position: relative; }
+.schedule-main { transition: margin-right 0.15s ease, margin-left 0.15s ease; }
+/* When open, leave room for the 210px panel + a 16px gutter on the right.
+   Only Suggestions shifts the schedule; Filter is a popup that overlays. */
+#view-schedule.suggest-open .schedule-main { margin-right: 226px; }
+
+.suggest-anchor {
+  position: absolute;
+  top: 78px;                /* = the calendar grid top, same as the filter popup */
+  right: 0;
+  width: 210px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  transition: top 0.18s ease;
+}
+.suggest-panel { transition: max-height 0.18s ease; }
+/* When the Filter popup is also open, drop the Suggestions panel below it so
+   both are fully visible instead of overlapping. (The filter popup is a fixed
+   height near the top-right; this clears it.) */
+/* When Filter is also open, drop Suggestions below it (with a small gap) and
+   shrink its max-height so its bottom still lines up with the calendar bottom
+   instead of running past it. 300px start vs the usual 70px = 230px lower, so
+   subtract that extra from the normal max-height. */
+#view-schedule.filter-open .suggest-anchor { top: 300px; }
+#view-schedule.filter-open .suggest-panel { max-height: calc(100vh - 334px); }
+/* And when BOTH are open, cap the Filter popup so a long category list scrolls
+   inside rather than growing down over the Suggestions panel below it. Filter
+   starts at 76px, Suggestions at 300px, so keep the filter under ~210px tall
+   (leaving a small gap); the list scrolls past that. Filter on its own can
+   still use the full 50vh. */
+#view-schedule.filter-open.suggest-open .filter-panel { max-height: 210px; }
+.suggest-toggle { white-space: nowrap; }
+
+/* Filter and Suggestions share the right-hand column, with the filter stacked
+   on top. Same 12px offset and colours as the suggestions panel, so whichever
+   is topmost lines up with the calendar and the two read as one column. */
+/* Filter is a compact popup that drops from the top-right, near its button —
+   not a full-height sidebar. (Suggestions stays the right-hand drag panel.) */
+.filter-panel {
+  position: absolute;
+  top: 78px;                /* = the calendar grid top */
+  right: 0;
+  width: 210px;             /* match the Suggestions panel */
+  z-index: 8;
+  margin: 0;
+  background: #e9eefb;
+  border: 1px solid #d4ddf3;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.35);
+  /* Never taller than half the screen; if there are many categories the list
+     scrolls inside while the header and hint stay put. */
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+}
+.filter-panel .filter-list { overflow-y: auto; min-height: 0; }
+.filter-panel .filter-head, .filter-panel .filter-hint { flex: 0 0 auto; }
+.filter-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px; font-size: 0.8rem; color: var(--muted);
+}
+.filter-list { display: flex; flex-direction: column; gap: 6px; }
+.filter-hint { margin: 0 0 8px; font-size: 0.72rem; color: var(--muted); }
+.filter-row { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+/* Expand triangle for categories that have subcategories. */
+.filter-tri {
+  flex: 0 0 auto; width: 16px; height: 16px; padding: 0;
+  border: none; background: none; color: var(--muted); cursor: pointer;
+  font-size: 0.7rem; line-height: 1; transition: transform 0.12s ease;
+}
+.filter-tri.open { transform: rotate(90deg); }
+.filter-tri--empty { visibility: hidden; cursor: default; }
+/* Indented subcategory rows. */
+.filter-subrow { margin-left: 22px; font-size: 0.85rem; }
+.filter-subdot { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; opacity: 0.75; }
+.filter-subrow .filter-name { color: var(--muted); }
+.filter-solo { display: flex; align-items: center; gap: 8px; flex: 1; cursor: pointer; border-radius: 6px; padding: 2px 4px; }
+.filter-solo:hover { background: var(--bg); }
+.filter-solo:hover .filter-name { text-decoration: underline; }
+.filter-swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.filter-name { flex: 1; }
+.btn-mini { padding: 2px 8px; font-size: 0.75rem; }
+#filterBtn.active { background: var(--sidebar-bg); border-color: var(--sidebar-bg); color: #fff; }
+#todoShowDeadlinesBtn.active,
+#todoShowDoOnBtn.active,
+#todoShowDoneBtn.active { background: var(--sidebar-bg); border-color: var(--sidebar-bg); color: #fff; }
+
+/* Event resize grips — small squares in each corner (top corners move the
+   start, bottom corners the end). Corners leave the middle of each edge free
+   to click, so opening the event still works at any size. */
+.cal-resize { position: absolute; width: 12px; height: 8px; z-index: 3; cursor: ns-resize; }
+.cal-resize-top { top: 0; }
+.cal-resize-bottom { bottom: 0; }
+.cal-resize-left { left: 0; }
+.cal-resize-right { right: 0; }
+.cal-resize:hover { background: rgba(255, 255, 255, 0.4); border-radius: 3px; }
+#suggestBtn.active {
+  background: var(--sidebar-bg);
+  border-color: var(--sidebar-bg);
+  color: #fff;
+}
+
+.suggest-panel {
+  width: 100%;
+  margin-top: 0;                       /* anchor is already at the calendar top */
+  display: flex;
+  flex-direction: column;
+  background: #e9eefb;                 /* light blue */
+  border: 1px solid #d4ddf3;
+  border-radius: 10px;
+  padding: 12px;
+  max-height: calc(100vh - 110px);
+  user-select: none;                   /* dragging shouldn't highlight the items' text */
+}
+.suggest-panel[hidden] { display: none; } /* override flex when closed */
+
+.suggest-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.suggest-tab {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.suggest-tab.active {
+  background: var(--sidebar-bg);
+  border-color: var(--sidebar-bg);
+  color: #fff;
+}
+
+.suggest-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 2px;
+}
+.suggest-item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  cursor: grab;
+}
+.suggest-item:active { cursor: grabbing; }
+.suggest-item.dragging { opacity: 0.45; }
+.suggest-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.suggest-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.suggest-empty { font-size: 0.85rem; color: var(--muted); padding: 8px 2px; }
+.suggest-foot { font-size: 0.7rem; color: var(--muted); margin-top: 10px; text-align: center; }
+
+/* Highlight the day column you're about to drop onto */
+/* 1-hour preview sliver shown while dragging a Suggestions item over the grid */
+.cal-event.drop-preview {
+  background: var(--sidebar-bg);
+  opacity: 0.5;
+  border: 1px dashed rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* Inline checkbox row (e.g. "Mark as complete" in the to-do editor) */
+.check-field { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; margin: 2px 0 4px; }
+.check-field input { width: 16px; height: 16px; }
+
+/* ============================================================
+   Centered month/year + week nav (journal & to-do) — now handled
+   by the shared .cal-toolbar / .cal-center layout.
+   ============================================================ */
+
+/* Submitted date/time shown under each rant title in the list */
+.rant-when { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+/* ============================================================
+   Wearables page
+   ============================================================ */
+.import-row {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+.import-row > .settings-card {
+  flex: 1 1 0;
+  min-width: 260px;
+  margin-bottom: 0;
+}
+.wearable-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.wearable-date { font-weight: 600; }
+.wearable-vals { color: var(--muted); font-size: 0.85rem; text-align: right; }
+
+/* Oura import controls */
+#ouraFile { font-size: 0.85rem; }
+.import-msg { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }

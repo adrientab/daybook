@@ -1,0 +1,199 @@
+/* ============================================================
+   BASE — theme variables, reset, overall layout, sidebar, buttons
+   Part of Daybook's styles — split from the original styles.css.
+   Load ORDER matters (cascade): see the <link> order in app.html.
+   ============================================================ */
+
+/* ============================================================
+   Theme values in one place. Change a colour here and it
+   updates everywhere it's used. (Groundwork for the Settings tab.)
+   ============================================================ */
+:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --sidebar-bg: #5b6e9a;
+  --sidebar-text: #c7cdd9;
+  --accent: #263346;
+  --text: #1a1a1a;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --radius: 10px;
+  --hour-height: 48px;   /* height of one hour row in the calendar */
+}
+:root { color-scheme: light; }
+
+/* ============================================================
+   Dark theme. Most of the app already paints from the variables
+   above, so redefining them here flips the bulk of it. The rules
+   after the variable block patch the handful of spots that had
+   hardcoded light colors (hovers, chips, the suggestions panel).
+   ============================================================ */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #15181e;
+  --surface: #1f242c;
+  --sidebar-bg: #46577c;
+  --sidebar-text: #c3cbdb;
+  --accent: #2b3852;
+  --text: #dde0e6;
+  --muted: #9aa3b2;
+  --border: #333b47;
+}
+
+[data-theme="dark"] .btn:hover,
+[data-theme="dark"] .journal-day-btn:hover,
+[data-theme="dark"] .week-day:hover,
+[data-theme="dark"] .todo-card:hover { background: #2a313d; }
+
+[data-theme="dark"] .rant-item:hover { background: #262d38; }
+
+[data-theme="dark"] .rant-tag { background: #2b3347; color: #c3cce6; }
+
+[data-theme="dark"] .cal-col.today { background-color: rgba(120, 150, 255, 0.08); }
+
+[data-theme="dark"] .suggest-panel,
+[data-theme="dark"] .filter-panel { background: #1c2434; border-color: #2c3750; }
+
+/* Event text picks up the same softened white as the rest of dark mode. */
+[data-theme="dark"] .cal-event { color: #dde0e6; }
+[data-theme="dark"] .suggest-tab,
+[data-theme="dark"] .suggest-item { background: var(--surface); }
+
+[data-theme="dark"] .cat-row .cat-color { background: var(--surface); }
+
+/* The dark --accent is too dark for text on the modal surface, so give the
+   Morning/Evening headers a lighter shade in dark mode for readability. */
+[data-theme="dark"] .day-section-head { color: #b9c4e0; }
+
+/* Form controls: keep them readable on dark surfaces. */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+[data-theme="dark"] ::placeholder { color: var(--muted); }
+
+* { box-sizing: border-box; }
+
+/* The browser's own [hidden] rule is weaker than any class that sets
+   `display`, so an element marked hidden still shows if a class styles it
+   as flex or grid. This makes `hidden` mean hidden, everywhere. */
+[hidden] { display: none !important; }
+
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ---- Overall layout: sidebar + main, side by side ---- */
+.app { display: flex; min-height: 100vh; }
+
+/* ---- Sidebar ---- */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  padding: 16px 12px;
+  transition: width 0.18s ease;
+  /* Stick to the top and stay viewport-tall so the sidebar (and the
+     bottom-pinned Exit demo button) don't grow with a long page like Settings
+     or Journal — the button then stays in one consistent spot. */
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  overflow-y: auto;
+}
+.sidebar.collapsed { width: 64px; }
+
+.sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-left: 12px;
+}
+.sidebar-head h1 { font-size: 1.1rem; color: #fff; margin: 0; white-space: nowrap; }
+.sidebar.collapsed .sidebar-head { justify-content: center; padding-left: 0; }
+.sidebar.collapsed .sidebar-head h1 { display: none; }
+
+.sidebar-toggle {
+  background: none; border: none; color: var(--sidebar-text);
+  cursor: pointer; font-size: 1.3rem; line-height: 1;
+  padding: 2px 8px; border-radius: 6px;
+}
+.sidebar-toggle:hover { background: rgba(255, 255, 255, 0.12); }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--sidebar-text);
+  font-size: 0.95rem;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.nav-item:hover { background: rgba(255, 255, 255, 0.10); }
+.nav-item.active { background: var(--accent); color: #fff; }
+
+.nav-icon { width: 20px; height: 20px; flex-shrink: 0; }
+
+/* Collapsed: center the icons and hide the labels */
+.sidebar.collapsed .nav-item { justify-content: center; gap: 0; padding: 10px 0; }
+.sidebar.collapsed .nav-label { display: none; }
+
+/* ---- Main content + view switching ---- */
+.main { flex: 1; padding: 15px 20px; }
+.view { display: none; }
+.view.active { display: block; }
+h2 { margin-top: 0; }
+.placeholder { color: var(--muted); }
+.hint { color: var(--muted); font-size: 0.85rem; margin: 0 0 12px; }
+
+/* ---- Buttons ---- */
+.btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.btn:hover { background: #f0f1f3; }
+.btn-primary { background: var(--sidebar-bg); border-color: var(--sidebar-bg); color: #fff; }
+.btn-primary:hover { background: #4c5d82; }
+.btn-danger { background: #fee2e2; border-color: #fecaca; color: #b91c1c; }
+.btn-danger:hover { background: #fecaca; }
+
+/* ---- Journal ---- */
+#date { color: var(--muted); margin-top: 0; margin-bottom: 20px; }
+#entry {
+  width: 100%;
+  min-height: 320px;
+  padding: 16px;
+  font-size: 1rem;
+  line-height: 1.6;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  resize: vertical;
+  font-family: inherit;
+  background: var(--surface);
+}
+#status { color: #2e7d32; font-size: 0.85rem; height: 20px; margin-top: 8px; }
