@@ -9,20 +9,21 @@
   align-items: flex-start;
 }
 .study-head > .btn { align-self: center; }
-.study-intro { color: var(--muted); margin: 4px 0 16px; }
 
-/* Search + category filter row above the deck list. The search starts as a
-   small icon and expands into an input when clicked; it collapses again when
-   left empty. Keeps the header sleek. */
-.study-controls { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
-.study-cat-filter { flex: 0 0 auto; min-width: 160px; }
+/* Intro line + category filter + search, all on one row. The intro takes the
+   left space and pushes the controls to the right. */
+.study-controls { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; }
+.study-intro { color: var(--muted); margin: 0; flex: 1; min-width: 0; }
+.study-cat-filter { flex: 0 0 auto; min-width: 150px; }
 
+/* Search: a small icon that expands on hover (or focus) into an input. */
 .study-search-wrap {
   display: flex; align-items: center;
   border: 1px solid var(--border); border-radius: 999px;
   background: var(--surface); overflow: hidden;
   transition: width 0.22s ease, background 0.15s ease;
   width: 38px; height: 38px;
+  flex: 0 0 auto;
 }
 .study-search-btn {
   flex: 0 0 auto; width: 38px; height: 38px;
@@ -38,8 +39,12 @@
   transition: opacity 0.18s ease;
 }
 .study-search:focus { outline: none; }
-/* Expanded state */
+/* Expanded: on hover, on focus-within, or when forced open (has text). */
+.study-search-wrap:hover,
+.study-search-wrap:focus-within,
 .study-search-wrap.open { width: 230px; }
+.study-search-wrap:hover .study-search,
+.study-search-wrap:focus-within .study-search,
 .study-search-wrap.open .study-search {
   opacity: 1; pointer-events: auto; padding: 0 12px 0 2px;
 }
