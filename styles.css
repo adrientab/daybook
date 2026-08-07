@@ -1663,6 +1663,7 @@ body.hide-sidebar .sidebar { display: none; }
     gap: 2px;
     padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
     transition: width 0.28s cubic-bezier(0.34, 1.15, 0.64, 1),
+                height 0.24s cubic-bezier(0.4, 0, 0.2, 1),
                 bottom 0.24s cubic-bezier(0.4, 0, 0.2, 1),
                 border-radius 0.24s ease,
                 padding 0.22s ease,
@@ -1671,26 +1672,26 @@ body.hide-sidebar .sidebar { display: none; }
     box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
   }
 
-  /* Collapsed: the bar shrinks to a small ☰ pill floating just above the bottom
-     edge. Expanding = the pill GROWS back into the full bar, then the tabs fade
-     in. The trick that makes it smooth: the bar keeps left/right anchored and we
-     animate a fixed width + centered position (fixed values tween; 'auto' would
-     not). The ☰ glyph and the tabs cross-fade so the pill visibly becomes the
-     menu rather than one sliding in over the other. */
+  /* Collapsed: the bar shrinks to a thin SOLID strip spanning the bottom edge
+     (like Safari's collapsed toolbar). Scrolling up — or tapping the strip —
+     grows it back into the full menu, then the tabs fade in. Keeping it full
+     width (not a floating pill) makes it read as a solid bar. */
   .sidebar.nav-collapsed {
     left: 50%;
     right: auto;
-    width: 128px;
+    width: 100%;
     transform: translateX(-50%);
-    bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    bottom: 0;
     gap: 0;
     padding: 0;
-    border-radius: 999px;
-    box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.45);
+    border-radius: 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.28);
     overflow: hidden;
     justify-content: center;
     align-items: center;
-    min-height: 26px;
+    min-height: 12px;
+    height: calc(12px + env(safe-area-inset-bottom, 0px));
+    cursor: pointer;
   }
   /* Tabs fade out quickly while collapsed; fade back in (slightly delayed) as
      the bar finishes growing, so the menu "appears" once it's full-size. */
@@ -1709,16 +1710,15 @@ body.hide-sidebar .sidebar { display: none; }
   .sidebar:not(.nav-collapsed) .nav-item {
     transition: opacity 0.16s ease 0.14s;   /* fade in after the grow */
   }
-  /* The ☰ glyph shown only while collapsed. */
+  /* A small grab-handle line, centered on the strip, hints it can be pulled up. */
   .sidebar.nav-collapsed::before {
-    content: "\2630";                       /* ☰ */
+    content: "";
     position: absolute;
-    left: 0; right: 0; top: 50%;
-    transform: translateY(-50%);
-    text-align: center;
-    color: #fff;
-    font-size: 1rem;
-    line-height: 1;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 34px; height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.55);
     pointer-events: none;
   }
 
