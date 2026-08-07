@@ -710,6 +710,8 @@ function populateCategorySelect(selectedId, selectedSub) {
       });
       // Changing the category resets the subcategory to "none".
       renderSubcategoryChips(c.id, "");
+      // Keep the live calendar draft in sync with the new category colour.
+      if (typeof updateEventPreview === "function") updateEventPreview();
     };
     wrap.appendChild(chip);
   });
@@ -751,6 +753,7 @@ function renderSubcategoryChips(catId, selectedSub) {
         b.classList.toggle("selected", on);
         b.setAttribute("aria-checked", on ? "true" : "false");
       });
+      if (typeof updateEventPreview === "function") updateEventPreview();
     };
     row.appendChild(chip);
   });
@@ -867,6 +870,7 @@ function updateEventPreview() {
     title: document.getElementById("evtTitle").value.trim(),
     date: date, start: start, end: end,
     category: readEventCategory(),
+    subcategory: (typeof readEventSubcategory === "function" ? readEventSubcategory() : ""),
     notes: "", feel: null,
     __preview: true
   };
@@ -1189,8 +1193,38 @@ overlay.addEventListener("click", function (e) {
    ============================================================ */
 const eventModal = document.getElementById("eventModal");
 let dockedSide = null;   // null | "left" | "right"
+// Remember which side panels were open before docking, so we can restore them.
+let panelsBeforeDock = null;   // null | { filter:bool, suggest:bool }
+
+/* Detect current open state of the two side panels. */
+function filterIsOpen() {
+  const p = document.getElementById("filterPanel");
+  return !!(p && !p.hidden);
+}
+function suggestIsOpen() {
+  const p = document.getElementById("suggestPanel");
+  return !!(p && !p.hidden);
+}
+/* Close both side panels when the modal docks (they'd overlap the docked
+   panel), remembering their state once so we can reopen them afterward. */
+function stashAndClosePanels() {
+  if (panelsBeforeDock === null) {
+    panelsBeforeDock = { filter: filterIsOpen(), suggest: suggestIsOpen() };
+  }
+  if (typeof closeFilterPanel === "function") closeFilterPanel();
+  if (typeof closeSuggest === "function") closeSuggest();
+}
+/* Reopen whichever panels were open before the modal docked. */
+function restorePanels() {
+  if (!panelsBeforeDock) return;
+  const want = panelsBeforeDock;
+  panelsBeforeDock = null;
+  if (want.filter && typeof openFilterPanel === "function") openFilterPanel();
+  if (want.suggest && typeof toggleSuggest === "function" && !suggestIsOpen()) toggleSuggest();
+}
 
 function resetModalPosition() {
+  restorePanels();          // bring back any side panels we closed when docking
   dockedSide = null;
   overlay.classList.remove("docked", "docked-left", "docked-right");
   eventModal.classList.remove("docked", "docked-left", "docked-right");
@@ -1207,6 +1241,7 @@ function resetModalPosition() {
 
 function dockModal(side) {
   dockedSide = side;
+  stashAndClosePanels();   // both side panels would collide with the docked one
   overlay.classList.add("docked");
   overlay.classList.toggle("docked-left", side === "left");
   overlay.classList.toggle("docked-right", side === "right");
@@ -1227,6 +1262,7 @@ function dockModal(side) {
   document.body.classList.toggle("hide-sidebar", side === "left");
 }
 function undockModal() {
+  restorePanels();          // side is freed up again, reopen what we closed
   dockedSide = null;
   overlay.classList.remove("docked", "docked-left", "docked-right");
   eventModal.classList.remove("docked", "docked-left", "docked-right");
