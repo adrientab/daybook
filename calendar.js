@@ -1180,7 +1180,9 @@ document.getElementById("evtCategory").addEventListener("click", function (e) {
 });
 overlay.addEventListener("click", function (e) {
   // Clicking the dim area (not the box) closes the editor — whether it's
-  // centred or docked to the side.
+  // centred or docked to the side. But ignore the click synthesized right at
+  // the end of a drag-to-dock, which would otherwise close it instantly.
+  if (justDraggedModal) { justDraggedModal = false; return; }
   if (e.target === overlay) closeModal();
 });
 
@@ -1193,6 +1195,7 @@ overlay.addEventListener("click", function (e) {
    ============================================================ */
 const eventModal = document.getElementById("eventModal");
 let dockedSide = null;   // null | "left" | "right"
+let justDraggedModal = false;   // set at drag end to swallow the trailing click
 // Remember which side panels were open before docking, so we can restore them.
 let panelsBeforeDock = null;   // null | { filter:bool, suggest:bool }
 
@@ -1242,6 +1245,12 @@ function resetModalPosition() {
 function dockModal(side) {
   dockedSide = side;
   stashAndClosePanels();   // both side panels would collide with the docked one
+  // Clear any inline overlay positioning from a beside-slot open — inline styles
+  // would otherwise beat the .docked-left/.docked-right rules and force the panel
+  // to the wrong (left) side.
+  overlay.style.justifyContent = "";
+  overlay.style.alignItems = "";
+  eventModal.style.position = "";
   overlay.classList.add("docked");
   overlay.classList.toggle("docked-left", side === "left");
   overlay.classList.toggle("docked-right", side === "right");
@@ -1309,6 +1318,7 @@ document.getElementById("modalGrip").addEventListener("pointerdown", function (e
   }
   function onUp() {
     eventModal.classList.remove("dragging");
+    if (dockedSide) justDraggedModal = true;   // swallow the click that follows a dock
     window.removeEventListener("pointermove", onMove);
     window.removeEventListener("pointerup", onUp);
   }
