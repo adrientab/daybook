@@ -21,7 +21,8 @@ const DEMO_LIFE = {
     { id: "class",    name: "Class",    color: "#3b82f6", subs: [
       { id: "sub-ochem",  name: "Organic Chemistry" },
       { id: "sub-linalg", name: "Linear Algebra" },
-      { id: "sub-psych",  name: "Intro to Psychology" }
+      { id: "sub-psych",  name: "Intro to Psychology" },
+      { id: "sub-geo",    name: "World Geography" }
     ] },
     { id: "work",     name: "Work",     color: "#8b5cf6", subs: [
       { id: "sub-lab",      name: "Research lab" },
@@ -204,7 +205,8 @@ const DEMO_LIFE = {
   studyDecks: [
     {
       name: "US State Capitals",
-      category: "Geography",
+      category: "class",
+      subcategory: "sub-geo",
       description: "The capital city of each state.",
       cards: [
         ["Alabama", "Montgomery"], ["Alaska", "Juneau"], ["Arizona", "Phoenix"],
@@ -228,7 +230,8 @@ const DEMO_LIFE = {
     },
     {
       name: "Intro to Chemistry",
-      category: "Chemistry",
+      category: "class",
+      subcategory: "sub-ochem",
       description: "Core terms from the first few weeks.",
       cards: [
         ["Atom", "The smallest unit of an element that retains its chemical properties."],
