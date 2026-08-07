@@ -17,8 +17,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <!-- Core styles, split into logical files. ORDER MATTERS: CSS cascades, so
+       these must load in the same sequence they were authored in. -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/calendar.css">
+  <link rel="stylesheet" href="css/modal.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/todo.css">
+  <link rel="stylesheet" href="css/suggest.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/extras.css">
   <link rel="stylesheet" href="study.css">
+
 </head>
 <body>
   <div class="auth-gate" id="authGate" hidden>

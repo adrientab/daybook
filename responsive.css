@@ -1,0 +1,423 @@
+/* ============================================================
+   RESPONSIVE — the mobile (<=720px) overrides
+   Part of Daybook's styles — split from the original styles.css.
+   Load ORDER matters (cascade): see the <link> order in app.html.
+   ============================================================ */
+
+/* ============================================================
+   MOBILE  (<= 720px)
+
+   One breakpoint, appended last so it overrides the desktop rules
+   above without touching them. The big moves:
+     - sidebar  -> fixed bottom tab bar (icons + tiny labels)
+     - 3-zone headers -> stacked, left-aligned
+     - suggestions/filter -> full width, above the calendar
+     - calendar -> scrolls sideways as one unit, page scrolls down
+     - to-do board -> one day per row
+     - modals -> near full width
+   ============================================================ */
+@media (max-width: 720px) {
+
+  /* ---- Layout shell ---- */
+  .app { flex-direction: column; }
+  .main { padding: 12px 12px 78px; }   /* bottom padding clears the tab bar */
+
+  /* ---- Sidebar -> bottom tab bar ---- */
+  .sidebar {
+    flex-direction: row;
+    position: fixed;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    top: auto;            /* clear the desktop 'top: 0' so 'bottom' wins */
+    bottom: 0;
+    width: 100%;
+    height: auto;
+    align-self: auto;
+    overflow: hidden;
+    display: flex;
+    gap: 2px;
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
+    transition: width 0.28s cubic-bezier(0.34, 1.15, 0.64, 1),
+                height 0.24s cubic-bezier(0.4, 0, 0.2, 1),
+                bottom 0.24s cubic-bezier(0.4, 0, 0.2, 1),
+                border-radius 0.24s ease,
+                padding 0.22s ease,
+                min-height 0.24s ease;
+    z-index: 50;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
+  }
+
+  /* Collapsed: the bar shrinks to a thin SOLID strip spanning the bottom edge
+     (like Safari's collapsed toolbar). Scrolling up — or tapping the strip —
+     grows it back into the full menu, then the tabs fade in. Keeping it full
+     width (not a floating pill) makes it read as a solid bar. */
+  /* Collapsed: a compact rounded "grabber" pill floating just above the bottom
+     edge (like the iOS home-indicator bar). Tapping it — or scrolling up —
+     grows it back into the full menu. Kept short and rounded, not full-width. */
+  .sidebar.nav-collapsed {
+    left: 50%;
+    right: auto;
+    width: 140px;
+    transform: translateX(-50%);
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    gap: 0;
+    padding: 0;
+    border-radius: 999px;
+    box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
+    min-height: 30px;
+    height: 30px;
+    cursor: pointer;
+  }
+  /* Tabs fade out quickly while collapsed; fade back in (slightly delayed) as
+     the bar finishes growing, so the menu "appears" once it's full-size. */
+  .sidebar .nav-item {
+    transition: opacity 0.18s ease;
+  }
+  .sidebar.nav-collapsed .nav-item {
+    opacity: 0;
+    pointer-events: none;
+    height: 0;
+    min-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+  }
+  .sidebar:not(.nav-collapsed) .nav-item {
+    transition: opacity 0.16s ease 0.14s;   /* fade in after the grow */
+  }
+  /* The pill uses the same colour as the menu bar (sidebar background). */
+  /* A small grab-handle line, centered on the pill, hints it can be pulled up. */
+  .sidebar.nav-collapsed::before {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px; height: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+  }
+
+  .sidebar-head { display: none; }     /* brand + collapse arrow: no room, no purpose */
+  .nav-item {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 3px;
+    padding: 7px 2px;
+    margin-bottom: 0;
+    font-size: 0.6rem;
+  }
+  .nav-label {
+    font-size: 0.6rem;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .nav-icon { width: 19px; height: 19px; }
+  /* Long labels don't fit a ~60px tab, so swap in the short form. */
+  .nav-label[data-short] { font-size: 0; }
+  .nav-label[data-short]::after { content: attr(data-short); font-size: 0.6rem; }
+  /* The desktop "collapsed" preference is meaningless here — always show tabs. */
+  .sidebar.collapsed { width: auto; }
+  .sidebar.collapsed .nav-item { flex-direction: column; gap: 3px; padding: 7px 2px; }
+  .sidebar.collapsed .nav-label { display: block; }
+
+  /* ---- Page headers: stack the three zones, centered ---- */
+  .cal-toolbar { flex-wrap: wrap; gap: 10px; align-items: center; }
+  .cal-left, .cal-center, .cal-right { flex: 1 1 100%; }
+  .cal-left { order: 1; }
+  .cal-center { order: 2; align-items: center; }
+  .cal-right { order: 3; justify-content: center; }
+  .cal-left h2, .cal-left .schedule-heading {
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+  }
+  #view-schedule:not(.suggest-open) .cal-right { min-width: 0; }
+  .cal-left h2, .section-head h2 { font-size: 1.25rem; }
+  /* (To-Do header centering handled at 1100px, matching the board switch.) */
+  /* To-Do filter chips centered too. */
+  .todo-filters { flex-wrap: wrap; justify-content: center; }
+
+  /* ---- Narrow screens: toolbar layout ----
+     A grid so the three controls line up predictably:
+       Row 1: "Schedule" title  (spans full width, centered)
+       Row 2: month/year label  (spans full width, centered)
+       Row 3: Filter | arrows | Suggestions
+     The side columns are equal (1fr) so the arrows land dead-centre on the
+     SCREEN regardless of the buttons' widths; justify-self keeps each button
+     only as wide as its label, hugging the outer edge. */
+  .schedule-main .cal-toolbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    row-gap: 8px;
+    column-gap: 8px;
+  }
+  .schedule-main .cal-left { grid-column: 1 / -1; grid-row: 1; text-align: center; }
+  .schedule-main .cal-left .schedule-heading { display: block; width: 100%; text-align: center; }
+  .schedule-main .cal-center { display: contents; }
+  .schedule-main #weekLabel { grid-column: 1 / -1; grid-row: 2; text-align: center; margin: 0; }
+  .schedule-main .cal-right { display: contents; }
+  .schedule-main #filterBtn  { grid-column: 1; grid-row: 3; justify-self: start; }
+  .schedule-main .cal-nav    { grid-column: 2; grid-row: 3; justify-content: center; }
+  .schedule-main #suggestBtn { grid-column: 3; grid-row: 3; justify-self: end; }
+  #filterBtn, #suggestBtn { white-space: nowrap; padding: 6px 10px; display: inline-flex; align-items: center; }
+  .suggest-anchor { position: static; width: 100%; margin: 0; }
+
+  /* Suggestions / Filter drawers on mobile: fixed to the TOP as a split-screen
+     panel. They stay put while the schedule scrolls beneath, and the schedule
+     is pushed down so the fixed drawer never covers the grid. A Close button
+     sits at the bottom of each. */
+  #view-schedule.suggest-open .schedule-main { margin-right: 0; padding-top: 46vh; }
+  #view-schedule.suggest-open .suggest-panel {
+    position: fixed;
+    left: 0; right: 0; top: 0;
+    z-index: 60;
+    width: auto;
+    height: 46vh;
+    margin: 0;
+    border-radius: 0 0 14px 14px;
+    box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #view-schedule.suggest-open .suggest-body { flex: 1; overflow-y: auto; min-height: 0; }
+  .suggest-panel { max-height: 45vh; }
+
+  /* Compact the mobile drawer: less padding up top, and no dead space between
+     the list and the Close button. (The list itself stays full-size.) */
+  #view-schedule.suggest-open .suggest-panel,
+  #view-schedule.filter-open .filter-panel { padding: 14px 12px 8px; }
+  #view-schedule.suggest-open .suggest-tabs { margin-bottom: 8px; }
+  #view-schedule.suggest-open .suggest-foot { display: none; }
+  #view-schedule.suggest-open .suggest-close-bottom,
+  #view-schedule.filter-open .suggest-close-bottom { margin-top: 6px; }
+  #view-schedule.filter-open .filter-hint { margin-bottom: 6px; }
+
+  /* Filter panel drawer behaves the same way. */
+  #view-schedule.filter-open .schedule-main { margin-right: 0; padding-top: 46vh; }
+  #view-schedule.filter-open .filter-panel {
+    position: fixed;
+    left: 0; right: 0; top: 0;
+    z-index: 60;
+    width: auto;
+    height: 46vh;
+    margin: 0;
+    border-radius: 0 0 14px 14px;
+    box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #view-schedule.filter-open .filter-list { flex: 1; overflow-y: auto; min-height: 0; }
+
+  /* ---- Calendar ----
+     On mobile the schedule shows a 4-day window (set in JS) that fits the
+     viewport, so no sideways scrolling is needed — the page just scrolls down. */
+  .calendar { overflow-x: auto; }      /* scroll sideways if columns hit their min width */
+  .cal-scroll { max-height: none; overflow: visible; }
+  .cal-header, .cal-topbar, .cal-grid, .cal-footer {
+    min-width: 0;
+    /* Day columns won't shrink below 84px, so "✓ Morning" always fits on one
+       line; if the screen is too narrow for 4 at that width, the calendar
+       scrolls sideways instead of squeezing the columns. */
+    grid-template-columns: 40px repeat(var(--day-count, 4), minmax(84px, 1fr));
+  }
+  .cal-hour-label { font-size: 0.62rem; }
+  /* Corner resize grips are mouse-only (see calendar.js), so hide them on touch. */
+  .cal-resize { display: none; }
+
+  /* (To-Do board already switches to one-per-row at 1260px, above.) */
+
+  /* ---- Journal week strip: two rows of four ---- */
+  .week-days { grid-template-columns: repeat(4, 1fr); }
+
+  /* ---- Goals ---- */
+  .goals-grid { grid-template-columns: 1fr; }
+
+  /* ---- Cards / imports ---- */
+  .import-row { flex-direction: column; }
+  .import-row > .settings-card { min-width: 0; }
+
+  /* ---- Modals: near full width, scrollable ---- */
+  .modal, .modal-journal, .modal-large {
+    width: 94%;
+    max-width: none;
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  /* ---- Settings rows stack on narrow screens ---- */
+  .set-row { flex-wrap: wrap; }
+  .set-control { width: 100%; padding-top: 8px; }
+  .set-control .btn { flex: 1; }
+
+  /* ---- Touch targets ---- */
+  .btn { padding: 9px 14px; }
+  .seg-btn { padding: 10px; }
+
+  /* On the tab bar the exit link is just another tab, not pinned. */
+  .exit-demo { margin-top: 0; }
+}
+
+/* ============================================================
+   Login screen
+   Shares the landing page's type and category colours so arriving here
+   from "Get started" doesn't feel like landing in a different product.
+   ============================================================ */
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;                 /* above modals and the bottom tab bar */
+  background:
+    radial-gradient(1100px 520px at 50% -10%, rgba(91, 110, 154, 0.16), transparent 70%),
+    var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+.auth-gate[hidden] { display: none; }
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px -30px rgba(38, 51, 70, 0.55);
+}
+
+/* The five category colours, as a thin strip across the top. */
+.auth-strip { display: flex; height: 4px; }
+.auth-strip i { flex: 1; }
+
+.auth-body { padding: 30px 28px 26px; }
+
+.auth-brand {
+  margin: 0 0 4px;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+  font-size: 2.1rem;
+  letter-spacing: -0.01em;
+}
+.auth-sub {
+  margin: 0 0 26px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.auth-msg { min-height: 1.2em; margin: 2px 0 14px; font-size: 0.82rem; color: var(--muted); }
+.auth-msg.error { color: #dc2626; }
+
+.auth-actions { display: flex; gap: 8px; }
+.auth-actions .btn { flex: 1; padding: 10px 14px; }
+.auth-demo { width: 100%; margin-top: 10px; }
+
+.auth-back {
+  display: block;
+  margin-top: 22px;
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+.auth-back:hover { color: var(--text); }
+
+/* ---- Exit demo (sidebar, demo mode only) ----
+   Pinned to the bottom of the sidebar and given more weight than the tabs,
+   so it reads as a way out rather than another place to go. */
+.exit-demo {
+  margin-top: auto;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.exit-demo:hover { background: rgba(255, 255, 255, 0.24); }
+.exit-demo[hidden] { display: none; }
+
+/* Text-only link inside the login card ("Forgot your password?") */
+.auth-link {
+  display: inline-block;
+  margin: -4px 0 4px;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.auth-link:hover { color: var(--text); }
+
+/* Recovery key readout (Settings) */
+.recovery-out {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  word-break: break-all;
+  user-select: all;
+}
+.recovery-out[hidden] { display: none; }
+
+/* Patterns tab: unlock progress */
+.pattern-progress { margin: 14px 0 10px; }
+.pattern-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+.pattern-bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: var(--sidebar-bg);
+  transition: width 0.4s ease;
+}
+
+/* When dragged, the modal is positioned freely rather than flex-centered. */
+.modal-event.dragging,
+.modal-event[style*="left"] { position: fixed; margin: 0; }
+
+/* Live preview of the event being typed in the modal. A dashed ghost so it
+   reads as "not saved yet" and doesn't get mistaken for a real block. */
+.cal-event--preview {
+  opacity: 1;
+  outline: 2px dashed rgba(255, 255, 255, 0.95);
+  outline-offset: -3px;
+}
+
+/* Heading shown at the top of a revealed section (feel / repeat). */
+.reveal-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 4px 0 8px;
+}
+
+@media (max-width: 720px) {
+  /* On phones the docked panel is full-width and the calendar isn't shifted. */
+  #view-schedule.modal-docked-right .schedule-main { margin-right: 0; }
+  #view-schedule.modal-docked-left .schedule-main { margin-left: 0; }
+  .modal-event.docked { max-width: 100%; }
+}

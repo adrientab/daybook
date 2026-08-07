@@ -285,18 +285,11 @@ function renderRants() {
     chip.className = "tag-chip" + (rantFilter === t ? " active" : "");
     chip.textContent = "#" + t;
     chip.addEventListener("click", function () {
-      rantFilter = (rantFilter === t) ? null : t; // click again to clear
+      rantFilter = (rantFilter === t) ? null : t; // click the active tag again to clear
       renderRants();
     });
     filterBox.appendChild(chip);
   });
-  if (rantFilter) {
-    const clear = document.createElement("button");
-    clear.className = "tag-chip clear";
-    clear.textContent = "clear filter";
-    clear.addEventListener("click", function () { rantFilter = null; renderRants(); });
-    filterBox.appendChild(clear);
-  }
 
   // The stream: titles + tags only. Click one to read the full notes.
   const list = document.getElementById("rantList");

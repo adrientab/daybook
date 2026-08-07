@@ -1,0 +1,136 @@
+/* ============================================================
+   EXTRAS — shared To-Do/Goal modal styling, to-do filter chips, login (post-mobile tail)
+   Part of Daybook's styles — split from the original styles.css.
+   Load ORDER matters (cascade): see the <link> order in app.html.
+   ============================================================ */
+
+/* ============================================================
+   Shared styling for the redesigned To-Do & Goal modals
+   (they reuse .modal-event, .title-input, .notes-top, .chip-row, etc.)
+   ============================================================ */
+
+/* Estimated-hours / target number: small, inline, not full-width. */
+.est-input { width: 4.5em; text-align: center; }
+
+/* Target-type dropdown, styled like the inline fields. */
+.inline-select {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 7px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+}
+.modal-event .target-row { margin: 6px 0 12px; align-items: center; }
+.modal-event .target-row select { flex: 0 1 auto; }
+.modal-event .target-row input { width: 4.5em; }
+
+/* "Part of" typeahead input, matching the notes/title borderless feel. */
+.inline-text {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 7px;
+  padding: 7px 9px;
+  font: inherit;
+  color: var(--text);
+  outline: none;
+}
+.inline-text:focus { border-color: var(--sidebar-bg); }
+
+/* Category chips locked to a linked deadline: dimmed, not clickable. */
+.chip-row.chips-locked { opacity: 0.6; }
+.chip-row.chips-locked .cat-chip { cursor: default; }
+
+/* The "None" category chip has no colour dot fill. */
+.cat-chip.chip-none .cat-dot { background: transparent; border: 1.5px solid var(--muted); }
+
+/* Small button (milestones). */
+.btn-sm { padding: 6px 12px; font-size: 0.85rem; margin-top: 8px; }
+
+/* Reveal-title spacing when it heads a section (Milestones, Part of). */
+.modal-event .reveal-title { margin-top: 14px; }
+.modal-event #todoLinkField .reveal-title { margin-top: 6px; }
+
+/* Complete checkbox row sits a little tighter in the new layout. */
+.modal-event .check-field { margin-top: 12px; }
+
+/* ============================================================
+   To-Do filter chips (replaces the plain toggle buttons)
+   ============================================================ */
+.todo-filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.todo-filters-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 0 4px 0 8px;
+}
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, opacity 0.12s;
+}
+.filter-chip:hover { color: var(--text); }
+.filter-chip.active { background: var(--bg); color: var(--text); font-weight: 500; }
+/* Inactive chips read as "filtered out" — dimmed. */
+.filter-chip:not(.active) { opacity: 0.55; }
+
+/* Journal title centering is applied only on narrow screens (see the mobile
+   media query); on wide screens it stays left-aligned like the other pages. */
+
+/* Suggestions close button — sits at the end of the tab row. Hidden on wide
+   screens (the toggle button handles closing there); shown in the mobile
+   drawer where scrolling back to the toggle would be annoying. */
+.suggest-close {
+  flex: 0 0 auto;
+  width: 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.suggest-close:hover { background: var(--bg); color: var(--text); }
+@media (min-width: 721px) { .suggest-close { display: none; } }
+
+/* Bottom "Close" button — only in the mobile suggestions drawer. */
+.suggest-close-bottom { display: none; }
+@media (max-width: 720px) {
+  /* On mobile the top × is hidden; closing happens from the bottom button. */
+  .suggest-close { display: none; }
+  .suggest-close-bottom {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .suggest-close-bottom:active { background: var(--bg); }
+}
