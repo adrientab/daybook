@@ -1250,6 +1250,7 @@ function dockModal(side) {
   eventModal.classList.toggle("docked-right", side === "right");
   eventModal.style.left = "";
   eventModal.style.top = "";
+  eventModal.style.position = "";   // let the overlay's flex justify-content place it (left/right)
   // Push the page content the other way so both stay visible. A right dock
   // shifts the schedule left (like Suggestions); a left dock shifts it right
   // AND hides the page's own sidebar, since the panel takes that side.
