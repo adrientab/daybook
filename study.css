@@ -10,13 +10,9 @@
 }
 .study-head > .btn { align-self: center; }
 
-/* One row: intro text on the left, category filter + search pinned to the
-   right. The intro flexes and may wrap to a second line WITHIN its own column,
-   but it never pushes the controls onto a new row (nowrap on the container +
-   the controls stay a fixed size on the right). */
+/* Search + category filter, on one row at the left. */
 .study-controls { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: nowrap; }
-.study-intro { color: var(--muted); margin: 0; flex: 1 1 auto; min-width: 0; }
-.study-cat-filter { flex: 0 0 auto; min-width: 150px; margin-left: auto; }
+.study-cat-filter { flex: 0 0 auto; min-width: 150px; }
 .study-cat-filter { flex: 0 0 auto; min-width: 150px; }
 
 /* Search: a small icon that expands on hover (or focus) into an input. */
