@@ -55,13 +55,16 @@
 /* minmax(0, 1fr) not 1fr: a plain 1fr has an automatic content-based minimum,
    so a long deadline name in a card would push its whole column wider. */
 .todo-board { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
-/* Seven day-columns get too cramped to read once the window narrows, well
-   before the mobile breakpoint — so drop the To-Do board to one day per row
-   earlier. */
+/* The renderer sets --td-day-count and a layout class. In the 4-day "window"
+   tier the grid follows that count; in the "list" tier it's a single column. */
+.todo-board.td-window { grid-template-columns: repeat(var(--td-day-count, 4), minmax(0, 1fr)); }
+.todo-board.td-list   { grid-template-columns: 1fr; gap: 6px; }
+
+/* Medium widths: seven columns get cramped, so the board shows a 4-day window
+   you page through (Sun–Wed / Thu–Sun), mirroring the calendar's mobile view.
+   The toolbar also stacks so the title can centre. */
 @media (max-width: 1100px) {
-  .todo-board { grid-template-columns: 1fr; gap: 6px; }
-  .todo-col { min-height: 0; }
-  .todo-col-head { text-align: left; }
+  .todo-col { min-height: 120px; }
 
   /* Stack the To-Do toolbar zones so the title can centre across the full
      width (above this it shares a row with the week nav and filters). */
@@ -94,6 +97,13 @@
     transform: translateY(-50%);
     margin: 0;
   }
+}
+
+/* Very narrow: the 4-day window is still too tight, so drop to a single-column
+   list showing all seven days stacked. */
+@media (max-width: 620px) {
+  .todo-col { min-height: 0; }
+  .todo-col-head { text-align: left; }
 }
 .todo-col {
   background: var(--surface);
