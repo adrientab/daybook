@@ -34,6 +34,24 @@
 
     if (isNarrow()) sidebar.classList.add("nav-collapsed");
 
+    // When the window crosses the narrow/wide breakpoint (e.g. you shrink the
+    // window into mobile layout, or rotate a device), react: entering narrow
+    // starts collapsed (matching a fresh load); entering wide clears the class
+    // so the left sidebar is never stuck in a collapsed state. Without this the
+    // bar only collapsed at initial load, so resizing INTO narrow left the full
+    // menu showing.
+    var narrowMq = window.matchMedia("(max-width: 720px)");
+    var onLayoutChange = function (e) {
+      if (e.matches) {
+        sidebar.classList.add("nav-collapsed");   // just became narrow -> collapse
+        syncBottom();
+      } else {
+        sidebar.classList.remove("nav-collapsed"); // wide -> normal left sidebar
+      }
+    };
+    if (narrowMq.addEventListener) narrowMq.addEventListener("change", onLayoutChange);
+    else if (narrowMq.addListener) narrowMq.addListener(onLayoutChange); // older Safari
+
     // Ignore scroll events fired right after load (some browsers emit a scroll
     // as the page settles); without this a phantom upward delta could expand the
     // bar immediately, defeating the "starts collapsed" behaviour.
