@@ -32,7 +32,7 @@
     function expand() { sidebar.classList.remove("nav-collapsed"); syncBottom(); }
     function collapsed() { return sidebar.classList.contains("nav-collapsed"); }
 
-    if (isNarrow()) sidebar.classList.add("nav-collapsed");
+    if (isNarrow()) { sidebar.classList.remove("collapsed"); sidebar.classList.add("nav-collapsed"); }
 
     // When the window crosses the narrow/wide breakpoint (e.g. you shrink the
     // window into mobile layout, or rotate a device), react: entering narrow
@@ -43,10 +43,20 @@
     var narrowMq = window.matchMedia("(max-width: 720px)");
     var onLayoutChange = function (e) {
       if (e.matches) {
-        sidebar.classList.add("nav-collapsed");   // just became narrow -> collapse
+        // Entering narrow: the wide-mode icon-rail collapse (.collapsed) is
+        // meaningless here and its width:64px fights the bottom-bar layout, so
+        // drop it. Then start collapsed as the pill.
+        sidebar.classList.remove("collapsed");
+        sidebar.classList.add("nav-collapsed");
         syncBottom();
       } else {
-        sidebar.classList.remove("nav-collapsed"); // wide -> normal left sidebar
+        // Entering wide: the bottom-bar pill state is meaningless; clear it so
+        // the left sidebar renders normally, and restore the user's saved
+        // wide-mode collapse (icon-rail) preference.
+        sidebar.classList.remove("nav-collapsed");
+        var saved = false;
+        try { saved = (typeof Store !== "undefined" && Store.get("sidebarCollapsed") === "1"); } catch (_) {}
+        sidebar.classList.toggle("collapsed", saved);
       }
     };
     if (narrowMq.addEventListener) narrowMq.addEventListener("change", onLayoutChange);
