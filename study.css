@@ -11,9 +11,13 @@
 .study-head > .btn { align-self: center; }
 
 /* Intro line + category filter + search, all on one row. The intro takes the
-   left space and pushes the controls to the right. */
-.study-controls { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; }
-.study-intro { color: var(--muted); margin: 0; flex: 1; min-width: 0; }
+   left space and pushes the controls to the right. It's clamped to one line
+   (ellipsis) so a long intro can never wrap and break the row onto two lines. */
+.study-controls { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: nowrap; }
+.study-intro {
+  color: var(--muted); margin: 0; flex: 1 1 auto; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .study-cat-filter { flex: 0 0 auto; min-width: 150px; }
 
 /* Search: a small icon that expands on hover (or focus) into an input. */
