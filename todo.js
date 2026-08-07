@@ -519,7 +519,17 @@ function todoPage(dir) {
 document.getElementById("tdPrevWeek").addEventListener("click", function () { todoPage(-1); });
 document.getElementById("tdNextWeek").addEventListener("click", function () { todoPage(1); });
 document.getElementById("tdThisWeek").addEventListener("click", function () {
-  todoWeekStart = startOfWeek(new Date()); todoWindowStart = 0; renderTodos();
+  const now = new Date();
+  todoWeekStart = startOfWeek(now);
+  // In the 4-day window layout, land on whichever window contains today:
+  // Sun–Wed (day index 0–3) -> window 0; Thu–Sat (4–6) -> window 4.
+  if (todoLayout() === "window4") {
+    const dow = Math.round((now - startOfWeek(now)) / 86400000); // 0..6 within the week
+    todoWindowStart = dow >= 4 ? 4 : 0;
+  } else {
+    todoWindowStart = 0;
+  }
+  renderTodos();
 });
 
 // Re-render the instant a breakpoint is crossed. matchMedia "change" fires
