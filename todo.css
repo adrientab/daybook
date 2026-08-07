@@ -63,7 +63,7 @@
 /* Medium widths: seven columns get cramped, so the board shows a 4-day window
    you page through (Sun–Wed / Thu–Sun), mirroring the calendar's mobile view.
    The toolbar also stacks so the title can centre. */
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
   .todo-col { min-height: 120px; }
 
   /* Stack the To-Do toolbar zones so the title can centre across the full
@@ -115,6 +115,12 @@
   cursor: pointer;
 }
 .todo-col.today { border-color: var(--accent); }
+/* Today gets a thick blue bar under its day header, matching the calendar's
+   "today" cue. The header's own 1px divider is replaced by the accent bar. */
+.todo-col.today .todo-col-head {
+  border-bottom: 3px solid var(--accent);
+  color: var(--text);
+}
 .todo-col-head {
   padding: 8px;
   border-bottom: 1px solid var(--border);
