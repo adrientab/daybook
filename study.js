@@ -55,6 +55,19 @@ function deckCategoryLabel(d) {
   return label;
 }
 
+/* The colour of a deck's category (subcategories inherit the parent colour).
+   Falls back to a neutral tone for legacy free-text categories. */
+function deckCategoryColor(d) {
+  if (!d.category) return "";
+  if (typeof categoryColor === "function") {
+    const cats = (typeof getCategories === "function") ? getCategories() : [];
+    if (cats.some(function (c) { return c.id === d.category; })) {
+      return categoryColor(d.category);
+    }
+  }
+  return "";   // legacy / free-text: no known colour
+}
+
 /* Small helpers */
 function shuffle(arr) {
   const a = arr.slice();
@@ -122,12 +135,16 @@ function renderStudy() {
   decks.forEach(function (d) {
     const count = (d.cards || []).length;
     const catName = deckCategoryLabel(d);
+    const catColor = deckCategoryColor(d);
+    const catStyle = catColor
+      ? ' style="color:' + catColor + ';background:color-mix(in srgb,' + catColor + ' 15%,transparent)"'
+      : "";
     const row = document.createElement("div");
     row.className = "study-deck-row";
     row.innerHTML =
       '<div class="study-deck-main">' +
         '<div class="study-deck-name">' + escapeHtml(d.name || "Untitled deck") +
-          (catName ? ' <span class="study-deck-cat">' + escapeHtml(catName) + "</span>" : "") +
+          (catName ? ' <span class="study-deck-cat"' + catStyle + ">" + escapeHtml(catName) + "</span>" : "") +
         "</div>" +
         '<div class="study-deck-meta">' + count + " term" + (count === 1 ? "" : "s") +
           (d.description ? " &middot; " + escapeHtml(d.description) : "") +
@@ -202,20 +219,11 @@ function initStudy() {
 
   const search = document.getElementById("studySearch");
   const searchWrap = document.getElementById("studySearchWrap");
-  const searchBtn = document.getElementById("studySearchBtn");
-  if (search) search.addEventListener("input", renderStudy);
-  // Expanding search: the icon opens it; it collapses when left empty on blur.
-  if (searchBtn && searchWrap && search) {
-    searchBtn.addEventListener("click", function () {
-      if (searchWrap.classList.contains("open") && !search.value) {
-        searchWrap.classList.remove("open");
-      } else {
-        searchWrap.classList.add("open");
-        search.focus();
-      }
-    });
-    search.addEventListener("blur", function () {
-      if (!search.value.trim()) searchWrap.classList.remove("open");
+  if (search) {
+    search.addEventListener("input", function () {
+      // Keep it expanded while there's a query, even after the mouse leaves.
+      if (searchWrap) searchWrap.classList.toggle("open", !!search.value.trim());
+      renderStudy();
     });
   }
 
