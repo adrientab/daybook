@@ -8,7 +8,20 @@
 
 const todoOverlay = document.getElementById("todoModalOverlay");
 let todoWeekStart = startOfWeek(new Date()); // Sunday, to match the schedule
+let todoWindowStart = 0;   // day-index the 4-day window starts at (0 = Sun, 4 = Thu)
 let editingTodoId = null;
+
+/* Three responsive layouts, mirroring the calendar:
+   - wide  (> 1100px): all 7 days as a grid   -> "grid7"
+   - medium (620–1100): a 4-day window you page -> "window4"
+   - narrow (<= 620px): all 7 days stacked list -> "list7"
+   The two breakpoints are also encoded in CSS (below) for the visual layout;
+   this function tells the renderer how many day-columns to build. */
+function todoLayout() {
+  if (window.matchMedia("(max-width: 620px)").matches) return "list7";
+  if (window.matchMedia("(max-width: 1100px)").matches) return "window4";
+  return "grid7";
+}
 /* Board filters. Each is "show this kind of card", all on by default, so the
    three buttons read the same way instead of mixing "only X" with "hide Y".
    Not persisted — a reload always shows everything. */
@@ -23,10 +36,25 @@ function renderTodos() {
   const board = document.getElementById("todoBoard");
   if (!board) return;
 
-  const days = [];
-  for (let i = 0; i < 7; i++) days.push(addDays(todoWeekStart, i));
+  const layout = todoLayout();
 
-  const mid = addDays(todoWeekStart, 3); // midpoint -> the week's dominant month
+  // Which days to show:
+  //  grid7 / list7 -> the whole Sun–Sat week.
+  //  window4       -> a 4-day slice; page 0 = Sun–Wed, page 1 = Thu–Sun(next).
+  const days = [];
+  if (layout === "window4") {
+    for (let i = 0; i < 4; i++) days.push(addDays(todoWeekStart, todoWindowStart + i));
+  } else {
+    for (let i = 0; i < 7; i++) days.push(addDays(todoWeekStart, i));
+  }
+
+  // Tell the CSS how many columns to lay out (window4 uses this).
+  board.style.setProperty("--td-day-count", days.length);
+  board.classList.toggle("td-window", layout === "window4");
+  board.classList.toggle("td-list", layout === "list7");
+  board.classList.toggle("td-grid", layout === "grid7");
+
+  const mid = days[Math.floor(days.length / 2)]; // middle of what's shown -> dominant month
   document.getElementById("tdWeekLabel").textContent =
     mid.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
@@ -465,14 +493,38 @@ document.getElementById("todoNotes").addEventListener("input", function () {
 });
 todoOverlay.addEventListener("click", function (e) { if (e.target === todoOverlay) closeTodo(); });
 
-document.getElementById("tdPrevWeek").addEventListener("click", function () {
-  todoWeekStart = addDays(todoWeekStart, -7); renderTodos();
-});
-document.getElementById("tdNextWeek").addEventListener("click", function () {
-  todoWeekStart = addDays(todoWeekStart, 7); renderTodos();
-});
+/* Paging: in the 4-day window layout, prev/next steps by the window (Sun–Wed
+   -> Thu–Sun -> next week's Sun–Wed …). In the grid/list layouts they page a
+   whole week as before. */
+function todoPage(dir) {
+  if (todoLayout() === "window4") {
+    if (dir > 0) {
+      if (todoWindowStart === 0) { todoWindowStart = 4; }
+      else { todoWindowStart = 0; todoWeekStart = addDays(todoWeekStart, 7); }
+    } else {
+      if (todoWindowStart === 4) { todoWindowStart = 0; }
+      else { todoWindowStart = 4; todoWeekStart = addDays(todoWeekStart, -7); }
+    }
+  } else {
+    todoWeekStart = addDays(todoWeekStart, dir > 0 ? 7 : -7);
+  }
+  renderTodos();
+}
+document.getElementById("tdPrevWeek").addEventListener("click", function () { todoPage(-1); });
+document.getElementById("tdNextWeek").addEventListener("click", function () { todoPage(1); });
 document.getElementById("tdThisWeek").addEventListener("click", function () {
-  todoWeekStart = startOfWeek(new Date()); renderTodos();
+  todoWeekStart = startOfWeek(new Date()); todoWindowStart = 0; renderTodos();
+});
+
+// Re-render on resize so the layout (and day count) follows the width across
+// the two breakpoints; reset the window page when leaving window mode.
+let todoResizeTimer = null;
+window.addEventListener("resize", function () {
+  clearTimeout(todoResizeTimer);
+  todoResizeTimer = setTimeout(function () {
+    if (todoLayout() !== "window4") todoWindowStart = 0;
+    renderTodos();
+  }, 150);
 });
 
 onAppReady(renderTodos);
