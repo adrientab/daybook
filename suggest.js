@@ -121,7 +121,7 @@ function renderTodosSuggest(body) {
       '<div class="suggest-title">' + catDot(todoCat(t)) + escapeHtml(t.title) + "</div>" +
       '<div class="suggest-meta"><span>' + due + "</span>" +
       (t.estHours ? "<span>~" + t.estHours + "h</span>" : "") + "</div>";
-    makeDraggable(item, { type: "todo", title: t.title, category: todoCat(t) || "" });
+    makeDraggable(item, { type: "todo", title: t.title, category: todoCat(t) || "", estHours: (t.estHours != null && t.estHours !== "" ? t.estHours : null) });
     body.appendChild(item);
   });
 }

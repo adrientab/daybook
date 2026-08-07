@@ -365,14 +365,16 @@ function columnAtX(x) {
 }
 
 function addTitleDrag(block, ev) {
-  const title = block.querySelector(".cal-event-title");
-  if (!title) return;
-  title.classList.add("cal-event-grab");
+  // The whole block is draggable (not just the title), so grabbing anywhere on
+  // the event moves it. The resize handle at the bottom stops propagation, so
+  // it still resizes rather than moving.
+  block.classList.add("cal-event-grab");
 
-  title.addEventListener("pointerdown", function (e) {
+  block.addEventListener("pointerdown", function (e) {
     if (e.button !== 0) return;
     if (e.pointerType === "touch") return; // touch needs this gesture for scrolling
     if (!block.parentNode) return;
+    if (e.target.closest(".cal-resize")) return; // resizing, not moving
 
     const startMin0 = timeToMinutes(ev.start);
     const dur = Math.max(15, timeToMinutes(ev.end) - startMin0);
@@ -662,7 +664,13 @@ function enableDropCreate(col, ds) {
     let data;
     try { data = JSON.parse(e.dataTransfer.getData("text/plain")); } catch (_) { return; }
     if (!data) return;
-    const endMin = Math.min(24 * 60, startMin + 60); // default one hour
+    // Default the event length to the task's time estimate (estHours, which may
+    // be fractional like 0.5 = 30 min). Fall back to one hour when there's none.
+    let durMin = 60;
+    if (data.estHours != null && data.estHours !== "" && !isNaN(parseFloat(data.estHours))) {
+      durMin = Math.max(15, Math.round(parseFloat(data.estHours) * 60));
+    }
+    const endMin = Math.min(24 * 60, startMin + durMin);
     openModal({
       date: ds,
       start: minutesToTime(startMin),

@@ -372,7 +372,7 @@ h2 { margin-top: 0; }
   z-index: 20;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
-.cal-event-moving .cal-event-grab { cursor: grabbing; }
+.cal-event-moving.cal-event-grab, .cal-event-moving .cal-event-grab { cursor: grabbing; }
 
 /* Overlapping events share the column, so each is narrow. Let the title wrap
    onto multiple lines (breaking long words if needed) and shrink the text a
