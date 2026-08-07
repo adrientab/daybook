@@ -34,6 +34,12 @@
 
     if (isNarrow()) sidebar.classList.add("nav-collapsed");
 
+    // Ignore scroll events fired right after load (some browsers emit a scroll
+    // as the page settles); without this a phantom upward delta could expand the
+    // bar immediately, defeating the "starts collapsed" behaviour.
+    var startupGuard = true;
+    setTimeout(function () { startupGuard = false; }, 350);
+
     function scrollTop(t) {
       if (t && t !== document && t.scrollTop != null) return t.scrollTop;
       return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
@@ -46,6 +52,7 @@
 
     function handle(y) {
       if (!isNarrow()) { expand(); lastY = y; return; }
+      if (startupGuard) { lastY = y; downAccum = 0; return; }   // stay collapsed at load
       if (lastY == null) { lastY = y; downAccum = 0; return; }
       var dy = y - lastY;
       lastY = y;

@@ -1692,8 +1692,8 @@ body.hide-sidebar .sidebar { display: none; }
     overflow: hidden;
     justify-content: center;
     align-items: center;
-    min-height: 30px;
-    height: 30px;
+    min-height: 20px;
+    height: 20px;
     cursor: pointer;
   }
   /* Tabs fade out quickly while collapsed; fade back in (slightly delayed) as
