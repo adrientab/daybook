@@ -141,6 +141,7 @@ function buildDemoData() {
       name: deck.name,
       description: deck.description || "",
       category: deck.category || "",
+      subcategory: deck.subcategory || "",
       cards: (deck.cards || []).map(function (pair, ci) {
         return { id: "demo-card-" + di + "-" + ci, term: pair[0], def: pair[1] };
       })
