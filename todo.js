@@ -12,14 +12,20 @@ let todoWindowStart = 0;   // day-index the 4-day window starts at (0 = Sun, 4 =
 let editingTodoId = null;
 
 /* Three responsive layouts, mirroring the calendar:
-   - wide  (> 1100px): all 7 days as a grid   -> "grid7"
-   - medium (620–1100): a 4-day window you page -> "window4"
-   - narrow (<= 620px): all 7 days stacked list -> "list7"
-   The two breakpoints are also encoded in CSS (below) for the visual layout;
-   this function tells the renderer how many day-columns to build. */
+   - wide   (> TD_GRID_BP):        all 7 days as a grid   -> "grid7"
+   - medium (TD_LIST_BP–GRID_BP):  a 4-day window you page -> "window4"
+   - narrow (<= TD_LIST_BP):       all 7 days stacked list -> "list7"
+   These two numbers are the ONLY place the breakpoints live — the matchMedia
+   queries below reuse them, so the switch happens at exactly these widths and
+   snaps instantly the moment the window crosses them. Change a number here and
+   everything (JS layout + the media listeners) follows. Keep the CSS media
+   queries in todo.css in sync with these two numbers. */
+var TD_GRID_BP = 1100;   // at/below this width: drop 7-grid -> 4-day window
+var TD_LIST_BP = 620;    // at/below this width: drop 4-window -> 7-day list
+
 function todoLayout() {
-  if (window.matchMedia("(max-width: 620px)").matches) return "list7";
-  if (window.matchMedia("(max-width: 1100px)").matches) return "window4";
+  if (window.matchMedia("(max-width: " + TD_LIST_BP + "px)").matches) return "list7";
+  if (window.matchMedia("(max-width: " + TD_GRID_BP + "px)").matches) return "window4";
   return "grid7";
 }
 /* Board filters. Each is "show this kind of card", all on by default, so the
@@ -516,15 +522,17 @@ document.getElementById("tdThisWeek").addEventListener("click", function () {
   todoWeekStart = startOfWeek(new Date()); todoWindowStart = 0; renderTodos();
 });
 
-// Re-render on resize so the layout (and day count) follows the width across
-// the two breakpoints; reset the window page when leaving window mode.
-let todoResizeTimer = null;
-window.addEventListener("resize", function () {
-  clearTimeout(todoResizeTimer);
-  todoResizeTimer = setTimeout(function () {
-    if (todoLayout() !== "window4") todoWindowStart = 0;
+// Re-render the instant a breakpoint is crossed. matchMedia "change" fires
+// exactly at the threshold (not on every resize pixel), so the 7 <-> 4 <-> list
+// switch snaps cleanly the moment the width passes the number — no debounce lag.
+[TD_GRID_BP, TD_LIST_BP].forEach(function (bp) {
+  const mq = window.matchMedia("(max-width: " + bp + "px)");
+  const onChange = function () {
+    if (todoLayout() !== "window4") todoWindowStart = 0; // reset paging outside window mode
     renderTodos();
-  }, 150);
+  };
+  if (mq.addEventListener) mq.addEventListener("change", onChange);
+  else if (mq.addListener) mq.addListener(onChange); // older Safari
 });
 
 onAppReady(renderTodos);
