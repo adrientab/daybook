@@ -20,7 +20,7 @@ let editingTodoId = null;
    snaps instantly the moment the window crosses them. Change a number here and
    everything (JS layout + the media listeners) follows. Keep the CSS media
    queries in todo.css in sync with these two numbers. */
-var TD_GRID_BP = 1100;   // at/below this width: drop 7-grid -> 4-day window
+var TD_GRID_BP = 1200;   // at/below this width: drop 7-grid -> 4-day window
 var TD_LIST_BP = 620;    // at/below this width: drop 4-window -> 7-day list
 
 function todoLayout() {

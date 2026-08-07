@@ -155,7 +155,12 @@
   cursor: pointer; font: inherit; color: var(--text);
 }
 .week-day:hover { background: #f0f1f3; }
-.week-day.today { border-color: var(--accent); }
+/* Today stands out with a bold blue border all around (matching the calendar
+   and to-do "today" cues). The inset ring keeps the 1px layout from shifting. */
+.week-day.today {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
 .wd-dow { font-size: 0.7rem; text-transform: uppercase; color: var(--muted); }
 .wd-num { font-weight: 600; }
 .wd-dots { display: flex; gap: 4px; margin-top: 2px; }
