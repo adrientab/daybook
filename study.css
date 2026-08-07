@@ -12,7 +12,7 @@
 
 /* Search + category filter, on one row at the left. */
 .study-controls { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
-.study-cat-filter { flex: 0 1 auto; min-width: 130px; padding-right: 50px; }
+.study-cat-filter { flex: 0 1 auto; min-width: 130px; padding-right: 80px; }
 
 /* Search: a small icon that expands on hover (or focus) into an input. */
 .study-search-wrap {
