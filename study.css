@@ -14,11 +14,16 @@
 .study-controls { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
 /* Custom chevron so we can control its distance from the box edge (the native
    <select> arrow is painted at a fixed spot and can't be moved with padding).
-   The background-position sets the gap from the right edge. */
+   The chevron image and the box colour are set together so the base
+   .inline-select `background` shorthand can't wipe the image out. Height matches
+   the search circle's diameter (42px). */
 .study-cat-filter {
   flex: 0 1 auto; min-width: 130px;
+  height: 42px;
+  box-sizing: border-box;
   appearance: none; -webkit-appearance: none; -moz-appearance: none;
-  padding-right: 34px;
+  padding: 0 34px 0 12px;
+  background-color: var(--bg);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;   /* <- distance of chevron from the edge */
