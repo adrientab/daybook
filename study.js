@@ -241,6 +241,7 @@ function initStudy() {
    ============================================================ */
 
 let editorState = null;   // { id, name, description, cards, dirty }
+let editorFromExplore = false;   // true when the editor was opened by copying a public set
 
 function openEditor(deckId) {
   const existing = deckId ? getDeck(deckId) : null;
@@ -260,6 +261,9 @@ function openEditor(deckId) {
   document.getElementById("studyEditorTitle").textContent = existing ? "Edit deck" : "New deck";
   document.getElementById("editDeckName").value = editorState.name;
   document.getElementById("editDeckDesc").value = editorState.description;
+  editorFromExplore = false;                     // opened normally, not from explore
+  var del = document.getElementById("editDelete");
+  if (del) del.hidden = editorState.isNew;       // nothing saved yet -> nothing to delete
   populateDeckCategory();
   renderEditorCards();
   showOverlay("studyEditor");
@@ -286,6 +290,9 @@ function openEditorFromPublic(pub) {
   document.getElementById("studyEditorTitle").textContent = "New deck";
   document.getElementById("editDeckName").value = editorState.name;
   document.getElementById("editDeckDesc").value = editorState.description;
+  editorFromExplore = true;                       // Exit should return to Explore
+  var del = document.getElementById("editDelete");
+  if (del) del.hidden = true;                      // a fresh copy has nothing to delete
   populateDeckCategory();
   renderEditorCards();
   hideOverlay("studyExplore");
@@ -572,6 +579,7 @@ function saveEditor() {
   };
   upsertDeck(deck);
   editorState.dirty = false;
+  editorFromExplore = false;    // saved into the library; exit path is the deck list now
   hideOverlay("studyEditor");
   renderStudy();
 }
@@ -582,6 +590,9 @@ function tryExitEditor() {
     if (!ok) return;
   }
   hideOverlay("studyEditor");
+  // If this editor was a copy from Explore, go back to Explore rather than the
+  // deck list, so browsing more public sets is seamless.
+  if (editorFromExplore) { editorFromExplore = false; openExplore(); }
 }
 
 /* ============================================================
