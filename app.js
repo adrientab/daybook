@@ -22,7 +22,7 @@
 /* Device preferences, not user data: these should differ per device (dark mode
    on your phone, light on your laptop), so they always stay in this browser
    and never sync. */
-const LOCAL_ONLY_KEYS = ["theme", "sidebarCollapsed", "weekStart"];
+const LOCAL_ONLY_KEYS = ["theme", "sidebarCollapsed", "weekStart", "dayStartHour"];
 
 /* Backend: reads/writes the browser's localStorage. If it's blocked (private
    window, sandboxed preview), the cache still works for the session. */
@@ -160,6 +160,59 @@ function pad(n) { return String(n).padStart(2, "0"); }
 
 function dateKey(d) {
   return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+}
+
+/* ---- Custom day-start hour --------------------------------------------
+   By default a day runs midnight->midnight (start hour 0). The user can set a
+   later boundary (e.g. 5 = 5am), so late-night hours belong to the previous
+   day: with a 5am start, 2am Saturday is really "Friday night" and shows at the
+   bottom of Friday. Stored locally (a device preference), 0-23, default 0. */
+const DAY_START_KEY = "dayStartHour";
+function getDayStartHour() {
+  const v = parseInt(Store.get(DAY_START_KEY), 10);
+  return (isNaN(v) || v < 0 || v > 23) ? 0 : v;
+}
+function setDayStartHour(h) {
+  Store.set(DAY_START_KEY, String(h));
+}
+/* The logical day-key a moment belongs to, honoring the day-start hour.
+   Anything before the start hour rolls into the previous calendar day. */
+function logicalDayKey(d) {
+  const shifted = new Date(d.getTime() - getDayStartHour() * 3600000);
+  return dateKey(shifted);
+}
+/* For an event stored as (dateKey, clockMinutes): which logical day-key it
+   belongs to. Early-morning times (before the start hour) belong to the
+   previous day. */
+function logicalDayKeyFor(dateStr, clockMinutes) {
+  const startMin = getDayStartHour() * 60;
+  if (clockMinutes >= startMin) return dateStr;          // same day
+  // Before the start boundary -> previous calendar day.
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() - 1);
+  return dateKey(d);
+}
+/* An event's vertical offset (in minutes from the top of the grid) given the
+   day-start hour. The grid runs [startHour, startHour+24). */
+function gridMinutes(clockMinutes) {
+  const startMin = getDayStartHour() * 60;
+  return (clockMinutes - startMin + 1440) % 1440;
+}
+/* Inverse of gridMinutes: a grid offset (0 = top of the column) back to real
+   clock minutes (0-1439). */
+function gridToClock(gridMin) {
+  const startMin = getDayStartHour() * 60;
+  return (gridMin + startMin) % 1440;
+}
+/* Given the column's logical day-key and a grid offset, the real calendar date
+   the resulting time falls on. If the grid offset pushes past midnight (because
+   the day starts before midnight-relative), it's the next calendar day. */
+function gridDateFor(dayKeyStr, gridMin) {
+  const startMin = getDayStartHour() * 60;
+  const total = gridMin + startMin;            // minutes past midnight of dayKeyStr
+  const d = new Date(dayKeyStr + "T00:00:00");
+  if (total >= 1440) d.setDate(d.getDate() + 1); // rolled into the next calendar day
+  return dateKey(d);
 }
 
 function addDays(d, n) {
@@ -393,6 +446,28 @@ onAppReady(function () {
     if (typeof renderTodos === "function") renderTodos();
     if (typeof renderJournalView === "function") renderJournalView();
   });
+
+  // Day-starts-at hour picker (0-23). Midnight is the default "no change".
+  const daySel = document.getElementById("dayStartSelect");
+  if (daySel) {
+    function hourLabel(h) {
+      if (h === 0) return "Midnight (12am)";
+      if (h === 12) return "Noon (12pm)";
+      const ampm = h < 12 ? "am" : "pm";
+      const h12 = h % 12 === 0 ? 12 : h % 12;
+      return h12 + ampm;
+    }
+    let opts = "";
+    for (let h = 0; h < 24; h++) opts += '<option value="' + h + '">' + hourLabel(h) + "</option>";
+    daySel.innerHTML = opts;
+    daySel.value = String(getDayStartHour());
+    daySel.addEventListener("change", function () {
+      setDayStartHour(parseInt(daySel.value, 10) || 0);
+      if (typeof renderCalendar === "function") renderCalendar();
+      if (typeof renderTodos === "function") renderTodos();
+      if (typeof renderJournalView === "function") renderJournalView();
+    });
+  }
 });
 
 /* While the user hasn't picked a theme, follow the OS if it changes live. Once
