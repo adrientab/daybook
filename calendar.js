@@ -86,7 +86,7 @@ function renderCalendar() {
   document.getElementById("weekLabel").textContent =
     mid.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
-  const todayKey = dateKey(new Date());
+  const todayKey = logicalDayKey(new Date());
 
   // --- Header: corner holds the + Event button, then 7 weekday cells ---
   if (!addEventBtnEl) addEventBtnEl = document.getElementById("addEventBtn");
@@ -133,11 +133,12 @@ function renderCalendar() {
   // --- Body: time gutter, then 7 day columns ---
   const gutter = document.createElement("div");
   gutter.className = "cal-gutter";
-  for (let h = 0; h < 24; h++) {
+  const startH = getDayStartHour();
+  for (let i = 0; i < 24; i++) {
     const label = document.createElement("div");
     label.className = "cal-hour-label";
     label.style.height = HOUR_HEIGHT + "px";
-    label.textContent = formatHour(h);
+    label.textContent = formatHour((startH + i) % 24);
     gutter.appendChild(label);
   }
   grid.appendChild(gutter);
@@ -162,8 +163,11 @@ function renderCalendar() {
     enableDropCreate(col, ds);
 
     // Events, laid out side-by-side when they overlap (respecting the filter).
+    // Bucket by LOGICAL day: with a non-midnight start hour, an early-morning
+    // event belongs to (and renders at the bottom of) the previous day.
     const dayEvents = events.filter(function (ev) {
-      return ev.date === ds && !isFilteredOut(ev.category, ev.subcategory);
+      if (isFilteredOut(ev.category, ev.subcategory)) return false;
+      return logicalDayKeyFor(ev.date, timeToMinutes(ev.start)) === ds;
     });
     layoutDayEvents(dayEvents).forEach(function (it) {
       col.appendChild(buildEventBlock(it.ev, it.left, it.width));
@@ -171,7 +175,7 @@ function renderCalendar() {
 
     // Timed to-dos: cluster ones within ~10 min so their dots sit together.
     const timed = todos
-      .filter(function (t) { return t.due === ds && t.dueTime && !t.done; })
+      .filter(function (t) { return t.dueTime && !t.done && logicalDayKeyFor(t.due, timeToMinutes(t.dueTime)) === ds; })
       .sort(function (a, b) { return timeToMinutes(a.dueTime) - timeToMinutes(b.dueTime); });
     clusterTodos(timed, 10).forEach(function (group) {
       col.appendChild(buildTodoMarker(group));
@@ -199,7 +203,7 @@ function renderCalendar() {
 /* Where the current time sits, in pixels from the top of a day column. */
 function nowTopPx() {
   const now = new Date();
-  return (now.getHours() * 60 + now.getMinutes()) / 60 * HOUR_HEIGHT;
+  return gridMinutes(now.getHours() * 60 + now.getMinutes()) / 60 * HOUR_HEIGHT;
 }
 
 /* Nudge the current-time bar every minute. Moving the existing element is
@@ -245,7 +249,7 @@ function buildTodoMarker(group) {
   const first = group.reduce(function (a, b) {
     return timeToMinutes(a.dueTime) <= timeToMinutes(b.dueTime) ? a : b;
   });
-  const top = timeToMinutes(first.dueTime) / 60 * HOUR_HEIGHT;
+  const top = gridMinutes(timeToMinutes(first.dueTime)) / 60 * HOUR_HEIGHT;
 
   const marker = document.createElement("div");
   marker.className = "cal-todo-marker";
@@ -298,7 +302,7 @@ function buildEventBlock(ev, left, width) {
     (short ? " cal-event--short" : "") +
     (narrow ? " cal-event--narrow" : "") +
     (ev.__preview ? " cal-event--preview" : "");
-  block.style.top = (startMin / 60 * HOUR_HEIGHT) + "px";
+  block.style.top = (gridMinutes(startMin) / 60 * HOUR_HEIGHT) + "px";
   block.style.height = ((endMin - startMin) / 60 * HOUR_HEIGHT) + "px";
   block.style.left = "calc(" + (left * 100) + "% + 1px)";
   block.style.width = "calc(" + (width * 100) + "% - 2px)";
@@ -605,8 +609,12 @@ function enableDragCreate(col, ds) {
         left: colRect.left, right: colRect.right,
         top: slotTop, bottom: slotTop + ((finalEnd - startMin) / 60 * HOUR_HEIGHT)
       };
+      // startMin/finalEnd are GRID offsets; translate to real clock time and the
+      // real calendar date (which may roll past midnight under a custom start).
       openModal({
-        date: ds, start: minutesToTime(startMin), end: minutesToTime(finalEnd),
+        date: gridDateFor(ds, startMin),
+        start: minutesToTime(gridToClock(startMin)),
+        end: minutesToTime(gridToClock(finalEnd) === 0 ? 1440 : gridToClock(finalEnd)),
         avoidRect: slotRect   // open beside this slot, aligned to its height
       });
     }
