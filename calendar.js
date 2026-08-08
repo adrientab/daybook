@@ -138,7 +138,9 @@ function renderCalendar() {
     const label = document.createElement("div");
     label.className = "cal-hour-label";
     label.style.height = HOUR_HEIGHT + "px";
-    label.textContent = formatHour((startH + i) % 24);
+    // The first label sits at the very top of the scroll area and gets clipped,
+    // so leave it blank; the 2nd hour onward reads cleanly.
+    label.textContent = i === 0 ? "" : fmtHour((startH + i) % 24);
     gutter.appendChild(label);
   }
   grid.appendChild(gutter);
@@ -321,7 +323,7 @@ function buildEventBlock(ev, left, width) {
 
   block.innerHTML =
     '<span class="cal-event-title">' + escapeHtml(ev.title || "(untitled)") + "</span>" +
-    (short ? "" : '<span class="cal-event-time">' + ev.start + "\u2013" + ev.end + "</span>") +
+    (short ? "" : '<span class="cal-event-time">' + fmtTime(ev.start) + "\u2013" + fmtTime(ev.end) + "</span>") +
     (!short && ev.notes ? '<span class="cal-event-notes">' + escapeHtml(ev.notes) + "</span>" : "");
 
   // The live preview is display-only — no click-to-open, drag, or resize.
@@ -413,7 +415,7 @@ function addTitleDrag(block, ev) {
       start = ns;
       block.style.top = (start / 60 * HOUR_HEIGHT) + "px";
       const t = block.querySelector(".cal-event-time");
-      if (t) t.textContent = minutesToTime(start) + "\u2013" + minutesToTime(start + dur);
+      if (t) t.textContent = fmtTime(minutesToTime(start)) + "\u2013" + fmtTime(minutesToTime(start + dur));
     }
 
     function onUp() {
@@ -467,7 +469,7 @@ function addResizeHandle(block, ev, edge, side) {
       block.style.top = (start / 60 * HOUR_HEIGHT) + "px";
       block.style.height = ((end - start) / 60 * HOUR_HEIGHT) + "px";
       const t = block.querySelector(".cal-event-time");
-      if (t) t.textContent = minutesToTime(start) + "\u2013" + minutesToTime(end);
+      if (t) t.textContent = fmtTime(minutesToTime(start)) + "\u2013" + fmtTime(minutesToTime(end));
     }
     function onMove(me) {
       const m = snap15(me.clientY - rect.top, "round");
@@ -587,7 +589,7 @@ function enableDragCreate(col, ds) {
     function paint() {
       prov.style.top = (startMin / 60 * HOUR_HEIGHT) + "px";
       prov.style.height = ((endMin - startMin) / 60 * HOUR_HEIGHT) + "px";
-      prov.textContent = minutesToTime(startMin) + " \u2013 " + minutesToTime(endMin);
+      prov.textContent = fmtTime(minutesToTime(startMin)) + " \u2013 " + fmtTime(minutesToTime(endMin));
     }
     function onMove(ev) {
       const cur = clampMin(snap15(ev.clientY - rect.top, "round"));
@@ -653,7 +655,7 @@ function enableDropCreate(col, ds) {
     const endMin = Math.min(24 * 60, startMin + dragDuration());
     preview.style.top = (startMin / 60 * HOUR_HEIGHT) + "px";
     preview.style.height = ((endMin - startMin) / 60 * HOUR_HEIGHT) + "px";
-    preview.textContent = minutesToTime(startMin) + " \u2013 " + minutesToTime(endMin);
+    preview.textContent = fmtTime(minutesToTime(startMin)) + " \u2013 " + fmtTime(minutesToTime(endMin));
   }
   function clearPreview() {
     if (preview && preview.parentNode) preview.parentNode.removeChild(preview);

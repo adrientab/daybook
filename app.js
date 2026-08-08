@@ -22,7 +22,7 @@
 /* Device preferences, not user data: these should differ per device (dark mode
    on your phone, light on your laptop), so they always stay in this browser
    and never sync. */
-const LOCAL_ONLY_KEYS = ["theme", "sidebarCollapsed", "weekStart", "dayStartHour"];
+const LOCAL_ONLY_KEYS = ["theme", "sidebarCollapsed", "weekStart", "dayStartHour", "use24Hour"];
 
 /* Backend: reads/writes the browser's localStorage. If it's blocked (private
    window, sandboxed preview), the cache still works for the session. */
@@ -174,6 +174,35 @@ function getDayStartHour() {
 }
 function setDayStartHour(h) {
   Store.set(DAY_START_KEY, String(h));
+}
+
+/* ---- 12h / 24h clock preference -----------------------------------------
+   Default is 12-hour (AM/PM). When on, all displayed times use 24-hour
+   ("military") format. Stored locally (a device preference). */
+const TIME24_KEY = "use24Hour";
+function use24Hour() {
+  return Store.get(TIME24_KEY) === "1";
+}
+function setUse24Hour(on) {
+  Store.set(TIME24_KEY, on ? "1" : "0");
+}
+/* Format a stored "HH:MM" (24h) for display, honoring the clock preference. */
+function fmtTime(hhmm) {
+  if (!hhmm) return "";
+  const parts = String(hhmm).split(":");
+  let h = Number(parts[0]);
+  const m = parts[1];
+  if (use24Hour()) return pad(h) + ":" + m;
+  const ampm = h < 12 ? "AM" : "PM";
+  h = h % 12; if (h === 0) h = 12;
+  return h + ":" + m + " " + ampm;
+}
+/* Format a whole-hour number (0-23) for the schedule gutter, per preference. */
+function fmtHour(h) {
+  if (use24Hour()) return pad(h) + ":00";
+  if (h === 0) return "12 AM";
+  if (h === 12) return "12 PM";
+  return h < 12 ? h + " AM" : (h - 12) + " PM";
 }
 /* The logical day-key a moment belongs to, honoring the day-start hour.
    Anything before the start hour rolls into the previous calendar day. */
@@ -468,6 +497,22 @@ onAppReady(function () {
       if (typeof renderJournalView === "function") renderJournalView();
     });
   }
+
+  // 24-hour ("military") time toggle. A button, matching the theme toggle.
+  const t24 = document.getElementById("time24Toggle");
+  if (t24) {
+    function syncT24Label() {
+      t24.textContent = use24Hour() ? "Switch to 12-hour" : "Switch to 24-hour";
+    }
+    syncT24Label();
+    t24.addEventListener("click", function () {
+      setUse24Hour(!use24Hour());
+      syncT24Label();
+      if (typeof renderCalendar === "function") renderCalendar();
+      if (typeof renderTodos === "function") renderTodos();
+      if (typeof renderJournalView === "function") renderJournalView();
+    });
+  }
 });
 
 /* While the user hasn't picked a theme, follow the OS if it changes live. Once
@@ -570,6 +615,106 @@ if (importBtn && importFile) {
     if (importFile.files[0]) importData(importFile.files[0]);
     importFile.value = ""; // allow re-importing the same file later
   });
+}
+
+/* ---- Import from Google Calendar (.ics) --------------------------------
+   Reads the chosen .ics file(s), parses each with DaybookICS, turns each
+   calendar into a category, and adds the events. All client-side. */
+const gcalBtn = document.getElementById("gcalImportBtn");
+const gcalFile = document.getElementById("gcalImportFile");
+if (gcalBtn && gcalFile) {
+  gcalBtn.addEventListener("click", function () { gcalFile.click(); });
+  gcalFile.addEventListener("change", function () {
+    const files = Array.from(gcalFile.files || []);
+    gcalFile.value = "";
+    if (files.length) importGoogleCalendar(files);
+  });
+}
+
+function readFileText(file) {
+  return new Promise(function (resolve, reject) {
+    const r = new FileReader();
+    r.onload = function () { resolve(r.result); };
+    r.onerror = function () { reject(r.error); };
+    r.readAsText(file);
+  });
+}
+
+/* Find an existing category by name (case-insensitive) or create one.
+   Returns the category id. Mutates+saves the categories list as needed. */
+function ensureCategory(name) {
+  const cats = getCategories();
+  const existing = cats.find(function (c) { return c.name.toLowerCase() === name.toLowerCase(); });
+  if (existing) return existing.id;
+  // Pick a color from a small rotating palette so new calendars look distinct.
+  const palette = ["#3b82f6", "#8b5cf6", "#22c55e", "#f59e0b", "#ef4444", "#14b8a6", "#ec4899", "#64748b"];
+  const color = palette[cats.length % palette.length];
+  const id = uid("cat");
+  cats.push({ id: id, name: name, color: color, subs: [] });
+  saveCategories(cats);
+  return id;
+}
+
+async function importGoogleCalendar(files) {
+  if (!window.DaybookICS) { alert("Import module not loaded. Please refresh and try again."); return; }
+  let totalEvents = 0;
+  const calendars = [];
+  const allWarnings = [];
+
+  try {
+    for (const file of files) {
+      // .zip isn't supported here — ask the user to unzip first.
+      if (/\.zip$/i.test(file.name)) {
+        alert("Please unzip the Google Calendar download first, then select the .ics file(s) inside.");
+        continue;
+      }
+      const text = await readFileText(file);
+      const res = DaybookICS.parseICS(text, { horizonDays: 365 });
+      if (!res.events.length) continue;
+
+      const catName = (res.categoryName || file.name.replace(/\.ics$/i, "")).trim() || "Imported";
+      const catId = ensureCategory(catName);
+
+      const events = getEvents();
+      res.events.forEach(function (e) {
+        events.push({
+          id: uid("evt"),
+          title: e.title,
+          date: e.date,
+          start: e.start,
+          end: e.end,
+          category: catId,
+          subcategory: "",
+          notes: e.notes || "",
+          feel: null,
+          imported: true            // tag so a future "remove imported" could find them
+        });
+      });
+      saveEvents(events);
+
+      totalEvents += res.events.length;
+      calendars.push(catName + " (" + res.events.length + ")");
+      res.warnings.forEach(function (w) { allWarnings.push(w); });
+    }
+  } catch (err) {
+    alert("Sorry, something went wrong reading that file. Make sure it's a .ics exported from Google Calendar.");
+    return;
+  }
+
+  if (typeof renderCalendar === "function") renderCalendar();
+
+  if (!totalEvents) {
+    alert("No events found in that file. Make sure you picked the .ics file(s) from the unzipped Google Calendar export.");
+    return;
+  }
+  let msg = "Imported " + totalEvents + " event" + (totalEvents === 1 ? "" : "s") +
+    " into " + calendars.length + " categor" + (calendars.length === 1 ? "y" : "ies") + ":\n\n" +
+    calendars.join("\n");
+  if (allWarnings.length) {
+    msg += "\n\nNotes:\n" + allWarnings.slice(0, 5).join("\n");
+    if (allWarnings.length > 5) msg += "\n…and " + (allWarnings.length - 5) + " more.";
+  }
+  alert(msg);
 }
 
 const resetBtn = document.getElementById("resetData");
