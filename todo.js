@@ -132,7 +132,7 @@ function buildTodoCard(t) {
   main.appendChild(title);
 
   const metaBits = [];
-  if (t.dueTime) metaBits.push(formatTime12(t.dueTime));
+  if (t.dueTime) metaBits.push(fmtTime(t.dueTime));
   if (t.estHours != null && t.estHours !== "") metaBits.push("~" + t.estHours + "h");
   if (metaBits.length) {
     const meta = document.createElement("div");

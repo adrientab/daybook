@@ -415,6 +415,15 @@
             </div>
 
             <div class="set-row">
+              <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 1.5"/></svg></div>
+              <div class="set-body">
+                <div class="set-title">24-hour time</div>
+                <p class="set-desc">Show times in 24-hour (military) format &mdash; 14:30 instead of 2:30 PM. Off by default.</p>
+              </div>
+              <div class="set-control"><button id="time24Toggle" class="btn">Switch to 24-hour</button></div>
+            </div>
+
+            <div class="set-row">
               <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg></div>
               <div class="set-body">
                 <div class="set-title">Appearance</div>
@@ -450,6 +459,18 @@
               </div>
             </div>
 
+            <div class="set-row">
+              <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/><path d="M9 16l2 2 4-4"/></svg></div>
+              <div class="set-body">
+                <div class="set-title">Import from Google Calendar</div>
+                <p class="set-desc">In Google Calendar, open Settings &rsaquo; Import &amp; export &rsaquo; Export to download a .zip, unzip it, then pick the .ics file(s) here. Each calendar becomes a category; recurring events (like classes) are expanded. Imported events are added to your schedule &mdash; nothing is sent to Google.</p>
+              </div>
+              <div class="set-control">
+                <button id="gcalImportBtn" class="btn">Import</button>
+                <input type="file" id="gcalImportFile" accept=".ics,text/calendar" multiple style="display:none">
+              </div>
+            </div>
+
             <div class="set-row danger-row">
               <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg></div>
               <div class="set-body">
@@ -467,7 +488,10 @@
       <section class="view" id="view-study">
         <div class="section-head study-head">
           <h2>Study</h2>
-          <button class="btn btn-primary" id="studyNewBtn">+ New deck</button>
+          <div class="study-head-actions">
+            <button class="btn" id="studyExploreBtn">Explore</button>
+            <button class="btn btn-primary" id="studyNewBtn">+ New deck</button>
+          </div>
         </div>
         <div class="study-controls">
           <div class="study-cat-wrap">
@@ -795,6 +819,20 @@
   </div>
 
   <!-- ===== STUDY: EDITOR (full-screen overlay) ===== -->
+  <div class="study-overlay" id="studyExplore" hidden>
+    <header class="study-bar">
+      <button class="study-exit" id="studyExploreExit" aria-label="Exit">&larr; Exit</button>
+      <h2>Explore</h2>
+      <span class="study-bar-spacer"></span>
+    </header>
+    <div class="study-body study-editor-body">
+      <div class="explore-banner">
+        <strong>Public study sets</strong> &mdash; these are ready-made sets, not yours. Pick one to copy it into your library, then edit it however you like.
+      </div>
+      <div class="study-list" id="exploreList"></div>
+    </div>
+  </div>
+
   <div class="study-overlay" id="studyEditor" hidden>
     <header class="study-bar">
       <button class="study-exit" id="studyEditorExit" aria-label="Exit">&larr; Exit</button>
@@ -902,12 +940,14 @@
   <script src="questions.js"></script>
   <script src="journal.js"></script>
   <script src="calendar.js"></script>
+  <script src="ical-import.js"></script>
   <script src="goals.js"></script>
   <script src="journalview.js"></script>
   <script src="todo.js"></script>
   <script src="suggest.js"></script>
   <script src="wearables.js"></script>
   <script src="patterns.js"></script>
+  <script src="study-explore.js"></script>
   <script src="study.js"></script>
   <script src="demo-data.js"></script>
   <script src="demo.js"></script>

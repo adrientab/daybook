@@ -217,6 +217,11 @@ function initStudy() {
   const newBtn = document.getElementById("studyNewBtn");
   if (newBtn) newBtn.addEventListener("click", function () { openEditor(null); });
 
+  const exploreBtn = document.getElementById("studyExploreBtn");
+  if (exploreBtn) exploreBtn.addEventListener("click", openExplore);
+  const exploreExit = document.getElementById("studyExploreExit");
+  if (exploreExit) exploreExit.addEventListener("click", function () { hideOverlay("studyExplore"); });
+
   const search = document.getElementById("studySearch");
   const searchWrap = document.getElementById("studySearchWrap");
   if (search) {
@@ -258,6 +263,73 @@ function openEditor(deckId) {
   populateDeckCategory();
   renderEditorCards();
   showOverlay("studyEditor");
+}
+
+/* Open the editor pre-filled with a PUBLIC deck's content, but as a brand-new
+   deck (fresh id, isNew) so saving copies it into the user's own library.
+   Category is intentionally left blank so they file it under their own system. */
+function openEditorFromPublic(pub) {
+  editorState = {
+    id: uid("deck"),
+    name: pub.name || "Untitled deck",
+    description: pub.description || "",
+    category: "", subcategory: "",
+    cards: (pub.cards || []).map(function (pair) {
+      return { id: uid("card"), term: pair[0], def: pair[1] };
+    }),
+    dirty: true,          // it's unsaved until they hit Save
+    isNew: true
+  };
+  if (editorState.cards.length === 0) {
+    editorState.cards.push({ id: uid("card"), term: "", def: "" });
+  }
+  document.getElementById("studyEditorTitle").textContent = "New deck";
+  document.getElementById("editDeckName").value = editorState.name;
+  document.getElementById("editDeckDesc").value = editorState.description;
+  populateDeckCategory();
+  renderEditorCards();
+  hideOverlay("studyExplore");
+  showOverlay("studyEditor");
+}
+
+/* Render the Explore list of public sets. Rows look like the user's own deck
+   rows, but with a "Public" tag and an Add action instead of Edit/Flashcards. */
+function renderExplore() {
+  const list = document.getElementById("exploreList");
+  if (!list) return;
+  list.innerHTML = "";
+  const pubs = (typeof window !== "undefined" && window.PUBLIC_DECKS) || [];
+  pubs.forEach(function (pub, i) {
+    const count = (pub.cards || []).length;
+    const row = document.createElement("div");
+    row.className = "study-deck-row explore-row";
+    row.innerHTML =
+      '<div class="study-deck-main">' +
+        '<div class="study-deck-name"><span class="study-deck-title">' + escapeHtml(pub.name || "Untitled deck") + "</span>" +
+          (pub.category ? '<span class="study-deck-cat explore-cat">' + escapeHtml(pub.category) + "</span>" : "") +
+          '<span class="explore-badge">Public</span>' +
+        "</div>" +
+        '<div class="study-deck-meta">' + count + " term" + (count === 1 ? "" : "s") +
+          (pub.description ? " &middot; " + escapeHtml(pub.description) : "") +
+        "</div>" +
+      "</div>" +
+      '<div class="study-deck-actions">' +
+        '<button class="btn btn-sm btn-primary" data-act="add">Add to library</button>' +
+      "</div>";
+    row.querySelector('[data-act="add"]').addEventListener("click", function (e) {
+      e.stopPropagation();
+      openEditorFromPublic(pub);
+    });
+    // Clicking the row also opens the copy in the editor.
+    row.addEventListener("click", function () { openEditorFromPublic(pub); });
+    row.style.cursor = "pointer";
+    list.appendChild(row);
+  });
+}
+
+function openExplore() {
+  renderExplore();
+  showOverlay("studyExplore");
 }
 
 /* Fill the category dropdown from the app's shared categories, then the
