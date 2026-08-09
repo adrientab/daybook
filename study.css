@@ -167,12 +167,21 @@
 .study-bar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
 }
-.study-bar h2 { margin: 0; font-size: 1.1rem; flex: 1; text-align: center; }
+.study-bar { position: relative; }
+.study-bar h2 {
+  margin: 0; font-size: 1.1rem;
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center; white-space: nowrap;
+  max-width: 50%; overflow: hidden; text-overflow: ellipsis;
+  pointer-events: none;
+}
 .study-bar-spacer, .study-bar-right { min-width: 96px; display: flex; justify-content: flex-end; }
 .study-exit {
   background: none; border: 1px solid var(--border); color: var(--text);
@@ -270,17 +279,23 @@
 
 /* ---------- flashcards ---------- */
 .flash-progress {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 20px; max-width: 760px; margin: 0 auto; width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  padding: 10px 20px; width: 100%;
 }
 .flash-progress-track {
-  flex: 1; height: 6px; border-radius: 999px; background: var(--border); overflow: hidden;
+  width: 100%; max-width: 620px;
+  height: 6px; border-radius: 999px; background: var(--border); overflow: hidden;
 }
 .flash-progress-track span {
   display: block; height: 100%; width: 0; border-radius: 999px;
   background: var(--sidebar-bg); transition: width 0.3s ease;
 }
-.flash-progress-label { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+/* Label sits just to the right of the centered bar. Fixed width + negative
+   right margin so its text doesn't shift the bar off true center. */
+.flash-progress-label {
+  color: var(--muted); font-size: 0.8rem; white-space: nowrap;
+  width: 110px; margin-right: -124px; flex: 0 0 auto;
+}
 
 .flash-body { display: flex; }
 .flash-stage {
@@ -291,8 +306,8 @@
   width: 100%; max-width: 620px; min-height: 320px;
   background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
   box-shadow: 0 16px 44px -22px rgba(20, 27, 40, 0.5);
-  display: flex; align-items: center; justify-content: center;
-  padding: 36px; cursor: pointer; user-select: none;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 48px 36px; cursor: pointer; user-select: none;
   transition: transform 0.1s ease;
 }
 .flash-card:active { transform: scale(0.995); }
@@ -428,7 +443,7 @@
   .study-deck-row { width: 100%; max-width: 520px; }
   .study-controls { justify-content: center; }
   .flash-text { font-size: 1.25rem; }
-  .flash-card { min-height: 220px; padding: 24px; }
+  .flash-card { min-height: 220px; padding: 36px 24px; }
   .study-bar h2 { font-size: 1rem; }
   .study-bar-spacer, .study-bar-right { min-width: 60px; }
 }
