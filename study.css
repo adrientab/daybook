@@ -320,6 +320,15 @@
 }
 .flash-text { font-size: 1.7rem; line-height: 1.3; overflow-wrap: anywhere; }
 .flash-back { color: var(--text); }   /* same size as the term now */
+/* The revealed back content fills the space below the divider and centers in
+   it, so the definition sits midway between the line and the card bottom
+   (matching where the "Click to reveal" hint appears). */
+.flash-back-wrap {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.flash-back-wrap .flash-hint { margin-top: 14px; }
 .flash-divider { height: 1px; background: var(--border); margin: 20px 0; }
 .flash-hint { margin-top: 18px; color: var(--muted); font-size: 0.85rem; }
 /* When it stands in for the definition (card not yet revealed), the reveal hint
