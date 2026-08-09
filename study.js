@@ -692,9 +692,11 @@ function renderFlash() {
         '<div class="flash-text">' + escapeHtml(front) + "</div>" +
         (flashState.revealed
           ? '<div class="flash-divider"></div>' +
-            '<span class="flash-side-label">' + backLabel + "</span>" +
-            '<div class="flash-text flash-back">' + escapeHtml(back) + "</div>" +
-            '<div class="flash-hint">Click to hide again</div>'
+            '<div class="flash-back-wrap">' +
+              '<span class="flash-side-label">' + backLabel + "</span>" +
+              '<div class="flash-text flash-back">' + escapeHtml(back) + "</div>" +
+              '<div class="flash-hint">Click to hide again</div>' +
+            "</div>"
           : '<div class="flash-divider"></div>' +
             '<div class="flash-hint flash-hint--reveal">Click to reveal</div>') +
       "</div>" +
