@@ -279,7 +279,7 @@
 
 /* ---------- flashcards ---------- */
 .flash-progress {
-  display: flex; align-items: center; justify-content: center; gap: 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
   padding: 10px 20px; width: 100%;
 }
 .flash-progress-track {
@@ -290,11 +290,9 @@
   display: block; height: 100%; width: 0; border-radius: 999px;
   background: var(--sidebar-bg); transition: width 0.3s ease;
 }
-/* Label sits just to the right of the centered bar. Fixed width + negative
-   right margin so its text doesn't shift the bar off true center. */
+/* The mastery count sits centered just below the bar. */
 .flash-progress-label {
   color: var(--muted); font-size: 0.8rem; white-space: nowrap;
-  width: 110px; margin-right: -124px; flex: 0 0 auto;
 }
 
 .flash-body { display: flex; }
@@ -303,11 +301,12 @@
   justify-content: center; gap: 24px; min-height: 60vh;
 }
 .flash-card {
-  width: 100%; max-width: 620px; min-height: 320px;
+  width: 100%; max-width: 620px; height: 380px;
   background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
   box-shadow: 0 16px 44px -22px rgba(20, 27, 40, 0.5);
   display: flex; align-items: stretch; justify-content: center;
-  padding: 48px 36px; cursor: pointer; user-select: none;
+  padding: 32px 36px; cursor: pointer; user-select: none;
+  overflow: auto;   /* very long content scrolls instead of resizing the card */
   transition: transform 0.1s ease;
 }
 .flash-card:active { transform: scale(0.995); }
@@ -463,7 +462,7 @@
   .study-deck-row { width: 100%; max-width: 520px; }
   .study-controls { justify-content: center; }
   .flash-text { font-size: 1.45rem; }
-  .flash-card { min-height: 220px; padding: 36px 24px; }
+  .flash-card { height: 340px; padding: 28px 24px; }
   .study-bar h2 { font-size: 1rem; }
   .study-bar-spacer, .study-bar-right { min-width: 60px; }
 }
