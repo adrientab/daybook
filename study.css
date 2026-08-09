@@ -190,7 +190,24 @@
 .exam-stage, .flash-stage { max-width: 720px; margin: 0 auto; }
 
 /* Settings popover (shared by flashcards + exam) */
-.study-bar-right { position: relative; }
+.study-bar-right { position: relative; display: flex; align-items: center; gap: 10px; }
+/* Header buttons (mode switch + settings) share a clean pill look and a fixed
+   size so swapping between Flashcards and Exam never resizes them. */
+.study-bar-right .btn {
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.study-bar-right .btn:hover { border-color: var(--muted); background: var(--bg); }
+/* The mode-switch button is wide enough for the longer label ("Flashcard mode"),
+   so both modes render at the same width. */
+.study-bar-mode { min-width: 132px; text-align: center; }
 .study-settings-pop {
   position: absolute;
   top: 44px; right: 0;
@@ -321,6 +338,26 @@
   justify-content: center;
   transition: border-color 0.15s ease, opacity 0.15s ease;
 }
+/* Skip arrow: mirror of the back arrow, pinned to the right of the controls. */
+.flash-skip-arrow {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px; height: 38px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+.flash-skip-arrow:hover { border-color: var(--muted); }
 .flash-back-arrow:hover:not(:disabled) { border-color: var(--sidebar-bg); }
 .flash-back-arrow:disabled { opacity: 0.35; cursor: default; }
 .flash-rate-btn {

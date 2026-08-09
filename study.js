@@ -281,7 +281,7 @@ function openEditorFromPublic(pub) {
     cards: (pub.cards || []).map(function (pair) {
       return { id: uid("card"), term: pair[0], def: pair[1] };
     }),
-    dirty: true,          // it's unsaved until they hit Save
+    dirty: false,         // not dirty until the user actually edits something
     isNew: true
   };
   if (editorState.cards.length === 0) {
@@ -709,6 +709,7 @@ function renderFlash() {
         '<button class="flash-rate-btn neutral" data-rate="neutral">Neutral</button>' +
         '<button class="flash-rate-btn easy" data-rate="easy">Easy</button>' +
       "</div>" +
+      '<button class="flash-skip-arrow" id="flashSkipArrow" title="Skip (see it again later)" aria-label="Skip">&rarr;</button>' +
     "</div>";
 
   // Clicking the card toggles reveal. The first reveal latches everRevealed so
@@ -722,6 +723,12 @@ function renderFlash() {
   document.getElementById("flashBackArrow").addEventListener("click", function (e) {
     e.stopPropagation();
     flashBack();
+  });
+  // Skip arrow: bring the card back a full deck later, without mastery. Always
+  // available (even before revealing), since skipping is "not now".
+  document.getElementById("flashSkipArrow").addEventListener("click", function (e) {
+    e.stopPropagation();
+    rateFlash("skip");
   });
   if (showRating) {
     stage.querySelectorAll(".flash-rate-btn").forEach(function (b) {
@@ -767,9 +774,10 @@ function rateFlash(rating) {
   let offset;
   if (rating === "hard") offset = randSpan(0.10, 0.20);
   else if (rating === "neutral") offset = randSpan(0.25, 0.50);
+  else if (rating === "skip") offset = Math.max(1, total);    // skip -> a full deck later, no mastery
   else offset = Math.max(1, total);                          // easy -> a full deck later
 
-  // Only Easy marks a card as mastered (the first time).
+  // Only Easy marks a card as mastered (the first time). Skip never does.
   if (rating === "easy" && !flashState.seen[q.card.id]) {
     flashState.seen[q.card.id] = true;
     flashState.doneCount++;
@@ -853,6 +861,7 @@ function initFlash() {
     if (document.getElementById("studyFlash").hidden) return;
     if (!flashState) return;
     if (e.key === "ArrowLeft") { e.preventDefault(); flashBack(); return; }
+    if (e.key === "ArrowRight") { e.preventDefault(); rateFlash("skip"); return; }
     const q = flashState.queue[flashState.idx];
     if (!q) return;
     if (e.key === " " || e.key === "Enter") {
