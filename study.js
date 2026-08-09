@@ -695,7 +695,8 @@ function renderFlash() {
             '<span class="flash-side-label">' + backLabel + "</span>" +
             '<div class="flash-text flash-back">' + escapeHtml(back) + "</div>" +
             '<div class="flash-hint">Click to hide again</div>'
-          : '<div class="flash-hint">Click to reveal</div>') +
+          : '<div class="flash-divider"></div>' +
+            '<div class="flash-hint flash-hint--reveal">Click to reveal</div>') +
       "</div>" +
     "</div>" +
     // Controls row below the card: back-arrow pinned left, ratings centered on

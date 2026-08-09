@@ -320,6 +320,13 @@
 .flash-back { font-size: 1.25rem; color: var(--text); }
 .flash-divider { height: 1px; background: var(--border); margin: 20px 0; }
 .flash-hint { margin-top: 18px; color: var(--muted); font-size: 0.85rem; }
+/* When it stands in for the definition (card not yet revealed), the reveal hint
+   is bigger and sits in the definition's spot below the divider. */
+.flash-hint--reveal {
+  margin-top: 0;
+  font-size: 1.25rem;
+  color: var(--muted);
+}
 
 .flash-rate { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 /* Controls row sits below the card. The rating buttons are centered on the
