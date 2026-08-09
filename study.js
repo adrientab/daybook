@@ -650,6 +650,10 @@ function openFlashcards(deckId) {
   // Reflect the saved count into the control.
   const countInput = document.getElementById("flashCount");
   if (countInput) countInput.value = s.count || "";
+  // Reflect the saved "show first" mode into the radios (defaults to term).
+  document.querySelectorAll('input[name="flashMode"]').forEach(function (r) {
+    r.checked = (r.value === s.mode);
+  });
   showOverlay("studyFlash");
   renderFlash();
 }
@@ -688,8 +692,10 @@ function renderFlash() {
   stage.innerHTML =
     '<div class="flash-card' + (flashState.revealed ? " revealed" : "") + '" id="flashCard">' +
       '<div class="flash-face">' +
-        '<span class="flash-side-label">' + frontLabel + "</span>" +
-        '<div class="flash-text">' + escapeHtml(front) + "</div>" +
+        '<div class="flash-front">' +
+          '<span class="flash-side-label">' + frontLabel + "</span>" +
+          '<div class="flash-text">' + escapeHtml(front) + "</div>" +
+        "</div>" +
         (flashState.revealed
           ? '<div class="flash-divider"></div>' +
             '<div class="flash-back-wrap">' +

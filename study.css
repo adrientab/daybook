@@ -313,6 +313,15 @@
 /* Column layout: term (+ its label) sit at the top; the divider follows; then
    the definition or the reveal hint fills the space beneath. */
 .flash-face { width: 100%; text-align: center; display: flex; flex-direction: column; }
+/* The term area is a fixed slice of the card (~a third), with the term centered
+   in it, so the divider always lands at the same spot regardless of term
+   length or whether the card is revealed. */
+.flash-front {
+  height: 120px;
+  flex: 0 0 auto;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
 .flash-side-label {
   display: block; font-size: 0.7rem; text-transform: uppercase;
   letter-spacing: 0.08em; color: var(--muted); margin-bottom: 10px;
@@ -463,6 +472,7 @@
   .study-controls { justify-content: center; }
   .flash-text { font-size: 1.45rem; }
   .flash-card { height: 340px; padding: 28px 24px; }
+  .flash-front { height: 100px; }
   .study-bar h2 { font-size: 1rem; }
   .study-bar-spacer, .study-bar-right { min-width: 60px; }
 }
