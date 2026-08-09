@@ -306,25 +306,29 @@
   width: 100%; max-width: 620px; min-height: 320px;
   background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
   box-shadow: 0 16px 44px -22px rgba(20, 27, 40, 0.5);
-  display: flex; align-items: flex-start; justify-content: center;
+  display: flex; align-items: stretch; justify-content: center;
   padding: 48px 36px; cursor: pointer; user-select: none;
   transition: transform 0.1s ease;
 }
 .flash-card:active { transform: scale(0.995); }
-.flash-face { width: 100%; text-align: center; }
+/* Column layout: term (+ its label) sit at the top; the divider follows; then
+   the definition or the reveal hint fills the space beneath. */
+.flash-face { width: 100%; text-align: center; display: flex; flex-direction: column; }
 .flash-side-label {
   display: block; font-size: 0.7rem; text-transform: uppercase;
   letter-spacing: 0.08em; color: var(--muted); margin-bottom: 10px;
 }
-.flash-text { font-size: 1.5rem; line-height: 1.3; overflow-wrap: anywhere; }
-.flash-back { font-size: 1.25rem; color: var(--text); }
+.flash-text { font-size: 1.7rem; line-height: 1.3; overflow-wrap: anywhere; }
+.flash-back { color: var(--text); }   /* same size as the term now */
 .flash-divider { height: 1px; background: var(--border); margin: 20px 0; }
 .flash-hint { margin-top: 18px; color: var(--muted); font-size: 0.85rem; }
 /* When it stands in for the definition (card not yet revealed), the reveal hint
-   is bigger and sits in the definition's spot below the divider. */
+   fills the space below the divider and centers within it, a bit bigger. */
 .flash-hint--reveal {
   margin-top: 0;
-  font-size: 1.25rem;
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
   color: var(--muted);
 }
 
@@ -449,7 +453,7 @@
   .study-list { align-items: center; }
   .study-deck-row { width: 100%; max-width: 520px; }
   .study-controls { justify-content: center; }
-  .flash-text { font-size: 1.25rem; }
+  .flash-text { font-size: 1.45rem; }
   .flash-card { min-height: 220px; padding: 36px 24px; }
   .study-bar h2 { font-size: 1rem; }
   .study-bar-spacer, .study-bar-right { min-width: 60px; }
