@@ -534,3 +534,37 @@
   .wm-editor-split { grid-template-columns: 1fr; }
   .wm-editor-map, .wm-quiz-map { min-height: 300px; }
 }
+
+/* ---------- image-dot deck ---------- */
+.img-editor-body { display: flex; flex-direction: column; gap: 12px; }
+.img-upload-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.img-upload-hint, .img-hint { color: var(--muted); font-size: 0.9rem; margin: 0; }
+.img-editor-split { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
+.img-pick-num, .wm-pick-row .img-pick-num {
+  flex: 0 0 auto; width: 22px; height: 22px; border-radius: 999px;
+  background: var(--sidebar-bg); color: #fff; font-size: 0.75rem;
+  display: flex; align-items: center; justify-content: center;
+}
+/* The stage holds the image and an absolutely-positioned dot layer on top. */
+.img-stage { position: relative; display: inline-block; max-width: 100%; line-height: 0; cursor: crosshair; }
+.img-stage img { max-width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--border); display: block; }
+.img-dots { position: absolute; inset: 0; pointer-events: none; }
+.img-dot {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 22px; height: 22px; border-radius: 999px;
+  background: var(--sidebar-bg); color: #fff;
+  font-size: 0.72rem; font-weight: 600; line-height: 22px; text-align: center;
+  box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0,0,0,0.4);
+}
+.img-dot--quiz { background: var(--sidebar-bg); width: 20px; height: 20px; }
+.img-dot--guess { width: 16px; height: 16px; }
+.img-guess-right { background: #16a34a; }
+.img-guess-wrong { background: #dc2626; }
+
+.img-quiz-body { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.img-quiz-stage { max-width: 100%; cursor: crosshair; }
+.img-quiz-stage img { max-height: 60vh; width: auto; }
+
+@media (max-width: 720px) {
+  .img-editor-split { grid-template-columns: 1fr; }
+}

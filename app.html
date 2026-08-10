@@ -491,6 +491,7 @@
           <div class="study-head-actions">
             <button class="btn" id="studyExploreBtn">Explore</button>
             <button class="btn" id="studyNewMapBtn">+ World map</button>
+            <button class="btn" id="studyNewImageBtn">+ Image</button>
             <button class="btn btn-primary" id="studyNewBtn">+ New deck</button>
           </div>
         </div>
@@ -820,6 +821,59 @@
   </div>
 
   <!-- ===== STUDY: EDITOR (full-screen overlay) ===== -->
+  <!-- ===== IMAGE-DOT: deck editor ===== -->
+  <div class="study-overlay" id="imgEditor" hidden>
+    <header class="study-bar">
+      <button class="study-exit" id="imgEditorExit" aria-label="Exit">&larr; Exit</button>
+      <h2 id="imgEditorTitle">Image deck</h2>
+      <div class="study-bar-right">
+        <button class="btn btn-sm btn-primary" id="imgSaveBtn">Save deck</button>
+      </div>
+    </header>
+    <div class="study-body img-editor-body">
+      <label class="field">
+        <span>Deck name</span>
+        <input type="text" id="imgDeckName" placeholder="e.g. Bones of the hand">
+      </label>
+      <div id="imgUploadRow" class="img-upload-row">
+        <button class="btn" id="imgUploadBtn">Upload an image</button>
+        <input type="file" id="imgFile" accept="image/*" style="display:none">
+        <span class="img-upload-hint">PNG or JPG. It gets resized to keep the deck small.</span>
+      </div>
+      <p class="img-hint" id="imgEditorHint" hidden>Click the image to drop a point, then type its answer. Each point is one card.</p>
+      <div class="img-editor-split" id="imgEditorSplit" hidden>
+        <div class="img-stage" id="imgEditorStage">
+          <img id="imgEditorImg" alt="">
+          <div class="img-dots" id="imgEditorDots"></div>
+        </div>
+        <div class="wm-picked" id="imgPicked"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== IMAGE-DOT: quiz ===== -->
+  <div class="study-overlay" id="imgQuiz" hidden>
+    <header class="study-bar">
+      <button class="study-exit" id="imgQuizExit" aria-label="Exit">&larr; Exit</button>
+      <h2 id="imgQuizTitle">Image deck</h2>
+      <div class="study-bar-right">
+        <button class="btn btn-sm study-bar-mode" id="imgDirBtn">Find the point</button>
+      </div>
+    </header>
+    <div class="wm-quiz-progress">
+      <div class="flash-progress-track"><span id="imgProgressFill"></span></div>
+      <div class="flash-progress-label" id="imgProgressLabel"></div>
+    </div>
+    <div class="study-body img-quiz-body">
+      <div class="wm-prompt" id="imgPrompt"></div>
+      <div class="img-stage img-quiz-stage" id="imgQuizStage">
+        <img id="imgQuizImg" alt="">
+        <div class="img-dots" id="imgQuizDots"></div>
+      </div>
+      <div class="wm-quiz-controls" id="imgQuizControls"></div>
+    </div>
+  </div>
+
   <!-- ===== WORLD MAP: deck editor ===== -->
   <div class="study-overlay" id="wmEditor" hidden>
     <header class="study-bar">
@@ -992,6 +1046,7 @@
   <script src="patterns.js"></script>
   <script src="worldmap.js"></script>
   <script src="worldmap-study.js"></script>
+  <script src="imagedot-study.js"></script>
   <script src="study-explore.js"></script>
   <script src="study.js"></script>
   <script src="demo-data.js"></script>
