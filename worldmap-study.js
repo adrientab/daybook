@@ -33,7 +33,7 @@
     wmEditorMap = WorldMap.create(host, {
       onPick: function (country) {
         if (!country) return;
-        togglePick(country);
+        addPick(country);
       }
     });
     wmEditorMap.load().then(function () {
@@ -42,10 +42,13 @@
     renderPickedList();
   }
 
-  function togglePick(country) {
-    const i = wmEditorState.picks.findIndex(function (p) { return p.country === country; });
-    if (i > -1) wmEditorState.picks.splice(i, 1);
-    else wmEditorState.picks.push({ country: country, def: country }); // answer defaults to the name
+  function addPick(country) {
+    // Clicking a country only ADDS it. If it's already in the deck, do nothing
+    // (removal is via the × in the side list), so a stray second click can't
+    // silently drop a country.
+    const already = wmEditorState.picks.some(function (p) { return p.country === country; });
+    if (already) return;
+    wmEditorState.picks.push({ country: country, def: country }); // answer defaults to the name
     reflectPicks();
     renderPickedList();
   }

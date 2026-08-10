@@ -140,42 +140,59 @@ function renderStudy() {
       ? ' style="color:' + catColor + ';background:color-mix(in srgb,' + catColor + ' 15%,transparent)"'
       : "";
     const isMap = (d.type === "worldmap");
+    const isImg = (d.type === "imagedot");
+    const isSpecial = isMap || isImg;
+    const tagLabel = isMap ? "World map" : (isImg ? "Image" : "");
+    const unit = isMap ? "countr" : "point"; // for the meta line
     const row = document.createElement("div");
     row.className = "study-deck-row";
     row.innerHTML =
       '<div class="study-deck-main">' +
         '<div class="study-deck-name"><span class="study-deck-title">' + escapeHtml(d.name || "Untitled deck") + "</span>" +
-          (isMap ? '<span class="study-deck-cat wm-tag">World map</span>' : "") +
+          (isSpecial ? '<span class="study-deck-cat wm-tag">' + tagLabel + "</span>" : "") +
           (catName ? '<span class="study-deck-cat"' + catStyle + ">" + escapeHtml(catName) + "</span>" : "") +
         "</div>" +
-        '<div class="study-deck-meta">' + count + (isMap ? " countr" + (count === 1 ? "y" : "ies") : " term" + (count === 1 ? "" : "s")) +
-          (d.description && !isMap ? " &middot; " + escapeHtml(d.description) : "") +
+        '<div class="study-deck-meta">' + count +
+          (isMap ? " countr" + (count === 1 ? "y" : "ies")
+                 : isImg ? " point" + (count === 1 ? "" : "s")
+                         : " term" + (count === 1 ? "" : "s")) +
+          (d.description && !isSpecial ? " &middot; " + escapeHtml(d.description) : "") +
         "</div>" +
       "</div>" +
       '<div class="study-deck-actions">' +
         '<button class="btn btn-sm" data-act="edit">Edit</button>' +
-        (isMap
+        (isSpecial
           ? '<button class="btn btn-sm" data-act="play">Study</button>'
           : '<button class="btn btn-sm" data-act="cards">Flashcards</button>' +
             '<button class="btn btn-sm" data-act="exam">Exam</button>') +
       "</div>";
 
+    // Helpers that dispatch to the right module for this deck type.
+    const openThisEditor = function () {
+      if (isMap) WorldMapStudy.openEditor(d.id);
+      else if (isImg) ImageDotStudy.openEditor(d.id);
+      else openEditor(d.id);
+    };
+    const openThisStudy = function () {
+      if (isMap) WorldMapStudy.openQuiz(d.id);
+      else if (isImg) ImageDotStudy.openQuiz(d.id);
+    };
+
     row.querySelector('[data-act="edit"]').addEventListener("click", function (e) {
-      e.stopPropagation();
-      if (isMap) WorldMapStudy.openEditor(d.id); else openEditor(d.id);
+      e.stopPropagation(); openThisEditor();
     });
-    if (isMap) {
+    if (isSpecial) {
       row.querySelector('[data-act="play"]').addEventListener("click", function (e) {
         e.stopPropagation();
-        if (!count) { alert("This deck has no countries yet. Add some in Edit first."); return; }
-        WorldMapStudy.openQuiz(d.id);
+        if (!count) { alert("This deck is empty. Add some in Edit first."); return; }
+        openThisStudy();
       });
       row.addEventListener("click", function () {
-        if (count) WorldMapStudy.openQuiz(d.id); else WorldMapStudy.openEditor(d.id);
+        if (count) openThisStudy(); else openThisEditor();
       });
       row.style.cursor = "pointer";
       list.appendChild(row);
-      return;   // done with this (map) deck
+      return;   // done with this special deck
     }
     row.querySelector('[data-act="cards"]').addEventListener("click", function (e) {
       e.stopPropagation();
@@ -291,6 +308,41 @@ function openEditor(deckId) {
    deck (fresh id, isNew) so saving copies it into the user's own library.
    Category is intentionally left blank so they file it under their own system. */
 function openEditorFromPublic(pub) {
+  // Special deck types (world map, image dots) don't fit the term/def editor —
+  // copy them straight into the library and open them.
+  if (pub.type === "worldmap") {
+    const deck = {
+      id: uid("deck"), type: "worldmap", name: pub.name || "World map deck",
+      description: (pub.countries || []).length + " countries",
+      category: "", subcategory: "",
+      cards: (pub.countries || []).map(function (pair) {
+        return { id: uid("card"), country: pair[0], def: pair[1] };
+      })
+    };
+    upsertDeck(deck);
+    hideOverlay("studyExplore");
+    renderStudy();
+    if (window.WorldMapStudy) WorldMapStudy.openQuiz(deck.id);
+    return;
+  }
+  if (pub.type === "imagedot") {
+    const deck = {
+      id: uid("deck"), type: "imagedot", name: pub.name || "Image deck",
+      image: pub.image || "",
+      description: (pub.dots || []).length + " points",
+      category: "", subcategory: "",
+      cards: (pub.dots || []).map(function (t) {
+        return { id: uid("card"), x: t[1], y: t[2], def: t[0] };
+      })
+    };
+    upsertDeck(deck);
+    hideOverlay("studyExplore");
+    renderStudy();
+    if (window.ImageDotStudy) ImageDotStudy.openQuiz(deck.id);
+    return;
+  }
+
+  // Regular term/def deck: open a fresh copy in the editor.
   editorState = {
     id: uid("deck"),
     name: pub.name || "Untitled deck",
@@ -325,16 +377,26 @@ function renderExplore() {
   list.innerHTML = "";
   const pubs = (typeof window !== "undefined" && window.PUBLIC_DECKS) || [];
   pubs.forEach(function (pub, i) {
-    const count = (pub.cards || []).length;
+    const isMap = pub.type === "worldmap";
+    const isImg = pub.type === "imagedot";
+    const count = isMap ? (pub.countries || []).length
+                : isImg ? (pub.dots || []).length
+                        : (pub.cards || []).length;
+    const unit = isMap ? (" countr" + (count === 1 ? "y" : "ies"))
+               : isImg ? (" point" + (count === 1 ? "" : "s"))
+                       : (" term" + (count === 1 ? "" : "s"));
+    const typeTag = isMap ? '<span class="study-deck-cat wm-tag">World map</span>'
+                  : isImg ? '<span class="study-deck-cat wm-tag">Image</span>' : "";
     const row = document.createElement("div");
     row.className = "study-deck-row explore-row";
     row.innerHTML =
       '<div class="study-deck-main">' +
         '<div class="study-deck-name"><span class="study-deck-title">' + escapeHtml(pub.name || "Untitled deck") + "</span>" +
+          typeTag +
           (pub.category ? '<span class="study-deck-cat explore-cat">' + escapeHtml(pub.category) + "</span>" : "") +
           '<span class="explore-badge">Public</span>' +
         "</div>" +
-        '<div class="study-deck-meta">' + count + " term" + (count === 1 ? "" : "s") +
+        '<div class="study-deck-meta">' + count + unit +
           (pub.description ? " &middot; " + escapeHtml(pub.description) : "") +
         "</div>" +
       "</div>" +
@@ -1106,6 +1168,7 @@ function initStudyModule() {
   initFlash();
   initExam();
   if (window.WorldMapStudy) WorldMapStudy.init();
+  if (window.ImageDotStudy) ImageDotStudy.init();
 }
 
 if (document.readyState === "loading") {
