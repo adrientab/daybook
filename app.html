@@ -490,6 +490,7 @@
           <h2>Study</h2>
           <div class="study-head-actions">
             <button class="btn" id="studyExploreBtn">Explore</button>
+            <button class="btn" id="studyNewMapBtn">+ World map</button>
             <button class="btn btn-primary" id="studyNewBtn">+ New deck</button>
           </div>
         </div>
@@ -819,6 +820,48 @@
   </div>
 
   <!-- ===== STUDY: EDITOR (full-screen overlay) ===== -->
+  <!-- ===== WORLD MAP: deck editor ===== -->
+  <div class="study-overlay" id="wmEditor" hidden>
+    <header class="study-bar">
+      <button class="study-exit" id="wmEditorExit" aria-label="Exit">&larr; Exit</button>
+      <h2 id="wmEditorTitle">World map deck</h2>
+      <div class="study-bar-right">
+        <button class="btn btn-sm btn-primary" id="wmSaveBtn">Save deck</button>
+      </div>
+    </header>
+    <div class="study-body wm-editor-body">
+      <label class="field">
+        <span>Deck name</span>
+        <input type="text" id="wmDeckName" placeholder="e.g. Countries of Europe">
+      </label>
+      <p class="wm-hint">Click countries on the map to add them to the deck. Each one becomes a card &mdash; the answer defaults to the country's name, but you can change it (e.g. to its capital).</p>
+      <div class="wm-editor-split">
+        <div class="worldmap-wrap wm-editor-map" id="wmEditorMap"></div>
+        <div class="wm-picked" id="wmPicked"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== WORLD MAP: quiz ===== -->
+  <div class="study-overlay" id="wmQuiz" hidden>
+    <header class="study-bar">
+      <button class="study-exit" id="wmQuizExit" aria-label="Exit">&larr; Exit</button>
+      <h2 id="wmQuizTitle">World map</h2>
+      <div class="study-bar-right">
+        <button class="btn btn-sm study-bar-mode" id="wmDirBtn">Find on map</button>
+      </div>
+    </header>
+    <div class="wm-quiz-progress">
+      <div class="flash-progress-track"><span id="wmProgressFill"></span></div>
+      <div class="flash-progress-label" id="wmProgressLabel"></div>
+    </div>
+    <div class="study-body wm-quiz-body">
+      <div class="wm-prompt" id="wmPrompt"></div>
+      <div class="worldmap-wrap wm-quiz-map" id="wmQuizMap"></div>
+      <div class="wm-quiz-controls" id="wmQuizControls"></div>
+    </div>
+  </div>
+
   <div class="study-overlay" id="studyExplore" hidden>
     <header class="study-bar">
       <button class="study-exit" id="studyExploreExit" aria-label="Exit">&larr; Exit</button>
@@ -886,7 +929,7 @@
       <button class="study-exit" id="studyFlashExit" aria-label="Exit">&larr; Exit</button>
       <h2 id="flashDeckName">Flashcards</h2>
       <div class="study-bar-right">
-        <button class="btn btn-sm" id="flashToExamBtn">Exam mode</button>
+        <button class="btn btn-sm study-bar-mode" id="flashToExamBtn">Exam mode</button>
         <button class="btn btn-sm" id="flashSettingsBtn">Settings</button>
         <div class="study-settings-pop" id="flashSettingsPop" hidden>
           <div class="study-settings-title">Show first</div>
@@ -914,7 +957,7 @@
       <button class="study-exit" id="studyExamExit" aria-label="Exit">&larr; Exit</button>
       <h2 id="examDeckName">Exam</h2>
       <div class="study-bar-right">
-        <button class="btn btn-sm" id="examToFlashBtn">Flashcard mode</button>
+        <button class="btn btn-sm study-bar-mode" id="examToFlashBtn">Flashcard mode</button>
         <button class="btn btn-sm" id="examSettingsBtn">Settings</button>
         <div class="study-settings-pop" id="examSettingsPop" hidden>
           <div class="study-settings-title">Answer with</div>
@@ -947,6 +990,8 @@
   <script src="suggest.js"></script>
   <script src="wearables.js"></script>
   <script src="patterns.js"></script>
+  <script src="worldmap.js"></script>
+  <script src="worldmap-study.js"></script>
   <script src="study-explore.js"></script>
   <script src="study.js"></script>
   <script src="demo-data.js"></script>

@@ -139,26 +139,44 @@ function renderStudy() {
     const catStyle = catColor
       ? ' style="color:' + catColor + ';background:color-mix(in srgb,' + catColor + ' 15%,transparent)"'
       : "";
+    const isMap = (d.type === "worldmap");
     const row = document.createElement("div");
     row.className = "study-deck-row";
     row.innerHTML =
       '<div class="study-deck-main">' +
         '<div class="study-deck-name"><span class="study-deck-title">' + escapeHtml(d.name || "Untitled deck") + "</span>" +
+          (isMap ? '<span class="study-deck-cat wm-tag">World map</span>' : "") +
           (catName ? '<span class="study-deck-cat"' + catStyle + ">" + escapeHtml(catName) + "</span>" : "") +
         "</div>" +
-        '<div class="study-deck-meta">' + count + " term" + (count === 1 ? "" : "s") +
-          (d.description ? " &middot; " + escapeHtml(d.description) : "") +
+        '<div class="study-deck-meta">' + count + (isMap ? " countr" + (count === 1 ? "y" : "ies") : " term" + (count === 1 ? "" : "s")) +
+          (d.description && !isMap ? " &middot; " + escapeHtml(d.description) : "") +
         "</div>" +
       "</div>" +
       '<div class="study-deck-actions">' +
         '<button class="btn btn-sm" data-act="edit">Edit</button>' +
-        '<button class="btn btn-sm" data-act="cards">Flashcards</button>' +
-        '<button class="btn btn-sm" data-act="exam">Exam</button>' +
+        (isMap
+          ? '<button class="btn btn-sm" data-act="play">Study</button>'
+          : '<button class="btn btn-sm" data-act="cards">Flashcards</button>' +
+            '<button class="btn btn-sm" data-act="exam">Exam</button>') +
       "</div>";
 
     row.querySelector('[data-act="edit"]').addEventListener("click", function (e) {
-      e.stopPropagation(); openEditor(d.id);
+      e.stopPropagation();
+      if (isMap) WorldMapStudy.openEditor(d.id); else openEditor(d.id);
     });
+    if (isMap) {
+      row.querySelector('[data-act="play"]').addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (!count) { alert("This deck has no countries yet. Add some in Edit first."); return; }
+        WorldMapStudy.openQuiz(d.id);
+      });
+      row.addEventListener("click", function () {
+        if (count) WorldMapStudy.openQuiz(d.id); else WorldMapStudy.openEditor(d.id);
+      });
+      row.style.cursor = "pointer";
+      list.appendChild(row);
+      return;   // done with this (map) deck
+    }
     row.querySelector('[data-act="cards"]').addEventListener("click", function (e) {
       e.stopPropagation();
       if (!count) { alert("This deck has no cards yet. Add some in Edit first."); return; }
@@ -1087,6 +1105,7 @@ function initStudyModule() {
   initEditor();
   initFlash();
   initExam();
+  if (window.WorldMapStudy) WorldMapStudy.init();
 }
 
 if (document.readyState === "loading") {

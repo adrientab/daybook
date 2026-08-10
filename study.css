@@ -476,3 +476,61 @@
   .study-bar h2 { font-size: 1rem; }
   .study-bar-spacer, .study-bar-right { min-width: 60px; }
 }
+
+/* ---------- world map (study mode) ---------- */
+.worldmap-wrap {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  border-radius: 12px; overflow: hidden;
+  touch-action: none;   /* we handle pan/pinch ourselves */
+}
+.worldmap-svg { width: 100%; height: 100%; display: block; cursor: grab; }
+.worldmap-svg:active { cursor: grabbing; }
+.worldmap-ocean { fill: var(--surface); }
+.worldmap-country {
+  fill: #cfd6e4; stroke: var(--bg); stroke-width: 0.5;
+  vector-effect: non-scaling-stroke;   /* borders stay thin when zoomed */
+  transition: fill 0.12s ease;
+}
+.worldmap-country:hover { fill: #b6c0d6; }
+.worldmap-selected, .worldmap-country.worldmap-selected {
+  fill: var(--sidebar-bg);
+}
+[data-theme="dark"] .worldmap-country { fill: #3a465e; }
+[data-theme="dark"] .worldmap-country:hover { fill: #48566f; }
+
+/* ---------- world map: editor ---------- */
+.wm-editor-body { display: flex; flex-direction: column; gap: 12px; }
+.wm-hint { color: var(--muted); font-size: 0.9rem; margin: 0; }
+.wm-editor-split { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: stretch; min-height: 460px; }
+.wm-editor-map { min-height: 460px; border: 1px solid var(--border); }
+.wm-picked { border: 1px solid var(--border); border-radius: 12px; padding: 12px; overflow-y: auto; max-height: 520px; }
+.wm-picked-head { font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
+.wm-empty { color: var(--muted); font-size: 0.9rem; }
+.wm-pick-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.wm-pick-country { flex: 0 0 40%; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wm-pick-def { flex: 1; min-width: 0; padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font: inherit; font-size: 0.85rem; }
+.wm-pick-del { flex: 0 0 auto; width: 26px; height: 26px; border: none; background: none; color: var(--muted); font-size: 1.1rem; cursor: pointer; border-radius: 6px; }
+.wm-pick-del:hover { background: rgba(200,60,60,0.12); color: #d33; }
+.wm-tag { color: var(--sidebar-bg); background: rgba(91,110,154,0.14); }
+
+/* ---------- world map: quiz ---------- */
+.wm-quiz-progress { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 20px; }
+.wm-quiz-body { display: flex; flex-direction: column; gap: 12px; height: calc(100% - 120px); }
+.wm-prompt { text-align: center; font-size: 1.3rem; font-weight: 600; min-height: 1.4em; }
+.wm-quiz-map { flex: 1; min-height: 320px; border: 1px solid var(--border); }
+.wm-quiz-controls { display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 48px; }
+.wm-answer { text-align: center; font-size: 1.15rem; }
+.wm-country-note { color: var(--muted); font-size: 0.9rem; }
+.wm-selfgrade { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+.wm-hint-line { color: var(--muted); }
+.wm-result { text-align: center; font-weight: 600; }
+.wm-right { color: #16a34a; }
+.wm-wrong { color: #dc2626; }
+.wm-done { text-align: center; }
+.wm-done h3 { margin: 0 0 6px; }
+
+@media (max-width: 720px) {
+  .wm-editor-split { grid-template-columns: 1fr; }
+  .wm-editor-map, .wm-quiz-map { min-height: 300px; }
+}
