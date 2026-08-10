@@ -44,6 +44,7 @@
       interactive: opts.interactive !== false, // pan/zoom on by default
       // drag state
       dragging: false, dragMoved: false, lastX: 0, lastY: 0,
+      captured: false, pointerId: null,
       // pinch state
       pinchDist: 0
     };
@@ -146,17 +147,26 @@
         zoomAt(focal, factor);
       }, { passive: false });
 
-      // Pointer drag to pan.
+      // Pointer drag to pan. IMPORTANT: we do NOT capture the pointer on
+      // pointerdown — capturing would redirect the subsequent "click" to the
+      // <svg> and the country <path> would never receive it. We only capture
+      // once the pointer has actually moved (a real drag), and release on up.
       svg.addEventListener("pointerdown", function (e) {
         if (e.pointerType === "touch") return; // touch handled below for pinch
-        state.dragging = true; state.dragMoved = false;
+        state.dragging = true; state.dragMoved = false; state.captured = false;
+        state.pointerId = e.pointerId;
         state.lastX = e.clientX; state.lastY = e.clientY;
-        try { svg.setPointerCapture(e.pointerId); } catch (_) {}
       });
       svg.addEventListener("pointermove", function (e) {
         if (!state.dragging) return;
         const dx = e.clientX - state.lastX, dy = e.clientY - state.lastY;
-        if (Math.abs(dx) + Math.abs(dy) > 3) state.dragMoved = true;
+        if (Math.abs(dx) + Math.abs(dy) > 3) {
+          state.dragMoved = true;
+          if (!state.captured) {   // begin capturing only now that it's a real drag
+            try { svg.setPointerCapture(state.pointerId); state.captured = true; } catch (_) {}
+          }
+        }
+        if (!state.dragMoved) return;   // below threshold -> treat as a potential click, don't pan yet
         const rect = svg.getBoundingClientRect();
         const scale = Math.min(rect.width / state.vb.w, rect.height / state.vb.h);
         state.vb.x -= dx / scale; state.vb.y -= dy / scale;
@@ -164,6 +174,8 @@
         state.lastX = e.clientX; state.lastY = e.clientY;
       });
       function endDrag(e) {
+        if (state.captured) { try { svg.releasePointerCapture(state.pointerId); } catch (_) {} }
+        state.captured = false;
         state.dragging = false;
         // let the click handler see dragMoved, then reset shortly after
         setTimeout(function () { state.dragMoved = false; }, 0);
