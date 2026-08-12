@@ -162,7 +162,8 @@ function renderStudy() {
       '<div class="study-deck-actions">' +
         '<button class="btn btn-sm" data-act="edit">Edit</button>' +
         (isSpecial
-          ? '<button class="btn btn-sm" data-act="play">Study</button>'
+          ? '<button class="btn btn-sm" data-act="cards">Flashcards</button>' +
+            '<button class="btn btn-sm" data-act="exam">Exam</button>'
           : '<button class="btn btn-sm" data-act="cards">Flashcards</button>' +
             '<button class="btn btn-sm" data-act="exam">Exam</button>') +
       "</div>";
@@ -173,22 +174,27 @@ function renderStudy() {
       else if (isImg) ImageDotStudy.openEditor(d.id);
       else openEditor(d.id);
     };
-    const openThisStudy = function () {
-      if (isMap) WorldMapStudy.openQuiz(d.id);
-      else if (isImg) ImageDotStudy.openQuiz(d.id);
+    const openThisStudy = function (mode) {
+      if (isMap) WorldMapStudy.openQuiz(d.id, mode);
+      else if (isImg) ImageDotStudy.openQuiz(d.id, mode);
     };
 
     row.querySelector('[data-act="edit"]').addEventListener("click", function (e) {
       e.stopPropagation(); openThisEditor();
     });
     if (isSpecial) {
-      row.querySelector('[data-act="play"]').addEventListener("click", function (e) {
+      row.querySelector('[data-act="cards"]').addEventListener("click", function (e) {
         e.stopPropagation();
         if (!count) { alert("This deck is empty. Add some in Edit first."); return; }
-        openThisStudy();
+        openThisStudy("flashcard");
+      });
+      row.querySelector('[data-act="exam"]').addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (!count) { alert("This deck is empty. Add some in Edit first."); return; }
+        openThisStudy("exam");
       });
       row.addEventListener("click", function () {
-        if (count) openThisStudy(); else openThisEditor();
+        if (count) openThisStudy("flashcard"); else openThisEditor();
       });
       row.style.cursor = "pointer";
       list.appendChild(row);
@@ -322,7 +328,7 @@ function openEditorFromPublic(pub) {
     upsertDeck(deck);
     hideOverlay("studyExplore");
     renderStudy();
-    if (window.WorldMapStudy) WorldMapStudy.openQuiz(deck.id);
+    if (window.WorldMapStudy) WorldMapStudy.openQuiz(deck.id, "flashcard");
     return;
   }
   if (pub.type === "imagedot") {
@@ -338,7 +344,7 @@ function openEditorFromPublic(pub) {
     upsertDeck(deck);
     hideOverlay("studyExplore");
     renderStudy();
-    if (window.ImageDotStudy) ImageDotStudy.openQuiz(deck.id);
+    if (window.ImageDotStudy) ImageDotStudy.openQuiz(deck.id, "flashcard");
     return;
   }
 

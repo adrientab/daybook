@@ -568,3 +568,11 @@
 @media (max-width: 720px) {
   .img-editor-split { grid-template-columns: 1fr; }
 }
+
+/* world map / image quiz: typed-answer form */
+.wm-type-form { display: flex; gap: 8px; justify-content: center; width: 100%; max-width: 420px; }
+.wm-type-input {
+  flex: 1; min-width: 0; padding: 10px 14px; font: inherit; font-size: 1rem;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text);
+}
+.wm-type-input:focus { outline: none; border-color: var(--sidebar-bg); }
