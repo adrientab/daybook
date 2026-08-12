@@ -243,6 +243,9 @@
     const card = currentCard();
     const val = document.getElementById("wmTypeInput").value;
     const right = answersMatch(val, card.def);
+    // The country is already highlighted/zoomed; recolor it green or red.
+    wmQuiz.map.clearHighlight();
+    wmQuiz.map.highlight(card.country, right ? "right" : "wrong");
     grade(right, right ? "Correct!" :
       'You typed "' + escapeHtml(val) + '". The answer is ' + escapeHtml(card.def) + ".");
   }
@@ -251,8 +254,16 @@
     if (wmQuiz.dir !== "find" || wmQuiz.answered || !country) return;
     const card = currentCard();
     const right = (country === card.country);
-    wmQuiz.map.highlight(card.country);
-    wmQuiz.map.zoomToCountry(card.country);
+    if (right) {
+      // Correct: shade it green, leave the camera where it is.
+      wmQuiz.map.highlight(card.country, "right");
+    } else {
+      // Wrong: shade their pick red, the correct one green, and pan/zoom to
+      // the correct country so they see where it actually is.
+      wmQuiz.map.highlight(country, "wrong");
+      wmQuiz.map.highlight(card.country, "right");
+      wmQuiz.map.zoomToCountry(card.country);
+    }
     grade(right, right ? "Correct!" :
       "You picked " + escapeHtml(country) + ". This is " + escapeHtml(card.country) + ".");
   }
