@@ -496,6 +496,10 @@
 .worldmap-selected, .worldmap-country.worldmap-selected {
   fill: var(--sidebar-bg);
 }
+.worldmap-country.worldmap-right,
+.worldmap-country.worldmap-right:hover { fill: #16a34a; }
+.worldmap-country.worldmap-wrong,
+.worldmap-country.worldmap-wrong:hover { fill: #dc2626; }
 [data-theme="dark"] .worldmap-country { fill: #3a465e; }
 [data-theme="dark"] .worldmap-country:hover { fill: #48566f; }
 

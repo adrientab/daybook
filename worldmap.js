@@ -40,6 +40,7 @@
       full: { w: 2000, h: 1000 },            // data's native size
       pathsByName: {},                        // name -> <path>
       selectedName: null,
+      highlighted: [],                        // [{name, cls}] currently-highlighted paths
       onPick: opts.onPick || null,
       interactive: opts.interactive !== false, // pan/zoom on by default
       // drag state
@@ -229,15 +230,22 @@
     }
 
     /* ---- public-ish API ---- */
-    function highlight(name) {
-      clearHighlight();
+    // variant: undefined -> default blue; "right" -> green; "wrong" -> red.
+    function highlight(name, variant) {
       const p = state.pathsByName[name];
-      if (p) { p.classList.add("worldmap-selected"); state.selectedName = name; }
+      if (!p) return;
+      const cls = variant === "right" ? "worldmap-right"
+                : variant === "wrong" ? "worldmap-wrong"
+                : "worldmap-selected";
+      p.classList.add(cls);
+      state.highlighted.push({ name: name, cls: cls });
     }
     function clearHighlight() {
-      if (state.selectedName && state.pathsByName[state.selectedName]) {
-        state.pathsByName[state.selectedName].classList.remove("worldmap-selected");
-      }
+      state.highlighted.forEach(function (h) {
+        const el = state.pathsByName[h.name];
+        if (el) el.classList.remove(h.cls);
+      });
+      state.highlighted = [];
       state.selectedName = null;
     }
     function pathBBoxSvg(name) {
