@@ -112,24 +112,48 @@
     renderStudy();
   }
 
-  /* ---------------- quiz ---------------- */
-  let wmQuiz = null;   // { deckId, queue, idx, dir, correct, total, map, answered }
+  /* ---------------- quiz ----------------
+     mode: "flashcard" (infinite, wrong ones recycle sooner) | "exam" (each card
+           once, up to a set count).
+     dir:  "find"  -> show the answer text, click the country.
+           "type"  -> shade the country, type the answer text (lenient match). */
+  let wmQuiz = null;
 
-  function openWorldMapQuiz(deckId) {
+  const WM_EXAM_COUNT_KEY = "wmExamCount";
+  function wmExamCount() {
+    const v = parseInt(Store.get(WM_EXAM_COUNT_KEY), 10);
+    return (isNaN(v) || v < 1) ? 15 : v;   // default 15
+  }
+
+  function openWorldMapQuiz(deckId, mode) {
     const deck = getDeck(deckId);
     if (!deck || !deck.cards || !deck.cards.length) return;
 
+    mode = mode || "flashcard";
+    let pool = shuffle(deck.cards.slice());
+    let total;
+    if (mode === "exam") {
+      total = Math.min(wmExamCount(), pool.length);
+      pool = pool.slice(0, total);          // each of these once
+    } else {
+      total = pool.length;                   // one "lap"; flashcard mode loops forever
+    }
+
     wmQuiz = {
       deckId: deckId,
-      queue: shuffle(deck.cards.slice()),
-      idx: 0,
-      dir: "name",            // "name": shade->recall text | "find": text->click country
+      deckCards: deck.cards.slice(),
+      mode: mode,
+      dir: "find",
+      queue: pool,          // upcoming cards (a live queue in flashcard mode)
+      pos: 0,               // index into queue (exam) / running counter (flashcard)
+      total: total,         // exam: fixed; flashcard: cards per lap (for the bar)
+      seen: 0,              // how many answered
       correct: 0,
-      total: deck.cards.length,
       answered: false,
       map: null
     };
-    document.getElementById("wmQuizTitle").textContent = deck.name || "World map";
+    document.getElementById("wmQuizTitle").textContent =
+      (deck.name || "World map") + (mode === "exam" ? " — Exam" : " — Flashcards");
     showOverlay("wmQuiz");
 
     const host = document.getElementById("wmQuizMap");
@@ -142,104 +166,146 @@
 
   function updateDirButton() {
     const btn = document.getElementById("wmDirBtn");
-    if (btn) btn.textContent = wmQuiz.dir === "name" ? "Find on map" : "Name the country";
+    if (btn) btn.textContent = wmQuiz.dir === "find" ? "Type the answer" : "Click on map";
   }
 
-  function currentCard() { return wmQuiz.queue[wmQuiz.idx]; }
+  // The current card is always the head of the queue.
+  function currentCard() { return wmQuiz.queue[wmQuiz.pos]; }
+
+  function quizFinished() {
+    // Exam ends after `total` cards; flashcard mode never finishes.
+    return wmQuiz.mode === "exam" && wmQuiz.pos >= wmQuiz.total;
+  }
 
   function renderQuizCard() {
-    const card = currentCard();
     const prompt = document.getElementById("wmPrompt");
     const controls = document.getElementById("wmQuizControls");
     wmQuiz.answered = false;
-    wmQuiz.map.clearHighlight();
+    if (wmQuiz.map) wmQuiz.map.clearHighlight();
 
-    if (!card) {   // finished
+    if (quizFinished()) {
       prompt.innerHTML = "";
       document.getElementById("wmQuizMap").style.visibility = "hidden";
       controls.innerHTML =
-        '<div class="wm-done">' +
-          "<h3>Done!</h3>" +
-          "<p>You got " + wmQuiz.correct + " of " + wmQuiz.total + " right.</p>" +
-          '<button class="btn btn-primary" id="wmRestart">Study again</button>' +
-        "</div>";
+        '<div class="wm-done"><h3>Done!</h3><p>You got ' + wmQuiz.correct + " of " +
+        wmQuiz.total + ' right.</p><button class="btn btn-primary" id="wmRestart">Study again</button></div>';
       document.getElementById("wmRestart").addEventListener("click", function () {
-        wmQuiz.queue = shuffle(wmQuiz.queue); wmQuiz.idx = 0; wmQuiz.correct = 0;
-        document.getElementById("wmQuizMap").style.visibility = "";
-        renderQuizCard();
+        openWorldMapQuiz(wmQuiz.deckId, wmQuiz.mode);
       });
       updateProgress();
       return;
     }
 
-    if (wmQuiz.dir === "name") {
-      // Shade the country, ask for the answer text.
-      prompt.textContent = "What is this?";
-      wmQuiz.map.highlight(card.country);
-      wmQuiz.map.zoomToCountry(card.country);
-      controls.innerHTML =
-        '<button class="btn" id="wmReveal">Reveal answer</button>' +
-        '<div class="wm-answer" id="wmAnswer" hidden></div>';
-      document.getElementById("wmReveal").addEventListener("click", revealName);
-    } else {
-      // Show the answer text, ask them to click the country.
+    const card = currentCard();
+    document.getElementById("wmQuizMap").style.visibility = "";
+
+    if (wmQuiz.dir === "find") {
+      // Show the answer text; the user clicks the country on the map.
       prompt.textContent = "Find: " + card.def;
       wmQuiz.map.reset();
       controls.innerHTML = '<div class="wm-hint-line">Click the country on the map.</div>';
+    } else {
+      // Shade the country; the user types the answer.
+      prompt.textContent = "What's the answer for the highlighted country?";
+      wmQuiz.map.highlight(card.country);
+      wmQuiz.map.zoomToCountry(card.country);
+      controls.innerHTML =
+        '<form class="wm-type-form" id="wmTypeForm" autocomplete="off">' +
+          '<input type="text" class="wm-type-input" id="wmTypeInput" placeholder="Type your answer&hellip;" autocomplete="off">' +
+          '<button type="submit" class="btn btn-primary">Check</button>' +
+        "</form>";
+      const form = document.getElementById("wmTypeForm");
+      form.addEventListener("submit", function (e) { e.preventDefault(); checkTyped(); });
+      setTimeout(function () { document.getElementById("wmTypeInput").focus(); }, 30);
     }
     updateProgress();
   }
 
-  function revealName() {
+  /* Lenient answer matching: case/accent-insensitive, ignores punctuation,
+     spacing, and a few common filler words. */
+  function normalizeAnswer(s) {
+    return String(s || "")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")  // strip accents
+      .replace(/\b(the|city|of|st|saint|and)\b/g, " ")   // common fillers
+      .replace(/[^a-z0-9]+/g, " ")                         // punctuation -> space
+      .replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1")           // collapse spaced initials: "d c" -> "dc"
+      .trim().replace(/\s+/g, " ");
+  }
+  function answersMatch(a, b) {
+    const na = normalizeAnswer(a), nb = normalizeAnswer(b);
+    if (!na || !nb) return false;
+    return na === nb;
+  }
+
+  function checkTyped() {
     if (wmQuiz.answered) return;
-    wmQuiz.answered = true;
     const card = currentCard();
-    const box = document.getElementById("wmAnswer");
-    box.hidden = false;
-    box.innerHTML =
-      "<strong>" + escapeHtml(card.def) + "</strong>" +
-      (card.def !== card.country ? ' <span class="wm-country-note">(' + escapeHtml(card.country) + ")</span>" : "") +
-      '<div class="wm-selfgrade">' +
-        '<button class="btn" data-ok="0">Got it wrong</button>' +
-        '<button class="btn btn-primary" data-ok="1">Got it right</button>' +
-      "</div>";
-    box.querySelectorAll("[data-ok]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        if (b.dataset.ok === "1") wmQuiz.correct++;
-        advance();
-      });
-    });
+    const val = document.getElementById("wmTypeInput").value;
+    const right = answersMatch(val, card.def);
+    grade(right, right ? "Correct!" :
+      'You typed "' + escapeHtml(val) + '". The answer is ' + escapeHtml(card.def) + ".");
   }
 
   function onQuizMapPick(country) {
     if (wmQuiz.dir !== "find" || wmQuiz.answered || !country) return;
     const card = currentCard();
-    wmQuiz.answered = true;
     const right = (country === card.country);
-    if (right) wmQuiz.correct++;
-    // Show the correct country and the pick.
     wmQuiz.map.highlight(card.country);
     wmQuiz.map.zoomToCountry(card.country);
+    grade(right, right ? "Correct!" :
+      "You picked " + escapeHtml(country) + ". This is " + escapeHtml(card.country) + ".");
+  }
+
+  /* Shared: record the result, show feedback, and offer Next. */
+  function grade(right, message) {
+    if (wmQuiz.answered) return;
+    wmQuiz.answered = true;
+    wmQuiz.seen++;
+    if (right) wmQuiz.correct++;
+    const card = currentCard();
+
+    // Flashcard mode: re-queue the card. Wrong -> comes back soon; right -> later.
+    if (wmQuiz.mode === "flashcard") {
+      const q = wmQuiz.queue;
+      // remove current card from its position first
+      q.splice(wmQuiz.pos, 1);
+      const soon = 3 + Math.floor(Math.random() * 3);   // 3–5 cards later
+      const later = Math.max(8, q.length);              // ~a full lap later
+      const offset = right ? later : soon;
+      const insertAt = Math.min(q.length, wmQuiz.pos + offset);
+      q.splice(insertAt, 0, card);
+      // pos stays (next card slid into this index); clamp just in case
+      if (wmQuiz.pos >= q.length) wmQuiz.pos = 0;
+    }
+
     const controls = document.getElementById("wmQuizControls");
     controls.innerHTML =
-      '<div class="wm-result ' + (right ? "wm-right" : "wm-wrong") + '">' +
-        (right ? "Correct!" : "You picked " + escapeHtml(country) + ". This is " + escapeHtml(card.country) + ".") +
-      "</div>" +
+      '<div class="wm-result ' + (right ? "wm-right" : "wm-wrong") + '">' + message + "</div>" +
       '<button class="btn btn-primary" id="wmNext">Next</button>';
-    document.getElementById("wmNext").addEventListener("click", advance);
+    const nextBtn = document.getElementById("wmNext");
+    nextBtn.addEventListener("click", advance);
+    setTimeout(function () { nextBtn.focus(); }, 20);
   }
 
   function advance() {
-    wmQuiz.idx++;
+    if (wmQuiz.mode === "exam") wmQuiz.pos++;   // walk straight through the fixed set
+    // flashcard mode: pos stays; the queue was already reordered in grade()
     renderQuizCard();
   }
 
   function updateProgress() {
     const fill = document.getElementById("wmProgressFill");
     const label = document.getElementById("wmProgressLabel");
-    const done = Math.min(wmQuiz.idx, wmQuiz.total);
-    if (fill) fill.style.width = (wmQuiz.total ? (done / wmQuiz.total * 100) : 0) + "%";
-    if (label) label.textContent = done + " / " + wmQuiz.total;
+    if (wmQuiz.mode === "exam") {
+      const done = Math.min(wmQuiz.pos, wmQuiz.total);
+      if (fill) fill.style.width = (wmQuiz.total ? done / wmQuiz.total * 100 : 0) + "%";
+      if (label) label.textContent = done + " / " + wmQuiz.total;
+    } else {
+      // Infinite mode: show a running tally instead of a finish line.
+      if (fill) fill.style.width = "100%";
+      if (label) label.textContent = wmQuiz.correct + " correct · " + wmQuiz.seen + " seen";
+    }
   }
 
   /* ---------------- wiring ---------------- */
@@ -255,9 +321,10 @@
     if (qExit) qExit.addEventListener("click", function () { hideOverlay("wmQuiz"); });
     const dirBtn = document.getElementById("wmDirBtn");
     if (dirBtn) dirBtn.addEventListener("click", function () {
-      wmQuiz.dir = wmQuiz.dir === "name" ? "find" : "name";
+      if (!wmQuiz) return;
+      wmQuiz.dir = wmQuiz.dir === "find" ? "type" : "find";
       updateDirButton();
-      renderQuizCard();
+      renderQuizCard();   // re-render the current card in the new direction
     });
   }
 
