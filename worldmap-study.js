@@ -201,8 +201,10 @@
 
     if (wmQuiz.dir === "find") {
       // Show the answer text; the user clicks the country on the map.
+      // NOTE: we deliberately do NOT reset the camera here — after a correct
+      // answer the view should stay exactly where the user left it. (The very
+      // first card starts fully zoomed out from openWorldMapQuiz.)
       prompt.textContent = "Find: " + card.def;
-      wmQuiz.map.reset();
       controls.innerHTML = '<div class="wm-hint-line">Click the country on the map.</div>';
     } else {
       // Shade the country; the user types the answer.
@@ -264,8 +266,7 @@
       wmQuiz.map.highlight(card.country, "right");
       wmQuiz.map.zoomToCountry(card.country);
     }
-    grade(right, right ? "Correct!" :
-      "You picked " + escapeHtml(country) + ". This is " + escapeHtml(card.country) + ".");
+    grade(right, right ? "Correct!" : "You picked " + escapeHtml(country) + ".");
   }
 
   /* Shared: record the result, show feedback, and offer Next. */

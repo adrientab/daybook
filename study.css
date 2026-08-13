@@ -502,6 +502,13 @@
 .worldmap-country.worldmap-wrong:hover { fill: #dc2626; }
 [data-theme="dark"] .worldmap-country { fill: #3a465e; }
 [data-theme="dark"] .worldmap-country:hover { fill: #48566f; }
+/* Right/wrong must beat the dark-theme base fill (same specificity, so these
+   come AFTER to win the cascade). */
+[data-theme="dark"] .worldmap-country.worldmap-right,
+[data-theme="dark"] .worldmap-country.worldmap-right:hover { fill: #16a34a; }
+[data-theme="dark"] .worldmap-country.worldmap-wrong,
+[data-theme="dark"] .worldmap-country.worldmap-wrong:hover { fill: #dc2626; }
+[data-theme="dark"] .worldmap-country.worldmap-selected { fill: var(--sidebar-bg); }
 
 /* ---------- world map: editor ---------- */
 .wm-editor-body { display: flex; flex-direction: column; gap: 12px; }
