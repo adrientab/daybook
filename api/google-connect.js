@@ -28,11 +28,18 @@ async function userFromToken(token) {
 
 module.exports = async function handler(req, res) {
   try {
-    const origin = (process.env.APP_ORIGIN) ||
-      (((req.headers["x-forwarded-proto"] || "https").split(",")[0]) + "://" +
-       (req.headers["x-forwarded-host"] || req.headers["host"]));
-    const url = new URL(req.url, origin);
-    const token = url.searchParams.get("token") || "";
+    // Vercel parses query params onto req.query; fall back to manual parsing if
+    // it's ever absent. This avoids constructing a URL from req.url, which can
+    // throw "Invalid URL" depending on how the platform passes the path.
+    let token = "";
+    if (req.query && typeof req.query.token === "string") {
+      token = req.query.token;
+    } else if (typeof req.url === "string" && req.url.indexOf("token=") > -1) {
+      const q = req.url.slice(req.url.indexOf("?") + 1);
+      const params = new URLSearchParams(q);
+      token = params.get("token") || "";
+    }
+
     const user = await userFromToken(token);
     if (!user) { res.status(401).send("Not signed in."); return; }
 

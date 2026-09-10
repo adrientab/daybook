@@ -45,10 +45,15 @@ async function getUser(req) {
    redirect URI and to send the user back after connecting. */
 function appOrigin(req) {
   // Prefer an explicit env var; fall back to the request's host.
-  if (process.env.APP_ORIGIN) return process.env.APP_ORIGIN;
-  const proto = (req.headers["x-forwarded-proto"] || "https").split(",")[0];
-  const host = req.headers["x-forwarded-host"] || req.headers["host"];
-  return proto + "://" + host;
+  let o = process.env.APP_ORIGIN;
+  if (!o) {
+    const proto = (req.headers["x-forwarded-proto"] || "https").split(",")[0].trim();
+    const host = req.headers["x-forwarded-host"] || req.headers["host"] || "";
+    o = proto + "://" + host;
+  }
+  o = String(o).trim().replace(/\/+$/, "");           // no trailing slash
+  if (!/^https?:\/\//i.test(o)) o = "https://" + o;   // ensure a protocol
+  return o;
 }
 
 /* The Google OAuth redirect URI — where Google sends the user back after they
