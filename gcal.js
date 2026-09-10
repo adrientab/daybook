@@ -32,15 +32,66 @@
   const disconnectBtn = document.getElementById("gcalDisconnectBtn");
   const syncBtn = document.getElementById("gcalSyncBtn");
   const desc = document.getElementById("gcalSyncDesc");
+  const pickerRow = document.getElementById("gcalPickerRow");
+  const picker = document.getElementById("gcalPicker");
+
+  var SEL_KEY = "gcalSelectedCalendars";   // remembered locally (device preference)
+  function savedSelection() {
+    try { return JSON.parse(localStorage.getItem(SEL_KEY) || "null"); } catch (_) { return null; }
+  }
+  function saveSelection(ids) {
+    try { localStorage.setItem(SEL_KEY, JSON.stringify(ids)); } catch (_) {}
+  }
+
+  // Load the user's calendars and render checkboxes.
+  async function loadPicker() {
+    if (!picker) return;
+    try {
+      const res = await apiFetch("/api/google-calendars", { method: "GET" });
+      const j = await res.json();
+      if (!res.ok) return;
+      const cals = j.calendars || [];
+      const saved = savedSelection();
+      picker.innerHTML = "";
+      cals.forEach(function (c) {
+        // Default: everything checked the first time (no saved selection yet).
+        const checked = saved ? (saved.indexOf(c.id) > -1) : true;
+        const label = document.createElement("label");
+        label.className = "gcal-cal";
+        label.innerHTML =
+          '<input type="checkbox" value="' + escapeAttr(c.id) + '"' + (checked ? " checked" : "") + ">" +
+          "<span>" + escapeHtml(c.name) + (c.primary ? " (main)" : "") + "</span>";
+        label.querySelector("input").addEventListener("change", persistFromUI);
+        picker.appendChild(label);
+      });
+      if (pickerRow) pickerRow.hidden = cals.length === 0;
+      persistFromUI();
+    } catch (_) { /* leave hidden */ }
+  }
+  function persistFromUI() {
+    if (!picker) return;
+    const ids = Array.prototype.slice.call(picker.querySelectorAll("input:checked"))
+      .map(function (i) { return i.value; });
+    saveSelection(ids);
+  }
+  function selectedIds() {
+    const s = savedSelection();
+    return s && s.length ? s : null;   // null -> all
+  }
+  function escapeHtml(s) { return String(s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function escapeAttr(s) { return escapeHtml(s).replace(/'/g, "&#39;"); }
 
   function setConnectedUI(connected, email) {
     if (connectBtn) connectBtn.hidden = connected;
     if (disconnectBtn) disconnectBtn.hidden = !connected;
     if (syncBtn) syncBtn.hidden = !connected;
+    if (pickerRow && !connected) pickerRow.hidden = true;
     if (connected && desc) {
       desc.textContent = "Connected" + (email ? " as " + email : "") +
-        ". Click Sync to pull your Google Calendar events into Dayrant.";
+        ". Choose which calendars to sync, then click Sync now.";
     }
+    if (connected) loadPicker();
   }
 
   /* Pull events from Google (via our serverless function) and merge them into
@@ -51,19 +102,32 @@
     const original = syncBtn.textContent;
     syncBtn.disabled = true; syncBtn.textContent = "Syncing…";
     try {
-      const res = await apiFetch("/api/google-events?days=400&back=120", { method: "GET" });
+      var q = "/api/google-events?days=400&back=120";
+      var ids = selectedIds();
+      if (ids && ids.length) q += "&cals=" + ids.map(encodeURIComponent).join(",");
+      const res = await apiFetch(q, { method: "GET" });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "sync-failed");
 
       const incoming = j.events || [];
-      // A dedicated category for Google-synced events.
-      const catId = (typeof ensureCategory === "function") ? ensureCategory("Google Calendar") : undefined;
 
       const existing = (typeof getEvents === "function") ? getEvents() : [];
       // Drop all previously-synced Google events; we re-add the current set.
       const kept = existing.filter(function (e) { return !e.gcalId; });
 
+      // Cache a category id per calendar name so each Google calendar maps to
+      // its own Dayrant category (e.g. "Classes", "Exams"), like the .ics import.
+      const catCache = {};
+      function catFor(name) {
+        const key = name || "Google Calendar";
+        if (!(key in catCache)) {
+          catCache[key] = (typeof ensureCategory === "function") ? ensureCategory(key) : undefined;
+        }
+        return catCache[key];
+      }
+
       incoming.forEach(function (g) {
+        const catId = catFor(g.calendarName);
         const base = {
           title: g.title,
           date: g.date, start: g.start, end: g.end,
@@ -137,6 +201,7 @@
       } catch (_) {}
       setConnectedUI(false);
       if (syncBtn) syncBtn.hidden = true;
+      if (pickerRow) pickerRow.hidden = true;
       if (desc) desc.textContent = "Connect your Google account to sync your calendar with Dayrant. Your events become readable to enable syncing; your journal stays end-to-end encrypted.";
     });
   }
