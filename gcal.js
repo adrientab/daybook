@@ -30,17 +30,65 @@
 
   const connectBtn = document.getElementById("gcalConnectBtn");
   const disconnectBtn = document.getElementById("gcalDisconnectBtn");
+  const syncBtn = document.getElementById("gcalSyncBtn");
   const desc = document.getElementById("gcalSyncDesc");
 
   function setConnectedUI(connected, email) {
-    if (!connectBtn || !disconnectBtn) return;
-    connectBtn.hidden = connected;
-    disconnectBtn.hidden = !connected;
+    if (connectBtn) connectBtn.hidden = connected;
+    if (disconnectBtn) disconnectBtn.hidden = !connected;
+    if (syncBtn) syncBtn.hidden = !connected;
     if (connected && desc) {
       desc.textContent = "Connected" + (email ? " as " + email : "") +
-        ". Your Google Calendar is linked to Dayrant.";
+        ". Click Sync to pull your Google Calendar events into Dayrant.";
     }
   }
+
+  /* Pull events from Google (via our serverless function) and merge them into
+     Dayrant. Previously-synced Google events are matched by their Google id and
+     REPLACED, so re-syncing updates rather than duplicates. */
+  async function syncNow() {
+    if (!syncBtn) return;
+    const original = syncBtn.textContent;
+    syncBtn.disabled = true; syncBtn.textContent = "Syncing…";
+    try {
+      const res = await apiFetch("/api/google-events?days=400&back=120", { method: "GET" });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "sync-failed");
+
+      const incoming = j.events || [];
+      // A dedicated category for Google-synced events.
+      const catId = (typeof ensureCategory === "function") ? ensureCategory("Google Calendar") : undefined;
+
+      const existing = (typeof getEvents === "function") ? getEvents() : [];
+      // Drop all previously-synced Google events; we re-add the current set.
+      const kept = existing.filter(function (e) { return !e.gcalId; });
+
+      incoming.forEach(function (g) {
+        kept.push({
+          id: (typeof uid === "function") ? uid("evt") : ("evt-" + g.gcalId),
+          gcalId: g.gcalId,          // marks it as Google-synced + enables replace-on-resync
+          title: g.title,
+          date: g.date, start: g.start, end: g.end,
+          category: catId,
+          subcategory: "",
+          notes: g.notes || "",
+          feel: null,
+          imported: true
+        });
+      });
+      if (typeof saveEvents === "function") saveEvents(kept);
+      if (typeof renderCalendar === "function") renderCalendar();
+
+      if (desc) desc.textContent = "Synced " + incoming.length + " event" +
+        (incoming.length === 1 ? "" : "s") + " from Google Calendar just now.";
+    } catch (e) {
+      alert("Couldn't sync from Google. " + (e && e.message === "not-connected"
+        ? "Please reconnect your Google account." : "Please try again."));
+    } finally {
+      syncBtn.disabled = false; syncBtn.textContent = original;
+    }
+  }
+  if (syncBtn) syncBtn.addEventListener("click", syncNow);
 
   // Check current status on load.
   async function refreshStatus() {
@@ -69,6 +117,7 @@
         await apiFetch("/api/google-status", { method: "DELETE" });
       } catch (_) {}
       setConnectedUI(false);
+      if (syncBtn) syncBtn.hidden = true;
       if (desc) desc.textContent = "Connect your Google account to sync your calendar with Dayrant. Your events become readable to enable syncing; your journal stays end-to-end encrypted.";
     });
   }
