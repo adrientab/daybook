@@ -460,6 +460,18 @@
             </div>
 
             <div class="set-row">
+              <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/><path d="M16 14l-4 4-2-2"/></svg></div>
+              <div class="set-body">
+                <div class="set-title">Google Calendar sync</div>
+                <p class="set-desc" id="gcalSyncDesc">Connect your Google account to sync your calendar with Dayrant. Your events become readable to enable syncing; your journal stays end-to-end encrypted.</p>
+              </div>
+              <div class="set-control">
+                <button id="gcalConnectBtn" class="btn">Connect</button>
+                <button id="gcalDisconnectBtn" class="btn" hidden>Disconnect</button>
+              </div>
+            </div>
+
+            <div class="set-row">
               <div class="set-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/><path d="M9 16l2 2 4-4"/></svg></div>
               <div class="set-body">
                 <div class="set-title">Import from Google Calendar</div>
@@ -1054,6 +1066,7 @@
   <script src="auth.js"></script>
   <script src="crypto.js"></script>
   <script src="boot.js"></script>
+  <script src="gcal.js"></script>
   <script src="navbar.js"></script>
 </body>
 </html>
