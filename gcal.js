@@ -64,17 +64,30 @@
       const kept = existing.filter(function (e) { return !e.gcalId; });
 
       incoming.forEach(function (g) {
-        kept.push({
-          id: (typeof uid === "function") ? uid("evt") : ("evt-" + g.gcalId),
-          gcalId: g.gcalId,          // marks it as Google-synced + enables replace-on-resync
+        const base = {
           title: g.title,
           date: g.date, start: g.start, end: g.end,
           category: catId,
           subcategory: "",
           notes: g.notes || "",
           feel: null,
-          imported: true
-        });
+          imported: true,
+          gcalId: g.gcalId          // marks it Google-synced; enables replace-on-resync
+        };
+
+        if (g.repeat && typeof expandSeries === "function") {
+          // Recurring: expand into a Dayrant series (shared seriesId + repeat
+          // rule on each instance), so it behaves like a native repeating event.
+          const series = expandSeries(base, g.repeat);
+          series.forEach(function (inst) {
+            inst.gcalId = g.gcalId;   // whole series shares the Google id
+            kept.push(inst);
+          });
+        } else {
+          kept.push(Object.assign({
+            id: (typeof uid === "function") ? uid("evt") : ("evt-" + g.gcalId)
+          }, base));
+        }
       });
       if (typeof saveEvents === "function") saveEvents(kept);
       if (typeof renderCalendar === "function") renderCalendar();
