@@ -56,7 +56,22 @@ async function validAccessToken(admin, userId) {
    We do NOT set singleEvents, so recurring events come back as a single item
    with their recurrence RRULE (Dayrant has its own repeat system, so we map the
    rule rather than expanding into many one-off events). Follows pagination. */
-async function fetchEvents(accessToken, timeMin, timeMax) {
+
+/* List all calendars the user has access to (their own + subscribed). */
+async function listCalendars(accessToken) {
+  const res = await fetch(
+    "https://www.googleapis.com/calendar/v3/users/me/calendarList?maxResults=250",
+    { headers: { Authorization: "Bearer " + accessToken } }
+  );
+  const j = await res.json();
+  if (!res.ok) throw new Error((j.error && j.error.message) || "calendar list failed");
+  return (j.items || []).map(function (c) {
+    return { id: c.id, name: c.summary || c.summaryOverride || "Calendar", primary: !!c.primary };
+  });
+}
+
+/* Fetch events from ONE calendar within [timeMin, timeMax], with pagination. */
+async function fetchOneCalendar(accessToken, calendarId, timeMin, timeMax) {
   const out = [];
   let pageToken = null;
   let guard = 0;
@@ -69,16 +84,37 @@ async function fetchEvents(accessToken, timeMin, timeMax) {
     });
     if (pageToken) params.set("pageToken", pageToken);
     const res = await fetch(
-      "https://www.googleapis.com/calendar/v3/calendars/primary/events?" + params.toString(),
+      "https://www.googleapis.com/calendar/v3/calendars/" +
+        encodeURIComponent(calendarId) + "/events?" + params.toString(),
       { headers: { Authorization: "Bearer " + accessToken } }
     );
     const j = await res.json();
-    if (!res.ok) throw new Error((j.error && j.error.message) || "calendar fetch failed");
+    if (!res.ok) {
+      // Skip a calendar we can't read rather than failing the whole sync.
+      break;
+    }
     (j.items || []).forEach(function (it) { out.push(it); });
     pageToken = j.nextPageToken || null;
     guard++;
   } while (pageToken && guard < 20);
   return out;
+}
+
+/* Fetch events across the chosen calendars (or all, if none specified).
+   Returns a flat list where each event carries the name of the calendar it
+   came from (for categorizing). */
+async function fetchEvents(accessToken, timeMin, timeMax, onlyIds) {
+  const calendars = await listCalendars(accessToken);
+  const wanted = (onlyIds && onlyIds.length)
+    ? calendars.filter(function (c) { return onlyIds.indexOf(c.id) > -1; })
+    : calendars;
+  const all = [];
+  for (const cal of wanted) {
+    const items = await fetchOneCalendar(accessToken, cal.id, timeMin, timeMax);
+    items.forEach(function (it) { it.__calendarName = cal.name; });
+    all.push.apply(all, items);
+  }
+  return all;
 }
 
 // iCal BYDAY codes -> JS getDay() (0=Sun).
@@ -147,6 +183,7 @@ function toDayrant(gEvent) {
 
   return {
     gcalId: gEvent.id,
+    calendarName: gEvent.__calendarName || null,   // which Google calendar it came from
     title: gEvent.summary || "(untitled)",
     date: date, start: start, end: end,
     notes: notes,
@@ -170,7 +207,14 @@ module.exports = async function handler(req, res) {
     const timeMin = new Date(Date.now() - back * 86400000).toISOString();
     const timeMax = new Date(Date.now() + days * 86400000).toISOString();
 
-    const raw = await fetchEvents(accessToken, timeMin, timeMax);
+    // Optional: which calendars to sync (comma-separated ids). None -> all.
+    let onlyIds = null;
+    const cals = req.query && req.query.cals;
+    if (cals && typeof cals === "string") {
+      onlyIds = cals.split(",").map(function (s) { return decodeURIComponent(s.trim()); }).filter(Boolean);
+    }
+
+    const raw = await fetchEvents(accessToken, timeMin, timeMax, onlyIds);
     const events = raw.map(toDayrant).filter(Boolean);
     res.status(200).json({ events: events, count: events.length });
   } catch (e) {

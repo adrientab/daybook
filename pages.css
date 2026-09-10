@@ -335,3 +335,8 @@
   padding-bottom: 4px;
   border-bottom: 2px solid var(--border);
 }
+
+/* Google Calendar sync — calendar picker checklist */
+.gcal-picker { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.gcal-cal { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--text); cursor: pointer; }
+.gcal-cal input { flex: 0 0 auto; width: 16px; height: 16px; cursor: pointer; }
