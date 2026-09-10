@@ -31,10 +31,18 @@ module.exports = async function handler(req, res) {
   };
 
   try {
-    const url = new URL(req.url, origin);
-    const code = url.searchParams.get("code");
-    const state = url.searchParams.get("state") || "";
-    const err = url.searchParams.get("error");
+    // Read the OAuth params from req.query (Vercel-parsed), with a manual
+    // fallback — avoids constructing a URL from req.url.
+    function param(name) {
+      if (req.query && typeof req.query[name] === "string") return req.query[name];
+      if (typeof req.url === "string" && req.url.indexOf("?") > -1) {
+        return new URLSearchParams(req.url.slice(req.url.indexOf("?") + 1)).get(name);
+      }
+      return null;
+    }
+    const code = param("code");
+    const state = param("state") || "";
+    const err = param("error");
     if (err) { back("denied"); return; }              // user clicked "cancel"
     if (!code || !state) { back("error"); return; }
 
