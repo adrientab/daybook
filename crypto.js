@@ -202,9 +202,23 @@ const Vault = {
 };
 
 /* ============================================================
-   encrypted(backend) — wraps any backend so values are encrypted on the
-   way out and decrypted on the way in. Because it has the same two
-   methods, the rest of the app can't tell the difference.
+   Which keys hold PRIVATE journal content that must stay end-to-end
+   encrypted. Everything else (events, todos, goals, categories, study decks)
+   is stored as readable plaintext so it can sync with external services like
+   Google Calendar. Journal entries never leave the device readable.
+   ============================================================ */
+function isEncryptedKey(key) {
+  if (typeof key !== "string") return false;
+  return key === "rants"                // the journal/rant stream
+      || key.indexOf("daily-") === 0    // evening journal entries (daily-YYYY-MM-DD)
+      || key.indexOf("morning-") === 0; // morning journal entries
+}
+
+/* ============================================================
+   encrypted(backend) — wraps any backend so PRIVATE (journal) values are
+   encrypted on the way out and decrypted on the way in. Non-private values
+   pass straight through as plaintext. Same two methods, so the rest of the
+   app can't tell the difference.
    ============================================================ */
 function encrypted(inner) {
   return {
@@ -215,6 +229,8 @@ function encrypted(inner) {
         const keys = Object.keys(raw).filter(function (k) { return k !== KEY_BUNDLE_KEY; });
         const out = {};
         return Promise.all(keys.map(function (k) {
+          // Only journal keys are ciphertext; everything else is plaintext.
+          if (!isEncryptedKey(k)) { out[k] = raw[k]; return Promise.resolve(); }
           return Vault.decrypt(raw[k])
             .then(function (plain) { out[k] = plain; })
             .catch(function () {
@@ -227,7 +243,8 @@ function encrypted(inner) {
 
     saveMany: function (changes) {
       return Promise.all(changes.map(function (c) {
-        if (c.value === null) return Promise.resolve(c);   // deletes need no key
+        if (c.value === null) return Promise.resolve(c);        // deletes need no key
+        if (!isEncryptedKey(c.key)) return Promise.resolve(c);  // plaintext, store as-is
         return Vault.encrypt(c.value).then(function (ct) {
           return { key: c.key, value: ct };
         });
