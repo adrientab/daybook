@@ -1,0 +1,9 @@
+{
+  "name": "dayrant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dayrant — serverless API dependencies (the front-end is plain static files).",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}
