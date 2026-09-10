@@ -95,8 +95,14 @@
       if (desc) desc.textContent = "Synced " + incoming.length + " event" +
         (incoming.length === 1 ? "" : "s") + " from Google Calendar just now.";
     } catch (e) {
-      alert("Couldn't sync from Google. " + (e && e.message === "not-connected"
-        ? "Please reconnect your Google account." : "Please try again."));
+      var msg = (e && e.message) || "";
+      if (msg === "not-connected") {
+        alert("Couldn't sync: your Google account isn't connected (or the connection expired). Please reconnect.");
+      } else {
+        // Show the real reason so problems are diagnosable instead of generic.
+        alert("Couldn't sync from Google.\n\n" + (msg || "Unknown error") +
+          "\n\nIf this persists, check the Vercel function logs for /api/google-events.");
+      }
     } finally {
       syncBtn.disabled = false; syncBtn.textContent = original;
     }
