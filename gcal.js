@@ -9,6 +9,40 @@
 (function () {
   "use strict";
 
+  function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+  // Format a Date in the browser's LOCAL timezone (this is the whole point of
+  // doing it here rather than on the UTC server).
+  function fmtLocalDate(d) { return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+  function fmtLocalTime(d) { return pad2(d.getHours()) + ":" + pad2(d.getMinutes()); }
+
+  // Map a Google RRULE array to Dayrant's repeat shape, using the LOCAL start
+  // weekday so a weekly event lands on the right day for the user's timezone.
+  var DOW_MAP = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
+  function parseRecurrenceLocal(recurrence, startDate) {
+    if (!Array.isArray(recurrence)) return null;
+    var rruleStr = null;
+    for (var i = 0; i < recurrence.length; i++) {
+      if (recurrence[i].indexOf("RRULE:") === 0) { rruleStr = recurrence[i]; break; }
+    }
+    if (!rruleStr) return null;
+    var rule = {};
+    rruleStr.slice(6).split(";").forEach(function (part) {
+      var eq = part.indexOf("=");
+      if (eq > -1) rule[part.slice(0, eq).toUpperCase()] = part.slice(eq + 1);
+    });
+    var freq = rule.FREQ, interval = Math.max(1, parseInt(rule.INTERVAL || "1", 10));
+    if (freq === "WEEKLY") {
+      var byday = (rule.BYDAY || "").split(",")
+        .map(function (c) { return DOW_MAP[c.trim().toUpperCase()]; })
+        .filter(function (x) { return x != null; });
+      var days = byday.length ? byday : (startDate ? [startDate.getDay()] : []);
+      if (interval > 1) return { mode: "everyN", step: 7 * interval };
+      return { mode: "weekdays", days: days };
+    }
+    if (freq === "DAILY") return { mode: "everyN", step: interval };
+    return null;   // monthly/yearly/unsupported -> single event
+  }
+
   // Get the current Supabase access token to authenticate API calls.
   async function accessToken() {
     try {
@@ -128,25 +162,39 @@
 
       incoming.forEach(function (g) {
         const catId = catFor(g.calendarName);
+
+        // Format the raw Google timestamp in the BROWSER's local timezone, so
+        // times line up with what the user sees in Google Calendar.
+        var date, start, end, startObj;
+        if (g.allDay) {
+          date = g.startDate;                 // already YYYY-MM-DD
+          start = "00:00"; end = "23:59";
+          startObj = new Date(g.startDate + "T00:00:00");
+        } else {
+          var sd = new Date(g.startDateTime);      // local interpretation
+          var ed = new Date(g.endDateTime || g.startDateTime);
+          startObj = sd;
+          date = fmtLocalDate(sd);
+          start = fmtLocalTime(sd);
+          end = fmtLocalTime(ed);
+          if (fmtLocalDate(ed) !== date) end = "23:59";
+        }
+
         const base = {
           title: g.title,
-          date: g.date, start: g.start, end: g.end,
+          date: date, start: start, end: end,
           category: catId,
           subcategory: "",
           notes: g.notes || "",
           feel: null,
           imported: true,
-          gcalId: g.gcalId          // marks it Google-synced; enables replace-on-resync
+          gcalId: g.gcalId
         };
 
-        if (g.repeat && typeof expandSeries === "function") {
-          // Recurring: expand into a Dayrant series (shared seriesId + repeat
-          // rule on each instance), so it behaves like a native repeating event.
-          const series = expandSeries(base, g.repeat);
-          series.forEach(function (inst) {
-            inst.gcalId = g.gcalId;   // whole series shares the Google id
-            kept.push(inst);
-          });
+        const repeat = parseRecurrenceLocal(g.recurrence, startObj);
+        if (repeat && typeof expandSeries === "function") {
+          const series = expandSeries(base, repeat);
+          series.forEach(function (inst) { inst.gcalId = g.gcalId; kept.push(inst); });
         } else {
           kept.push(Object.assign({
             id: (typeof uid === "function") ? uid("evt") : ("evt-" + g.gcalId)

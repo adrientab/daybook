@@ -117,39 +117,7 @@ async function fetchEvents(accessToken, timeMin, timeMax, onlyIds) {
   return all;
 }
 
-// iCal BYDAY codes -> JS getDay() (0=Sun).
-const DOW = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
 
-/* Parse a Google RECURRENCE array (e.g. ["RRULE:FREQ=WEEKLY;BYDAY=TU,TH"]) into
-   Dayrant's repeat shape: {mode:"weekdays", days:[...]} or {mode:"everyN", step}.
-   Returns null if there's no usable rule (treated as a single event). */
-function parseRecurrence(recurrence, startDate) {
-  if (!Array.isArray(recurrence)) return null;
-  const rruleStr = recurrence.find(function (r) { return r.indexOf("RRULE:") === 0; });
-  if (!rruleStr) return null;
-  const rule = {};
-  rruleStr.slice(6).split(";").forEach(function (part) {
-    const eq = part.indexOf("=");
-    if (eq > -1) rule[part.slice(0, eq).toUpperCase()] = part.slice(eq + 1);
-  });
-  const freq = rule.FREQ;
-  const interval = Math.max(1, parseInt(rule.INTERVAL || "1", 10));
-
-  if (freq === "WEEKLY") {
-    const byday = (rule.BYDAY || "").split(",")
-      .map(function (c) { return DOW[c.trim().toUpperCase()]; })
-      .filter(function (x) { return x != null; });
-    const days = byday.length ? byday : (startDate ? [startDate.getDay()] : []);
-    return { mode: "weekdays", days: days };
-  }
-  if (freq === "DAILY") {
-    return { mode: "everyN", step: interval };
-  }
-  // WEEKLY with interval>1, MONTHLY, YEARLY: approximate as every-N-days so it
-  // still recurs sensibly in Dayrant. (Dayrant's model is day-based.)
-  if (freq === "WEEKLY") return { mode: "everyN", step: 7 * interval };
-  return null;   // unsupported -> single event
-}
 
 /* Convert one Google event to a Dayrant-shaped record. Adds `repeat` (Dayrant
    format) when the Google event recurs, so the front end can expand it as a
@@ -158,36 +126,26 @@ function toDayrant(gEvent) {
   if (gEvent.status === "cancelled") return null;
   const s = gEvent.start || {}, e = gEvent.end || {};
   const allDay = !!s.date && !s.dateTime;
-  const pad = function (n) { return n < 10 ? "0" + n : "" + n; };
-  const fmtDate = function (d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
-  const fmtTime = function (d) { return pad(d.getHours()) + ":" + pad(d.getMinutes()); };
-
-  let date, start, end, startObj;
-  if (allDay) {
-    date = s.date; start = "00:00"; end = "23:59";
-    startObj = new Date(s.date + "T00:00:00");
-  } else {
-    const sd = new Date(s.dateTime);
-    const ed = new Date(e.dateTime || s.dateTime);
-    startObj = sd;
-    date = fmtDate(sd);
-    start = fmtTime(sd);
-    end = fmtTime(ed);
-    if (fmtDate(ed) !== date) end = "23:59";
-  }
 
   const notes = [gEvent.description, gEvent.location ? "Location: " + gEvent.location : ""]
     .filter(Boolean).join("\n\n");
 
-  const repeat = parseRecurrence(gEvent.recurrence, startObj);
-
+  // IMPORTANT: do NOT convert times here. This runs on Vercel in UTC, so using
+  // getHours()/getDate() would shift every event by the UTC offset. Instead we
+  // pass the raw values through and let the BROWSER (which knows the user's real
+  // timezone) format them. For recurrence we still need the start weekday, which
+  // we compute from the raw dateTime in the front end too.
   return {
     gcalId: gEvent.id,
-    calendarName: gEvent.__calendarName || null,   // which Google calendar it came from
+    calendarName: gEvent.__calendarName || null,
     title: gEvent.summary || "(untitled)",
-    date: date, start: start, end: end,
+    allDay: allDay,
+    // All-day: a plain YYYY-MM-DD. Timed: full ISO strings with offset.
+    startDate: allDay ? s.date : null,
+    startDateTime: allDay ? null : s.dateTime,
+    endDateTime: allDay ? null : (e.dateTime || s.dateTime),
+    recurrence: gEvent.recurrence || null,   // raw RRULE array; parsed in the browser
     notes: notes,
-    repeat: repeat,             // null, or {mode, days/step} in Dayrant format
     updated: gEvent.updated || null
   };
 }
