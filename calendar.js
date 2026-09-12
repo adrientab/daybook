@@ -1438,6 +1438,17 @@ function openCategories() {
   renderCatList();
   catOverlay.classList.add("open");
 }
+/* Re-derive evenly-spread shades of the parent colour for every subcategory
+   that hasn't been manually recoloured (autoColor stays true until the user
+   picks a colour for that sub). */
+function reshadeSubs(cat) {
+  if (!cat || !Array.isArray(cat.subs)) return;
+  const autos = cat.subs.filter(function (s) { return s.autoColor !== false; });
+  autos.forEach(function (s, i) {
+    s.color = shadeOf(cat.color, i, autos.length);
+    s.autoColor = true;
+  });
+}
 function renderCatList() {
   const list = document.getElementById("catList");
   list.innerHTML = "";
@@ -1484,7 +1495,12 @@ function renderCatList() {
       readCatInputs();
       const cat = catDraft[Number(b.dataset.i)];
       if (!Array.isArray(cat.subs)) cat.subs = [];
-      cat.subs.push({ id: uid("sub"), name: "", color: cat.color });
+      // Give the new subcategory a distinct shade of the parent colour.
+      const existingCount = cat.subs.length;
+      cat.subs.push({ id: uid("sub"), name: "", color: shadeOf(cat.color, existingCount, existingCount + 1) });
+      // Re-shade the whole set so they stay evenly spread as the count grows,
+      // but keep any the user has explicitly customized.
+      reshadeSubs(cat);
       renderCatList();
       // Focus the new subcategory input.
       const inputs = document.querySelectorAll('.cat-sub-name[data-i="' + b.dataset.i + '"]');
@@ -1496,6 +1512,22 @@ function renderCatList() {
     b.addEventListener("click", function () {
       readCatInputs();
       catDraft[Number(b.dataset.i)].subs.splice(Number(b.dataset.si), 1);
+      renderCatList();
+    });
+  });
+  // Manually picking a subcategory colour marks it "touched" so reshading won't
+  // overwrite it.
+  list.querySelectorAll(".cat-sub-color").forEach(function (inp) {
+    inp.addEventListener("input", function () { inp.dataset.touched = "1"; });
+  });
+  // Changing the parent colour re-derives shades for the auto-coloured subs live.
+  list.querySelectorAll(".cat-color").forEach(function (inp) {
+    inp.addEventListener("input", function () {
+      const cat = catDraft[Number(inp.dataset.i)];
+      if (!cat) return;
+      readCatInputs();
+      cat.color = inp.value;
+      reshadeSubs(cat);
       renderCatList();
     });
   });
@@ -1514,11 +1546,16 @@ function readCatInputs() {
       cat.subs[Number(inp.dataset.si)].name = inp.value.trim();
     }
   });
-  // Read each subcategory's own colour.
+  // Read each subcategory's own colour. A value here means the user set it,
+  // so mark it manual (autoColor:false) — reshading won't override it.
   list.querySelectorAll(".cat-sub-color").forEach(function (inp) {
     const cat = catDraft[Number(inp.dataset.i)];
     if (cat && cat.subs && cat.subs[Number(inp.dataset.si)]) {
-      cat.subs[Number(inp.dataset.si)].color = inp.value;
+      const sub = cat.subs[Number(inp.dataset.si)];
+      // Only flag as manual if the value actually differs from its auto shade
+      // (reading inputs on every save shouldn't lock in the auto colour).
+      if (inp.dataset.touched === "1") { sub.color = inp.value; sub.autoColor = false; }
+      else if (!sub.color) { sub.color = inp.value; }
     }
   });
 }

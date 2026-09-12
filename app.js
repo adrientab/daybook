@@ -330,6 +330,65 @@ function eventColor(catId, subId) {
   return categoryColor(catId);
 }
 
+/* Derive a distinct shade of a base hex colour for subcategory `index` of
+   `total`, by spreading them across a lightness range around the base. Keeps
+   the same hue/saturation so shades read as a family. */
+function shadeOf(baseHex, index, total) {
+  const rgb = hexToRgb(baseHex);
+  if (!rgb) return baseHex;
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  // Spread lightness from ~ -22% to +22% around the base, evenly by index.
+  const span = 0.44;
+  const step = total > 1 ? (index / (total - 1)) : 0.5;   // 0..1
+  let l = hsl.l + (step - 0.5) * span;
+  l = Math.max(0.22, Math.min(0.82, l));                   // keep it visible
+  const out = hslToRgb(hsl.h, hsl.s, l);
+  return rgbToHex(out.r, out.g, out.b);
+}
+
+function hexToRgb(hex) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex).trim());
+  if (!m) return null;
+  return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) };
+}
+function rgbToHex(r, g, b) {
+  const h = function (n) { const s = Math.round(n).toString(16); return s.length === 1 ? "0" + s : s; };
+  return "#" + h(r) + h(g) + h(b);
+}
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0; const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  return { h: h, s: s, l: l };
+}
+function hslToRgb(h, s, l) {
+  let r, g, b;
+  if (s === 0) { r = g = b = l; }
+  else {
+    const hue2rgb = function (p, q, t) {
+      if (t < 0) t += 1; if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1 / 3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1 / 3);
+  }
+  return { r: r * 255, g: g * 255, b: b * 255 };
+}
+
 /* Colour-code by the chosen category: keep a small sliver on the select,
    and frame the whole modal it lives in with the category's colour. */
 function paintCategorySelect(sel) {
