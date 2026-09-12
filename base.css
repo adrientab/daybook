@@ -179,8 +179,8 @@ h2 { margin-top: 0; }
 .btn:hover { background: #f0f1f3; }
 .btn-primary { background: var(--sidebar-bg); border-color: var(--sidebar-bg); color: #fff; }
 .btn-primary:hover { background: #4c5d82; }
-.btn-danger { background: #fee2e2; border-color: #fecaca; color: #b91c1c; }
-.btn-danger:hover { background: #fecaca; }
+.btn-danger { background: #fbcfcf; border-color: #f4a9a9; color: #a01212; }
+.btn-danger:hover { background: #f4a9a9; }
 
 /* ---- Journal ---- */
 #date { color: var(--muted); margin-top: 0; margin-bottom: 20px; }
