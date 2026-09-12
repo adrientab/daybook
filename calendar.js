@@ -810,6 +810,13 @@ function openModal(data) {
   document.getElementById("repeatToggle").style.display = (!editingId || isSeries) ? "" : "none";
   document.getElementById("repeatToggle").hidden = false;   // show the "+ Repeat" toggle again
   document.getElementById("repeatField").hidden = true;     // collapse the panel
+  // The "apply to all in series" checkbox only applies when editing a recurring
+  // event; hidden otherwise, and always defaults to off (just this event).
+  var applyRow = document.getElementById("applySeriesRow");
+  if (applyRow) {
+    applyRow.hidden = !isSeries;
+    document.getElementById("applyToSeries").checked = false;
+  }
   if (!editingId) {
     resetRepeat();
   } else if (isSeries) {
@@ -1052,12 +1059,15 @@ function handleSave() {
   if (editingId) {
     const cur = events.find(function (e) { return e.id === editingId; });
     if (cur && cur.seriesId) {
-      // Recurring: ask whether to change just this occurrence or the whole
-      // series. Stash the new field values + the (possibly changed) repeat rule.
-      pendingEdit = { id: editingId, seriesId: cur.seriesId, date: cur.date,
-                      fields: fields, repeat: readRepeat() };
-      overlay.classList.remove("open");
-      document.getElementById("recurEditOverlay").classList.add("open");
+      // Recurring: the checkbox decides scope — checked = whole series, else
+      // just this occurrence. No extra popup.
+      const applyAll = document.getElementById("applyToSeries").checked;
+      const edit = { id: editingId, seriesId: cur.seriesId, date: cur.date,
+                     fields: fields, repeat: readRepeat() };
+      if (applyAll) applyEditAll(edit);
+      else applyEditThisOnly(edit);
+      closeModal();
+      renderCalendar();
       return;
     }
     // Non-recurring: update this single event.
@@ -1078,64 +1088,40 @@ function handleSave() {
   renderCalendar();
 }
 
-/* ---- Recurring edit scope ---- */
-let pendingEdit = null;
-
-/* "Only this event": update just this occurrence and detach it from the series
-   so future series-wide edits don't overwrite it. */
-function editThisOnly() {
-  if (!pendingEdit) return;
-  const p = pendingEdit;
+/* Update just this occurrence and detach it from the series so future
+   series-wide edits don't overwrite it. */
+function applyEditThisOnly(p) {
   const events = getEvents().map(function (e) {
     if (e.id !== p.id) return e;
-    // Detach: drop seriesId/repeat so it's now a standalone event.
     const updated = Object.assign({}, e, p.fields);
     delete updated.seriesId;
     delete updated.repeat;
     return updated;
   });
   saveEvents(events);
-  finishRecurEdit();
 }
 
-/* "All events": apply the field changes to every event in the series. If the
-   repeat rule changed, regenerate the series from this occurrence's date. */
-function editAll() {
-  if (!pendingEdit) return;
-  const p = pendingEdit;
+/* Apply the field changes to every event in the series. If the repeat rule
+   changed, rebuild the series from this occurrence's date with the new rule. */
+function applyEditAll(p) {
   const all = getEvents();
   const cur = all.find(function (e) { return e.id === p.id; });
   const oldRepeat = cur && cur.repeat ? cur.repeat : { mode: "none" };
   const repeatChanged = JSON.stringify(oldRepeat) !== JSON.stringify(p.repeat);
 
   if (!repeatChanged) {
-    // Same cadence: just apply the field changes to every event in the series,
-    // preserving each one's own date (so times/title/category update in place).
-    const timeShift = null;
     const events = all.map(function (e) {
       if (e.seriesId !== p.seriesId) return e;
-      // Keep each occurrence's own date; update everything else from fields.
-      const merged = Object.assign({}, e, p.fields, { date: e.date });
-      return merged;
+      return Object.assign({}, e, p.fields, { date: e.date }); // keep each date
     });
     saveEvents(events);
   } else {
-    // Cadence changed: remove the old series and rebuild it fresh from the
-    // edited occurrence's date with the new rule + new field values.
     const without = all.filter(function (e) { return e.seriesId !== p.seriesId; });
     const rebuilt = (p.repeat.mode !== "none")
       ? expandSeries(p.fields, p.repeat)
       : [Object.assign({ id: uid("evt") }, p.fields)];
     saveEvents(without.concat(rebuilt));
   }
-  finishRecurEdit();
-}
-
-function finishRecurEdit() {
-  pendingEdit = null;
-  document.getElementById("recurEditOverlay").classList.remove("open");
-  closeModal();
-  renderCalendar();
 }
 
 /* Create one event per occurrence from the start date up to the horizon,
@@ -1882,13 +1868,6 @@ document.addEventListener("click", function (e) {
 /* Recurring-delete prompt */
 document.getElementById("delThisOnly").addEventListener("click", deleteThisOnly);
 document.getElementById("delThisFuture").addEventListener("click", deleteThisAndFuture);
-document.getElementById("editThisOnly").addEventListener("click", editThisOnly);
-document.getElementById("editAllEvents").addEventListener("click", editAll);
-document.getElementById("editCancel").addEventListener("click", function () {
-  pendingEdit = null;
-  document.getElementById("recurEditOverlay").classList.remove("open");
-  closeModal();
-});
 document.getElementById("delCancel").addEventListener("click", function () {
   document.getElementById("recurDeleteOverlay").classList.remove("open");
   pendingDelete = null;

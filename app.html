@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daybook</title>
+  <title>Dayrant</title>
   <script>
     // Apply the theme before the page paints so there's no flash. If the user
     // has chosen one it wins; otherwise follow the OS / browser preference.
@@ -38,7 +38,7 @@
       </div>
 
       <div class="auth-body">
-        <h1 class="auth-brand">Daybook</h1>
+        <h1 class="auth-brand">Dayrant</h1>
         <p class="auth-sub" id="authSub">Your week, and how it actually felt.</p>
 
         <!-- Panel 1: sign in / create account -->
@@ -113,7 +113,7 @@
     <!-- ===== SIDEBAR ===== -->
     <nav class="sidebar" id="sidebar">
       <div class="sidebar-head">
-        <h1>Daybook</h1>
+        <h1>Dayrant</h1>
         <button id="sidebarToggle" class="sidebar-toggle" title="Collapse">&lsaquo;</button>
       </div>
       <button class="nav-item active" data-view="schedule">
@@ -612,6 +612,10 @@
         <span class="spacer"></span>
         <button id="saveEvent" class="btn btn-primary">Save</button>
       </div>
+      <label class="apply-series-row" id="applySeriesRow" hidden>
+        <input type="checkbox" id="applyToSeries">
+        <span>Apply changes to all events in this series</span>
+      </label>
     </div>
   </div>
 
@@ -677,18 +681,6 @@
         <button id="delThisOnly" class="btn">This event only</button>
         <button id="delThisFuture" class="btn btn-danger">This and all future events</button>
         <button id="delCancel" class="btn">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="recurEditOverlay">
-    <div class="modal">
-      <h3>Edit recurring event</h3>
-      <p class="hint">This event repeats. Apply your changes to&hellip;</p>
-      <div class="modal-actions stack">
-        <button id="editThisOnly" class="btn">This event only</button>
-        <button id="editAllEvents" class="btn btn-primary">All events in the series</button>
-        <button id="editCancel" class="btn">Cancel</button>
       </div>
     </div>
   </div>
