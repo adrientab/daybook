@@ -456,6 +456,11 @@ body.hide-sidebar .sidebar { display: none; }
 .cat-subs { margin: 0 0 0 52px; display: flex; flex-direction: column; gap: 6px; }
 .cat-sub-row { display: flex; align-items: center; gap: 8px; }
 .cat-sub-bullet { width: 8px; height: 8px; border-radius: 999px; flex: 0 0 auto; }
+/* Subcategory colour picker — a compact swatch, smaller than the category one. */
+.cat-sub-color {
+  width: 30px; height: 26px; padding: 2px; flex: 0 0 auto;
+  border: 1px solid var(--border); border-radius: 6px; background: #fff; cursor: pointer;
+}
 .cat-sub-name {
   flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid var(--border);
   border-radius: 6px; font: inherit; font-size: 0.9rem; background: var(--surface); color: var(--text);
