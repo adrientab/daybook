@@ -820,6 +820,9 @@ function openModal(data) {
   document.getElementById("deleteEvent").style.display = editingId ? "inline-block" : "none";
   resetModalPosition();
   overlay.classList.add("open");
+  requestAnimationFrame(function () {
+    if (typeof autoGrow === "function") autoGrow(document.getElementById("evtNotes"));
+  });
   autoCatTitle = null;      // fresh auto-category tracking per open
   positionBesideSlot(data.avoidRect);   // open beside the clicked slot, if any
   updateEventPreview();     // show it on the grid straight away

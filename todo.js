@@ -349,7 +349,7 @@ function openTodo(id, presetDate) {
 
   document.getElementById("todoTitle").value = t ? t.title : "";
   document.getElementById("todoDue").value = t ? t.due : (presetDate || dateKey(new Date()));
-  document.getElementById("todoTime").value = t ? (t.dueTime || "") : "";
+  document.getElementById("todoTime").value = t ? (t.dueTime || "") : "23:59";
   document.getElementById("todoNotes").value = t ? (t.notes || "") : "";
   if (typeof autoGrow === "function") autoGrow(document.getElementById("todoNotes"));
   document.getElementById("todoEst").value = (t && t.estHours != null) ? t.estHours : "";
@@ -371,6 +371,11 @@ function openTodo(id, presetDate) {
   document.getElementById("todoDoneField").style.display = t ? "flex" : "none";
 
   todoOverlay.classList.add("open");
+  // Size the notes box AFTER the modal is visible — measuring scrollHeight while
+  // it's still hidden collapses it to one line. rAF waits for layout.
+  requestAnimationFrame(function () {
+    if (typeof autoGrow === "function") autoGrow(document.getElementById("todoNotes"));
+  });
   document.getElementById("todoTitle").focus();
 }
 
