@@ -112,6 +112,9 @@ function openGoal(goalId) {
 
   document.getElementById("deleteGoal").style.display = g ? "inline-block" : "none";
   goalOverlay.classList.add("open");
+  requestAnimationFrame(function () {
+    if (typeof autoGrow === "function") autoGrow(document.getElementById("goalNotes"));
+  });
   document.getElementById("goalTitle").focus();
 }
 

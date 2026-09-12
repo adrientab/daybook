@@ -490,3 +490,11 @@ a:focus-visible, .btn:focus-visible {
   .feature-copy h2 { font-size: 1.6rem; }
   .feature-copy--center h2 { font-size: 1.8rem; }
 }
+
+/* Demo button in the nav — outline style, distinct from the filled Get started. */
+.nav-cta-demo {
+  background: transparent;
+  color: var(--deep) !important;
+  border: 1px solid var(--deep);
+}
+.nav-cta-demo:hover { background: rgba(0,0,0,0.04); }
