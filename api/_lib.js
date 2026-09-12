@@ -66,6 +66,8 @@ function redirectUri(req) {
 const GOOGLE_SCOPES = [
   // Read/write calendar events. Phase 2 uses the read side; Phase 3 the write.
   "https://www.googleapis.com/auth/calendar.events",
+  // Read the user's list of calendars (needed to let them pick which to sync).
+  "https://www.googleapis.com/auth/calendar.readonly",
   // Lets us show which Google account is connected.
   "https://www.googleapis.com/auth/userinfo.email"
 ];
