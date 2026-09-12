@@ -320,6 +320,15 @@ function subcategoryName(catId, subId) {
   const s = getSubcategories(catId).find(function (x) { return x.id === subId; });
   return s ? s.name : "";
 }
+/* The colour to paint an event: the subcategory's own colour when it has one,
+   otherwise the parent category's colour. */
+function eventColor(catId, subId) {
+  if (subId) {
+    const s = getSubcategories(catId).find(function (x) { return x.id === subId; });
+    if (s && s.color) return s.color;
+  }
+  return categoryColor(catId);
+}
 
 /* Colour-code by the chosen category: keep a small sliver on the select,
    and frame the whole modal it lives in with the category's colour. */

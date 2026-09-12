@@ -308,7 +308,7 @@ function buildEventBlock(ev, left, width) {
   block.style.height = ((endMin - startMin) / 60 * HOUR_HEIGHT) + "px";
   block.style.left = "calc(" + (left * 100) + "% + 1px)";
   block.style.width = "calc(" + (width * 100) + "% - 2px)";
-  block.style.background = categoryColor(ev.category);
+  block.style.background = eventColor(ev.category, ev.subcategory);
 
   // Figure out how many title lines fit, so the title can clamp with an
   // ellipsis ("Wake up…") instead of clipping a line through its middle.
@@ -1448,9 +1448,11 @@ function renderCatList() {
 
     let subsHtml = '<div class="cat-subs">';
     c.subs.forEach(function (s, si) {
+      // Each subcategory can have its own color; default to the parent's.
+      const subColor = s.color || c.color;
       subsHtml +=
         '<div class="cat-sub-row">' +
-          '<span class="cat-sub-bullet" style="background:' + c.color + '"></span>' +
+          '<input type="color" class="cat-sub-color" data-i="' + i + '" data-si="' + si + '" value="' + subColor + '">' +
           '<input type="text" class="cat-sub-name" data-i="' + i + '" data-si="' + si + '" value="' + escapeHtml(s.name) + '" placeholder="Subcategory">' +
           '<button type="button" class="cat-sub-del" data-i="' + i + '" data-si="' + si + '" title="Remove" aria-label="Remove subcategory">&times;</button>' +
         "</div>";
@@ -1482,7 +1484,7 @@ function renderCatList() {
       readCatInputs();
       const cat = catDraft[Number(b.dataset.i)];
       if (!Array.isArray(cat.subs)) cat.subs = [];
-      cat.subs.push({ id: uid("sub"), name: "" });
+      cat.subs.push({ id: uid("sub"), name: "", color: cat.color });
       renderCatList();
       // Focus the new subcategory input.
       const inputs = document.querySelectorAll('.cat-sub-name[data-i="' + b.dataset.i + '"]');
@@ -1495,15 +1497,6 @@ function renderCatList() {
       readCatInputs();
       catDraft[Number(b.dataset.i)].subs.splice(Number(b.dataset.si), 1);
       renderCatList();
-    });
-  });
-  // Live-update the subcategory bullet colour if the category colour changes.
-  list.querySelectorAll(".cat-color").forEach(function (inp) {
-    inp.addEventListener("input", function () {
-      const block = inp.closest(".cat-block");
-      block.querySelectorAll(".cat-sub-bullet").forEach(function (dot) {
-        dot.style.background = inp.value;
-      });
     });
   });
 }
@@ -1519,6 +1512,13 @@ function readCatInputs() {
     const cat = catDraft[Number(inp.dataset.i)];
     if (cat && cat.subs && cat.subs[Number(inp.dataset.si)]) {
       cat.subs[Number(inp.dataset.si)].name = inp.value.trim();
+    }
+  });
+  // Read each subcategory's own colour.
+  list.querySelectorAll(".cat-sub-color").forEach(function (inp) {
+    const cat = catDraft[Number(inp.dataset.i)];
+    if (cat && cat.subs && cat.subs[Number(inp.dataset.si)]) {
+      cat.subs[Number(inp.dataset.si)].color = inp.value;
     }
   });
 }
