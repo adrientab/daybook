@@ -15,8 +15,8 @@
    set the project up.
    ============================================================ */
 
-const SUPABASE_URL = "https://pasaatxeylzrycsqkddu.supabase.co";   // e.g. https://abcdefgh.supabase.co
-const SUPABASE_KEY = "sb_publishable_oGgUHoKG7wVoMpXgcfA8dQ_3KuE2m4b";
+const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";   // e.g. https://abcdefgh.supabase.co
+const SUPABASE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
 
 /* ---- Optional demo account ----
    Fill these in and a "Try the demo" button appears on the login screen, so
@@ -27,7 +27,7 @@ const SUPABASE_KEY = "sb_publishable_oGgUHoKG7wVoMpXgcfA8dQ_3KuE2m4b";
    the point of a demo login, but it means everyone shares one account and can
    see and edit the same data. Put nothing private in it, and never reuse this
    for your own account. Leave blank to hide the button. */
-const DEMO_EMAIL = "";      // e.g. "demo@daybook.app"
+const DEMO_EMAIL = "";      // e.g. "demo@dayrant.app"
 const DEMO_PASSWORD = "";
 
 /* ---- Email shortcuts ----

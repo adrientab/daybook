@@ -1,5 +1,5 @@
 /* ============================================================
-   ical-import.js — parse Google Calendar .ics exports into Daybook
+   ical-import.js — parse Google Calendar .ics exports into Dayrant
    events (and a category per calendar).
 
    Google's export (from Settings > Import/Export, or Takeout) is a .zip of one
@@ -8,7 +8,7 @@
        the previous line),
      - read each VEVENT's SUMMARY/DESCRIPTION/LOCATION/DTSTART/DTEND,
      - turn the calendar name (X-WR-CALNAME) into a category,
-     - expand simple WEEKLY recurrences onto Daybook's own "weekdays" repeat,
+     - expand simple WEEKLY recurrences onto Dayrant's own "weekdays" repeat,
      - convert UTC / TZID / all-day times into the app's local date + HH:MM.
 
    Output: { events:[...appShape], categoryName, warnings:[...] }.
@@ -150,7 +150,7 @@
       }
     });
 
-    /* Turn one accumulated VEVENT into 1+ Daybook events. */
+    /* Turn one accumulated VEVENT into 1+ Dayrant events. */
     function finishEvent(ev) {
       if (!ev.dtstart) { return; } // no start -> skip silently
       if (ev.status === "CANCELLED") return;
@@ -171,7 +171,7 @@
       };
 
       if (ev.rrule && ev.rrule.FREQ === "WEEKLY") {
-        // Map to Daybook's weekly repeat: which weekdays, bounded by UNTIL/horizon.
+        // Map to Dayrant's weekly repeat: which weekdays, bounded by UNTIL/horizon.
         const byday = (ev.rrule.BYDAY || "").split(",").map(function (c) { return DOW[c.trim().toUpperCase()]; }).filter(function (x) { return x != null; });
         const days = byday.length ? byday : [start.getDay()];
         const until = ev.rrule.UNTIL ? parseDT(ev.rrule.UNTIL, {}) : null;
@@ -213,5 +213,5 @@
     return { events: events, categoryName: calName, warnings: warnings };
   }
 
-  global.DaybookICS = { parseICS: parseICS, _unfold: unfold, _parseDT: parseDT };
+  global.DayrantICS = { parseICS: parseICS, _unfold: unfold, _parseDT: parseDT };
 })(typeof window !== "undefined" ? window : globalThis);

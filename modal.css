@@ -1,6 +1,6 @@
 /* ============================================================
    MODALS — event modal, docked panel, daily-journal modal, categories editor
-   Part of Daybook's styles — split from the original styles.css.
+   Part of Dayrant's styles — split from the original styles.css.
    Load ORDER matters (cascade): see the <link> order in app.html.
    ============================================================ */
 
@@ -485,3 +485,10 @@ body.hide-sidebar .sidebar { display: none; }
 
 /* Stacked action buttons (used by the recurring-delete prompt) */
 .modal-actions.stack { flex-direction: column; align-items: stretch; }
+
+/* "Apply to all events in this series" checkbox under the event save row. */
+.apply-series-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 10px; font-size: 0.85rem; color: var(--muted); cursor: pointer;
+}
+.apply-series-row input { width: 15px; height: 15px; cursor: pointer; flex: 0 0 auto; }

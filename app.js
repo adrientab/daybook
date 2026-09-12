@@ -634,13 +634,13 @@ function exportData() {
     const raw = Store.get(k);
     try { data[k] = JSON.parse(raw); } catch (e) { data[k] = raw; }
   });
-  const payload = { app: "Daybook", version: 1, exportedAt: new Date().toISOString(), data: data };
+  const payload = { app: "Dayrant", version: 1, exportedAt: new Date().toISOString(), data: data };
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "daybook-backup-" + dateKey(new Date()) + ".json";
+  a.download = "dayrant-backup-" + dateKey(new Date()) + ".json";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -657,7 +657,7 @@ function importData(file) {
 
     const data = payload && payload.data;
     if (!data || typeof data !== "object") {
-      alert("This file doesn't look like a Daybook backup.");
+      alert("This file doesn't look like a Dayrant backup.");
       return;
     }
     if (!confirm("Importing replaces your current data with this backup. Continue?")) return;
@@ -686,7 +686,7 @@ if (importBtn && importFile) {
 }
 
 /* ---- Import from Google Calendar (.ics) --------------------------------
-   Reads the chosen .ics file(s), parses each with DaybookICS, turns each
+   Reads the chosen .ics file(s), parses each with DayrantICS, turns each
    calendar into a category, and adds the events. All client-side. */
 const gcalBtn = document.getElementById("gcalImportBtn");
 const gcalFile = document.getElementById("gcalImportFile");
@@ -724,7 +724,7 @@ function ensureCategory(name) {
 }
 
 async function importGoogleCalendar(files) {
-  if (!window.DaybookICS) { alert("Import module not loaded. Please refresh and try again."); return; }
+  if (!window.DayrantICS) { alert("Import module not loaded. Please refresh and try again."); return; }
   let totalEvents = 0;
   const calendars = [];
   const allWarnings = [];
@@ -737,7 +737,7 @@ async function importGoogleCalendar(files) {
         continue;
       }
       const text = await readFileText(file);
-      const res = DaybookICS.parseICS(text, { horizonDays: 365 });
+      const res = DayrantICS.parseICS(text, { horizonDays: 365 });
       if (!res.events.length) continue;
 
       const catName = (res.categoryName || file.name.replace(/\.ics$/i, "")).trim() || "Imported";
