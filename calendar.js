@@ -807,7 +807,9 @@ function openModal(data) {
   // the series' current rule so the user can change how often it repeats.
   const editingEv = editingId ? getEvents().find(function (e) { return e.id === editingId; }) : null;
   const isSeries = !!(editingEv && editingEv.seriesId && editingEv.repeat);
-  document.getElementById("repeatToggle").style.display = (!editingId || isSeries) ? "" : "none";
+  // Repeat controls are always available: new events, existing series (to change
+  // the rule), AND plain single events (to turn them into a series).
+  document.getElementById("repeatToggle").style.display = "";
   document.getElementById("repeatToggle").hidden = false;   // show the "+ Repeat" toggle again
   document.getElementById("repeatField").hidden = true;     // collapse the panel
   // The "apply to all in series" checkbox only applies when editing a recurring
@@ -1070,10 +1072,19 @@ function handleSave() {
       renderCalendar();
       return;
     }
-    // Non-recurring: update this single event.
-    events = events.map(function (e) {
-      return e.id === editingId ? Object.assign({}, e, fields) : e;
-    });
+    // Non-recurring event being edited.
+    const newRepeat = readRepeat();
+    if (newRepeat.mode !== "none") {
+      // The user added a repeat to a previously single event -> turn it into a
+      // series: drop this one event and expand a fresh series from its date.
+      events = events.filter(function (e) { return e.id !== editingId; });
+      events = events.concat(expandSeries(fields, newRepeat));
+    } else {
+      // Still a single event: update in place.
+      events = events.map(function (e) {
+        return e.id === editingId ? Object.assign({}, e, fields) : e;
+      });
+    }
   } else {
     const repeat = readRepeat();
     if (repeat.mode !== "none") {

@@ -114,8 +114,11 @@ function buildTodoCard(t) {
   card.className = "todo-card todo-card--" + todoKind(t) + (t.done ? " done" : "");
   // Expose the category colour as a variable so the deadline's solid bar and the
   // task's dashed stripe both pick it up.
-  card.style.setProperty("--cat-color", categoryColor(todoCategoryOf(t)));
-  card.style.borderLeftColor = categoryColor(todoCategoryOf(t));
+  const tdColor = (typeof eventColor === "function")
+    ? eventColor(todoCategoryOf(t), t.subcategory)
+    : categoryColor(todoCategoryOf(t));
+  card.style.setProperty("--cat-color", tdColor);
+  card.style.borderLeftColor = tdColor;
 
   const cb = document.createElement("input");
   cb.type = "checkbox";
@@ -229,7 +232,7 @@ function toggleTodo(id, done) {
 /* Category as colour chips (same as the schedule modal). The chosen id lives
    in the row's data-value; readTodoCategory() reads it. When locked to a
    linked deadline's category, the chips are shown disabled. */
-function populateTodoCategories(selectedId, locked) {
+function populateTodoCategories(selectedId, locked, selectedSub) {
   const wrap = document.getElementById("todoCategory");
   const cats = getCategories();
   let chosen = cats.some(function (c) { return c.id === selectedId; })
@@ -253,14 +256,64 @@ function populateTodoCategories(selectedId, locked) {
       wrap.querySelectorAll(".cat-chip").forEach(function (b) {
         b.classList.toggle("selected", b === chip);
       });
+      renderTodoSubcategoryChips(c.id, "");   // reset subs for the new category
     };
     wrap.appendChild(chip);
+  });
+
+  // Show subcategories for the initially-chosen category.
+  renderTodoSubcategoryChips(chosen, selectedSub || "");
+}
+
+/* Subcategory chips for the to-do modal (mirrors the schedule modal). Only
+   shown when the chosen category has subcategories; a "None" chip keeps it
+   optional. */
+function renderTodoSubcategoryChips(catId, selectedSub) {
+  const wrap = document.getElementById("todoSubWrap");
+  const row = document.getElementById("todoSubcategory");
+  if (!wrap || !row) return;
+  const subs = getSubcategories(catId);
+
+  if (!subs.length) {
+    wrap.hidden = true;
+    row.dataset.value = "";
+    row.innerHTML = "";
+    return;
+  }
+  wrap.hidden = false;
+  const chosen = subs.some(function (s) { return s.id === selectedSub; }) ? selectedSub : "";
+  row.dataset.value = chosen;
+  row.innerHTML = "";
+
+  const options = [{ id: "", name: "None" }].concat(subs);
+  options.forEach(function (s) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "subchip" + (s.id === chosen ? " selected" : "");
+    chip.dataset.id = s.id;
+    chip.setAttribute("role", "radio");
+    chip.setAttribute("aria-checked", s.id === chosen ? "true" : "false");
+    chip.textContent = s.name;
+    chip.onclick = function () {
+      row.dataset.value = s.id;
+      row.querySelectorAll(".subchip").forEach(function (b) {
+        const on = b === chip;
+        b.classList.toggle("selected", on);
+        b.setAttribute("aria-checked", on ? "true" : "false");
+      });
+    };
+    row.appendChild(chip);
   });
 }
 
 /* Read the chosen category id — replaces the old select.value. */
 function readTodoCategory() {
   return document.getElementById("todoCategory").dataset.value || "";
+}
+/* Read the chosen subcategory id ("" if none). */
+function readTodoSubcategory() {
+  const row = document.getElementById("todoSubcategory");
+  return row ? (row.dataset.value || "") : "";
 }
 
 /* ---- "Part of" typeahead ----
@@ -325,7 +378,8 @@ function applyLinkLock() {
     : null;
   const locked = !!parent && todoKindValue === "do";
 
-  populateTodoCategories(locked ? parent.category : readTodoCategory(), locked);
+  populateTodoCategories(locked ? parent.category : readTodoCategory(), locked,
+    locked ? parent.subcategory : readTodoSubcategory());
   note.hidden = !locked;
 }
 
@@ -353,7 +407,7 @@ function openTodo(id, presetDate) {
   document.getElementById("todoNotes").value = t ? (t.notes || "") : "";
   if (typeof autoGrow === "function") autoGrow(document.getElementById("todoNotes"));
   document.getElementById("todoEst").value = (t && t.estHours != null) ? t.estHours : "";
-  populateTodoCategories(t ? t.category : (getCategories()[0] && getCategories()[0].id));
+  populateTodoCategories(t ? t.category : (getCategories()[0] && getCategories()[0].id), false, t ? t.subcategory : "");
 
   // Restore the link (blank if its deadline was deleted), then the type —
   // setTodoKind applies the category lock once both are known.
@@ -419,6 +473,9 @@ function saveTodo() {
     ? (getTodos().find(function (x) { return x.id === linkedTo; }) || {}).category
     : null;
   const category = parentCat || readTodoCategory();
+  // Subcategory is only meaningful for the chosen category; when locked to a
+  // parent deadline we don't force one.
+  const subcategory = parentCat ? "" : readTodoSubcategory();
 
   if (!title) { alert("Give your to-do a title."); return; }
   if (!due) { alert(isDo ? "Pick a day to plan it for." : "Pick a due date."); return; }
@@ -430,7 +487,7 @@ function saveTodo() {
       return t.id === editingTodoId
         ? Object.assign({}, t, {
             title: title, kind: kind, due: due, dueTime: dueTime, linkedTo: linkedTo,
-            notes: notes, estHours: estHours, category: category, done: done
+            notes: notes, estHours: estHours, category: category, subcategory: subcategory, done: done
           })
         : t;
     });
@@ -438,7 +495,7 @@ function saveTodo() {
     todos.push({
       id: uid("todo"), title: title, kind: kind, due: due, dueTime: dueTime,
       linkedTo: linkedTo, notes: notes, estHours: estHours, category: category,
-      done: false, created: Date.now()
+      subcategory: subcategory, done: false, created: Date.now()
     });
   }
   saveTodos(todos);

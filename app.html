@@ -802,6 +802,11 @@
 
       <!-- Category as colour chips -->
       <div class="chip-row" id="todoCategory" role="radiogroup" aria-label="Category"></div>
+      <!-- Subcategory chips: only shown when the chosen category has subs -->
+      <div class="subchip-wrap" id="todoSubWrap" hidden>
+        <span class="subchip-label">Subcategory</span>
+        <div class="chip-row subchip-row" id="todoSubcategory" role="radiogroup" aria-label="Subcategory"></div>
+      </div>
       <p class="hint" id="todoCatNote" hidden>Locked to match its deadline.</p>
 
       <!-- Estimated hours: compact inline -->
