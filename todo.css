@@ -212,3 +212,12 @@
 .todo-card.done .todo-meta { color: var(--border); }
 
 /* Goal card: linked category line */
+
+/* Drag-and-drop to reschedule a to-do to another day. */
+.todo-card { cursor: grab; }
+.todo-card.td-dragging { opacity: 0.5; cursor: grabbing; }
+.todo-col.td-drop {
+  background: color-mix(in srgb, var(--sidebar-bg) 14%, transparent);
+  outline: 2px dashed var(--sidebar-bg);
+  outline-offset: -3px;
+}

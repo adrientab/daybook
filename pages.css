@@ -340,3 +340,48 @@
 .gcal-picker { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .gcal-cal { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--text); cursor: pointer; }
 .gcal-cal input { flex: 0 0 auto; width: 16px; height: 16px; cursor: pointer; }
+
+/* ============================================================
+   Settings v2 — compact, two-column, with a collapsible Account panel.
+   ============================================================ */
+.settings-v2 { max-width: 1100px; margin: 0 auto; }
+
+/* Two responsive columns: Preferences + Google side by side, stacking on narrow. */
+.settings-cols {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start;
+}
+@media (max-width: 820px) { .settings-cols { grid-template-columns: 1fr; } }
+
+/* A panel = a titled card grouping related rows. */
+.settings-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 6px 16px 10px; margin-bottom: 16px;
+}
+.settings-panel-title {
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted); margin: 12px 0 4px;
+}
+
+/* Compact rows: no icon column, tighter padding, control right-aligned. */
+.set-row--compact {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.settings-panel .set-row--compact:last-child { border-bottom: none; }
+.set-row--compact .set-body { flex: 1; min-width: 0; }
+.set-row--compact .set-title { font-size: 0.95rem; font-weight: 600; margin: 0 0 2px; }
+.set-row--compact .set-desc { font-size: 0.82rem; color: var(--muted); margin: 0; line-height: 1.35; }
+.set-row--compact .set-control { flex: 0 0 auto; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.set-row--compact .inline-select { min-width: 120px; }
+
+/* Collapsible Account & security panel. */
+.settings-expander { padding: 0 16px; }
+.settings-expander-head {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  background: none; border: none; cursor: pointer; padding: 14px 0; font: inherit; color: inherit;
+}
+.settings-expander-head .settings-panel-title { margin: 0; }
+.settings-expander-chevron { width: 18px; height: 18px; color: var(--muted); transition: transform 0.18s ease; }
+.settings-expander-head.open .settings-expander-chevron { transform: rotate(180deg); }
+.settings-expander-body { padding-bottom: 10px; }
+.settings-expander-body .set-row--compact:first-child { border-top: 1px solid var(--border); }
