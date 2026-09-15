@@ -97,6 +97,25 @@ function renderTodos() {
 
     col.appendChild(body);
 
+    // Drop target: dragging a to-do here changes its due date to this day.
+    col.addEventListener("dragover", function (e) {
+      e.preventDefault();                 // allow the drop
+      e.dataTransfer.dropEffect = "move";
+      col.classList.add("td-drop");
+    });
+    col.addEventListener("dragleave", function (e) {
+      // Only clear when the pointer actually leaves the column (not its children).
+      if (!col.contains(e.relatedTarget)) col.classList.remove("td-drop");
+    });
+    col.addEventListener("drop", function (e) {
+      e.preventDefault();
+      col.classList.remove("td-drop");
+      let id = "";
+      try { id = e.dataTransfer.getData("text/plain"); } catch (_) {}
+      if (!id) id = window.__tdDragId || "";
+      if (id) moveTodoToDay(id, ds);
+    });
+
     // Click anywhere in the day that isn't a task -> new to-do prefilled to this day.
     col.addEventListener("click", function (e) {
       if (e.target.closest(".todo-card")) return; // let task clicks open that task
@@ -107,6 +126,19 @@ function renderTodos() {
   });
 
   if (typeof refreshSuggest === "function") refreshSuggest();
+}
+
+/* Move a to-do to a new day (used by drag-and-drop on the board). No-op if it's
+   already on that day. */
+function moveTodoToDay(id, newDate) {
+  const todos = getTodos();
+  const t = todos.find(function (x) { return x.id === id; });
+  if (!t || t.due === newDate) return;
+  const updated = todos.map(function (x) {
+    return x.id === id ? Object.assign({}, x, { due: newDate }) : x;
+  });
+  saveTodos(updated);
+  renderTodos();
 }
 
 function buildTodoCard(t) {
@@ -178,6 +210,20 @@ function buildTodoCard(t) {
   card.appendChild(cb);
   card.appendChild(main);
   card.addEventListener("click", function () { openTodo(t.id); });
+
+  // Drag to move a to-do to another day (like dragging events on the schedule).
+  card.draggable = true;
+  card.addEventListener("dragstart", function (e) {
+    card.classList.add("td-dragging");
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", t.id); } catch (_) {}
+    window.__tdDragId = t.id;   // fallback since dataTransfer can be unreadable mid-drag
+  });
+  card.addEventListener("dragend", function () {
+    card.classList.remove("td-dragging");
+    window.__tdDragId = null;
+    document.querySelectorAll(".todo-col.td-drop").forEach(function (c) { c.classList.remove("td-drop"); });
+  });
   return card;
 }
 

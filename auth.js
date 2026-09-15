@@ -396,17 +396,24 @@ document.getElementById("unlockPassword").addEventListener("keydown", function (
 /* ---- Settings: reveal the recovery key ---- */
 const showRecoveryBtn = document.getElementById("showRecoveryBtn");
 if (showRecoveryBtn) {
+  let recoveryShown = false;
   showRecoveryBtn.addEventListener("click", function () {
+    const out = document.getElementById("recoveryOut");
+    if (recoveryShown) {
+      // Hide — no page reload, just collapse it back.
+      out.hidden = true;
+      out.textContent = "";
+      showRecoveryBtn.textContent = "Show";
+      recoveryShown = false;
+      return;
+    }
     Vault.recoveryKey().then(function (key) {
-      const out = document.getElementById("recoveryOut");
-      if (!key) { out.textContent = "No key loaded."; out.hidden = false; return; }
-      out.textContent = key;
+      out.textContent = key || "No key loaded.";
       out.hidden = false;
-      showRecoveryBtn.textContent = "Hide";
-      showRecoveryBtn.onclick = function () {
-        out.hidden = true;
-        location.reload();   // simplest way back to the original button state
-      };
+      if (key) {
+        showRecoveryBtn.textContent = "Hide";
+        recoveryShown = true;
+      }
     });
   });
 }

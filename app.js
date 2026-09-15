@@ -489,6 +489,20 @@ onAppReady(function () { applyCollapsed(Store.get("sidebarCollapsed") === "1"); 
    button's label in sync with whatever theme is active. */
 const themeToggle = document.getElementById("themeToggle");
 
+// Account & security expander (collapsed by default).
+(function () {
+  const btn = document.getElementById("accountExpanderBtn");
+  const body = document.getElementById("accountExpanderBody");
+  if (btn && body) {
+    btn.addEventListener("click", function () {
+      const open = body.hidden;
+      body.hidden = !open;
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.classList.toggle("open", open);
+    });
+  }
+})();
+
 function currentTheme() {
   return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
 }

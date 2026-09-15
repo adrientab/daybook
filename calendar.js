@@ -117,7 +117,7 @@ function renderCalendar() {
       untimed.slice(0, 5).forEach(function (t) {
         const line = document.createElement("div");
         line.className = "cal-todo-line" + (t.done ? " done" : "");
-        line.style.background = categoryColor(todoCat(t));
+        line.style.background = eventColor(todoCat(t), t.subcategory);
         line.title = t.title + " (no time set)";
         line.addEventListener("click", function () {
           if (typeof openTodo === "function") openTodo(t.id);
@@ -263,7 +263,7 @@ function buildTodoMarker(group) {
   group.forEach(function (t) {
     const dot = document.createElement("span");
     dot.className = "cal-todo-dot" + (t.done ? " done" : "");
-    dot.style.background = categoryColor(todoCat(t));
+    dot.style.background = eventColor(todoCat(t), t.subcategory);
     dot.title = t.dueTime + " \u2014 " + t.title;
     dot.addEventListener("click", function (e) {
       e.stopPropagation();
@@ -279,7 +279,7 @@ function buildTodoMarker(group) {
   const last = group.reduce(function (a, b) {
     return timeToMinutes(a.dueTime) >= timeToMinutes(b.dueTime) ? a : b;
   });
-  rule.style.background = categoryColor(todoCat(last));
+  rule.style.background = eventColor(todoCat(last), last.subcategory);
   rule.addEventListener("click", function (e) {
     e.stopPropagation();
     if (typeof openTodo === "function") openTodo(last.id);
